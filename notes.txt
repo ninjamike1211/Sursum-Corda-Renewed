@@ -1,0 +1,7 @@
+Do TAA after the lighting, before post effects
+You take the color you'd get originally and calculate outscattering for it (how much it fades away), then you add the inscattering from the fog
+BRDF Reference: http://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
+But e.g. there's lambert, disney diffuse, hammon, oren-nayar, etc.
+For specular the most basic one is probably cook torrance, which itself is based on 3 semi-customizable functions
+Customizable as in you can pick from multiple different options if you want, the three are fresnel (F), distribution (D) and geometry (G)
+Most people just go with Schlick for fresnel, GGX for distribution and Schlick GGX for geometry

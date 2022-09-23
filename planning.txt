@@ -1,0 +1,26 @@
+RGBA16F     colortex0:  rgba: main color
+RG32UI      colortex1:  r: texture normals, g: geometry normals
+RGB8        colortex2:  rgb: albedo
+RGB10_A2    colortex3:  rg: lmcoord, b: 1=hand
+RGBA8       colortex4:  rgba: specular
+R32F        colortex5:  r: water depth
+RG16_SNORM  colortex6:  rg: velocity
+RGB16F      colortex7:  rgb: deferred output
+RG8         colortex8:  r: pom offset, g: pom shadow (if self shadowing)
+RGBA8       colortex9:  rgb: ssao, rgba: shadow water caustics texture
+RGB16F      colortex10: rgb: sky
+RGB16F      colortex11: rgb: bloom
+RGBA8       colortex12: r: previous mood, g: velocity, b: accumulator, a: smoothed shadow multiplier from mood
+RGBA8       colortex13: rgba: lens flare texture
+R16F        colortex14: r: auto exposure
+RGBA16F     colortex15: rgba: history buffer
+
+To do list:
+Add waving grass/leaves/etc
+Fix/change flowing water
+Either find credits for atmosphere or recreate
+Fix/tweak volumetric fog
+Fix water volumetric fog
+Fix direct/ambient light values in overworld
+Fix SSR circle artifact when close to reflector
+Fix NaN's on startup
