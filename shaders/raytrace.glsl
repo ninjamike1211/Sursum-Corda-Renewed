@@ -41,6 +41,11 @@ bool raytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, out vec3 r
     rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.99 / (stepCount+jitter));
     // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
 
+    // Thanks Bálint#1673 for the fix which prevents ssr errors in close range
+    if (rayDir.z > 0.0) rayDir.z = min(rayDir.z, viewPos.z - EPS);
+    // if (rayDir.z > 0.0 && rayDir.z >= -viewPos.z)
+    //     return false;
+
     bool intersect = false;
     // Our intersection isn't found by default
 
