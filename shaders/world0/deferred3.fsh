@@ -105,7 +105,8 @@ void main() {
             }
 
             SSAOOut = vec4(occlusion, 1.0);
-
+        #else
+            SSAOOut = vec4(1.0);
         #endif
         // #ifdef SSAO
         //     SSAOOut = vec4(mix(calcSSAO(normalToView(normalGeometry), viewPos, texcoord, viewWidth, viewHeight, depthtex0, colortex2, noisetex, gbufferProjectionInverse), vec3(1.0), emissiveness), 1.0);
