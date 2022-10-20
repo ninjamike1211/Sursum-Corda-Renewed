@@ -347,7 +347,7 @@ void main() {
 		#else
 			waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
 		#endif
-		specMap = vec4(1.0, 0.05, 0.0, 0.0);
+		specMap = vec4(1.0, 0.02, 0.0, 0.0);
 
 	}
 	#endif
