@@ -51,6 +51,8 @@ void main() {
         vec3 normalGeometry = NormalDecode(normalRaw.y);
 
         SSAOOut = vec4(mix(calcSSAO(normalToView(normalGeometry), viewPos, texcoord, depthtex0, noisetex), vec3(1.0), 0.0), 1.0);
+    #else
+        SSAOOut = vec4(1.0);
     #endif
 
     // #ifdef SSAO

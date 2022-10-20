@@ -25,6 +25,7 @@ void main() {
         }
 
         SSAOOut = vec4(occlusion, 1.0);
-
+    #else
+        SSAOOut = vec4(1.0);
     #endif
 }
