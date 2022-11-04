@@ -124,7 +124,7 @@ void main() {
                 reflectColor = texture2D(colortex0, rayPos.xy).rgb;
                 // reflectColor = vec3(rayPos.xy, 0.0);
 
-                // testOut.rgb = vec3(rayPos.xyz);
+                // reflectColor.rgb = vec3(rayPos.xyz);
             }
             else {
                 reflectColor = skyColor;

@@ -313,7 +313,7 @@ void main() {
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
 		// 	discard;
 
-		albedo.a = isEyeInWater == 0 ? 0.5 : 0.5;
+		albedo.a = isEyeInWater == 0 ? 0.1 : 0.5;
 		albedo.rgb = vec3(0.0);
 
 		#ifndef Water_Flat

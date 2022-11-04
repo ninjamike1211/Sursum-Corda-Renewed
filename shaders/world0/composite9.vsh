@@ -81,8 +81,6 @@ void main() {
         sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
         flareSunCenterVec = vec2(0.5) - sunScreenPos;
 
-        // vec2 factors = smoothstep(1.0, 0.5, abs(sunScreenPos * 2.0 - 1.0));
-        // flareFade = min(factors.x, factors.y);
         float sunOcclusion = 0.0;
         int samples = 16;
         for(int i = 0; i < samples; i++) {
@@ -90,8 +88,15 @@ void main() {
 
             if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
                 sunOcclusion += step(1.0, texture2D(depthtex0, sampleCoords).r);
+            else
+                samples--;
         }
-        flareFade = sunOcclusion/float(samples);
+        if(samples == 0)
+            flareFade = 1.0;
+        else
+            flareFade = sunOcclusion/float(samples);
+        
+        flareFade *= smoothstep(1.5, 0.5, length(sunScreenPos * 2.0 - 1.0));
 
         float spriteAngle = atan(-flareSunCenterVec.x, flareSunCenterVec.y);
         flareRotMat = mat2(cos(spriteAngle), -sin(spriteAngle), sin(spriteAngle), cos(spriteAngle));

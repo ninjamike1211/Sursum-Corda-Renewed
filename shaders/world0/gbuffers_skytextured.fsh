@@ -21,5 +21,5 @@ void main() {
 
 	albedo.rgb = vec3(albedo.r);
 
-	specMapOut = vec4(0.0, 0.0, 0.0, 254.0/255.0);
+	specMapOut = vec4(0.0, 0.0, 0.0, 0.5);
 }
