@@ -104,7 +104,9 @@ void main() {
 
 	vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth);
 	vec3 viewPos 			= calcViewPos(viewVector, depth);
+	vec3 scenePos 			= (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 	vec3 waterViewPos 		= calcViewPos(viewVector, waterDepth);
+	vec3 waterScenePos 		= (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
 
 	vec3 normalTex 	= NormalDecode(normalRaw.x);
 	vec3 normalGeom = NormalDecode(normalRaw.y);
@@ -143,7 +145,8 @@ void main() {
 			// if there is water in the current pixel, render both water and atmospheric fog
 			if(waterDepth != 0.0) {
 				#ifdef VolWater
-					waterVolumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(waterScenePos, scenePos, skyDirect, opaqueColor.rgb);
 				#else
 					waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
 				#endif
@@ -174,7 +177,8 @@ void main() {
 				#endif
 
 				#ifdef VolWater
-					waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
 				#else
 					waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif
@@ -182,7 +186,8 @@ void main() {
 			// if the current pixel doesn't contain the surface of water, only render water fog
 			else {
 				#ifdef VolWater
-					waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(vec3(0.0), scenePos, skyDirect, opaqueColor.rgb);
 				#else
 					waterFog(opaqueColor, vec3(0.0), viewPos, skyDirect);
 				#endif
@@ -255,7 +260,8 @@ void main() {
 
 				// render water fog
 				#ifdef VolWater
-					waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
 				#else
 					waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif
@@ -303,7 +309,8 @@ void main() {
 			// transparent object is outside of water
 			if(waterDepth != 0.0 && transparentDepth > waterDepth) {
 				#ifdef VolWater
-					waterVolumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
 				#else
 					waterFog(transparentColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif

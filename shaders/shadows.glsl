@@ -41,6 +41,16 @@ vec3 shadowVisibility(vec3 shadowPos) {
 	return mix(shadowColor.rgb * visibility1, vec3(1.0f), visibility0);
 }
 
+vec3 shadowVisibilityDepth(vec3 shadowPos, out float depthDiff) {
+	vec4 shadowColor = texture2D(shadowcolor0, shadowPos.xy);
+	shadowColor.rgb = shadowColor.rgb * (1.0 - shadowColor.a);
+	float visibility0 = step(shadowPos.z, texture2D(shadowtex0, shadowPos.xy).r);
+
+    depthDiff = shadowPos.z - 4.0 * (texture2D(shadowtex1, shadowPos.xy).r - 0.5);
+	float visibility1 = step(0.0, -depthDiff);
+	return mix(shadowColor.rgb * visibility1, vec3(1.0f), visibility0);
+}
+
 vec3 calcShadowPosView(vec3 viewPos) {
 	vec4 playerPos = gbufferModelViewInverse * vec4(viewPos, 1.0);
 	vec3 shadowPos = (shadowProjection * (shadowModelView * playerPos)).xyz;
@@ -267,16 +277,16 @@ void waterVolumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 t
     for(int i = 0; i < VolWater_Steps; i++) {
         currentEyePos += rayIncrement;
 
-        vec3 lightAmount = SunMoonColor;
-        vec3 lightCurrentPos = lightDirYNorm * (length(viewOrigin) < 0.01 ? (61.0 - eyeAltitude) : (eyeOrigin.y - currentEyePos.y)) + currentEyePos;
-        vec3 lightIncrement = (lightCurrentPos - currentEyePos) / VolWater_LightSteps;
-        for(int j = 0; j < VolWater_LightSteps; j++) {
-            vec3 transmittance = exp(-absorptionCoef * length(lightIncrement));
-            vec3 scattering = lightAmount * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
-            lightAmount = lightAmount * transmittance + scattering;
+        // vec3 lightAmount = SunMoonColor;
+        // vec3 lightCurrentPos = lightDirYNorm * (length(viewOrigin) < 0.01 ? (61.0 - eyeAltitude) : (eyeOrigin.y - currentEyePos.y)) + currentEyePos;
+        // vec3 lightIncrement = (lightCurrentPos - currentEyePos) / VolWater_LightSteps;
+        // for(int j = 0; j < VolWater_LightSteps; j++) {
+        //     vec3 transmittance = exp(-absorptionCoef * length(lightIncrement));
+        //     vec3 scattering = lightAmount * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
+        //     lightAmount = lightAmount * transmittance + scattering;
 
-            lightCurrentPos += lightIncrement;
-        }
+        //     lightCurrentPos += lightIncrement;
+        // }
 
 
         vec3 shadowPos = calcShadowPosScene(currentEyePos + gbufferModelViewInverse[3].xyz);
@@ -286,18 +296,44 @@ void waterVolumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 t
             //     shadowAmount += 1.0;
             // }
 
+        float depthDiff;
         #ifdef VolWater_SmoothShadows
             vec3 shadowAmount = softShadows(shadowPos, VolWater_SmoothShadowBlur, VolWater_SmoothShadowSamples, randomAngle, shadowtex0, shadowtex1, shadowcolor0);
         #else
-            vec3 shadowAmount = shadowVisibility(shadowPos);
+            vec3 shadowAmount = shadowVisibilityDepth(shadowPos, depthDiff);
         #endif
         shadowAmount = shadowAmount * 0.9 + 0.1;
+        vec3 lightAmount = SunMoonColor /* * clamp((1.0 - depthDiff) * 10.0, 0.1, 1.0) */;
 
         vec3 transmittance = exp(-absorptionCoef * length(rayIncrement));
         vec3 scattering = lightAmount * shadowAmount * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
 
         albedo.rgb = albedo.rgb * transmittance + scattering;
     }
+}
+
+void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 albedo) {
+
+    vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
+    vec3 scenePos = sceneOrigin;
+    // vec3 shadowValue = vec3(0.0);
+
+    for(int i = 0; i < VolWater_Steps; i++) {
+        scenePos += rayIncrement;
+
+        vec3 shadowPos = calcShadowPosScene(scenePos);
+
+        vec3 shadowValue = shadowVisibility(shadowPos);
+
+        albedo -= 0.02 * (1.0 - exp(-length(rayIncrement)));
+        albedo += 0.2 * shadowValue * (1.0 - exp(-length(rayIncrement)));
+
+        // albedo = mix(albedo, light * shadowValue, exp(-length(rayIncrement)));
+    }
+
+    // shadowValue /= VolWater_Steps;
+
+    // albedo = shadowValue;
 }
 
 // Beter shadow distortion from Groundwork-4  (https://github.com/DrDesten/Groundwork)
