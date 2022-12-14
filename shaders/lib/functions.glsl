@@ -147,24 +147,6 @@ vec3 extractNormalZ(vec2 normal) {
 	return vec3(normal, sqrt(max(1.0 - dot(normal.xy, normal.xy), 0.0)));
 }
 
-/*
-	Normals encoding and decoding based on Spectrum by Zombye, a orthogonal approach
-*/
-uint NormalEncode(vec3 normal) {
-	normal.xy /= abs(normal.x) + abs(normal.y) + abs(normal.z);
-	vec2 result = (normal.z <= 0.0 ? (1.0 - abs(normal.yx)) * vec2(normal.x >= 0.0 ? 1.0 : -1.0, normal.y >= 0.0 ? 1.0 : -1.0) : normal.xy) * 0.5 + 0.5;
-
-	return packUnorm2x16(result);
-}
-vec3 NormalDecode(uint encodedNormal) {
-
-	vec2 vecNorm = unpackUnorm2x16(encodedNormal) * 2.0 - 1.0;
-	vec3 normal = vec3(vecNorm, 1.0 - abs(vecNorm.x) - abs(vecNorm.y));
-	float t = max(-normal.z, 0.0);
-	normal.xy += vec2(normal.x >= 0.0 ? -t : t, normal.y >= 0.0 ? -t : t);
-	return normalize(normal);
-}
-
 vec3 normalToView(vec3 normal) {
 	return (gbufferModelView * vec4(normal, 0.0)).xyz;
 }

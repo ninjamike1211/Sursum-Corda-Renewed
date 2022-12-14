@@ -4,9 +4,9 @@ uniform sampler2D colortex11;
 uniform float viewWidth;
 uniform float viewHeight;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/bloomTile.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/bloomTile.glsl"
 
 /* RENDERTARGETS: 11*/
 layout(location = 0) out vec4 bloomOut;

@@ -2,6 +2,7 @@
 
 uniform usampler2D colortex1;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
@@ -29,11 +30,17 @@ uniform float     eyeAltitude;
 uniform float     frameTimeCounter;
 uniform float fogDensityMult;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/lighting.glsl"
+uniform float heldBlockLightValue;
+uniform float heldBlockLightValue2;
+uniform int   heldItemId;
+uniform int   heldItemId2;
+
+#include "/lib/defines.glsl"
+#include "/lib/material.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/lighting.glsl"
 
 in vec2 texcoord;
 in vec3 viewVector;

@@ -4,7 +4,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex6;
 uniform sampler2D colortex15;
 
-#include "/defines.glsl"
+#include "/lib/defines.glsl"
 
 /*
     AABB Clipping from "Temporal Reprojection Anti-Aliasing in INSIDE"

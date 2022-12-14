@@ -58,14 +58,15 @@ layout(location = 7) out vec4 pomOut;
 #define debugOut
 #define baseFragment
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/shadows.glsl"
-#include "/lighting.glsl"
-#include "/parallax.glsl"
-#include "/water.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/material.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/shadows.glsl"
+#include "/lib/lighting.glsl"
+#include "/lib/parallax.glsl"
+#include "/lib/water.glsl"
 
 in vec2 texcoord;
 in vec4 glColor;
@@ -412,70 +413,72 @@ void main() {
 
 	// -------------- Dynamic Hand Light --------------
         #ifdef HandLight
-            if(heldBlockLightValue > 0) {
-                vec3 lightPos = vec3(0.2, -0.1, 0.0);
-                vec3 lightDir = -normalize(viewPos - lightPos);
-                float dist = length(viewPos - lightPos);
+			DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, lightmapOut.b > 0.5);
+			
+            // if(heldBlockLightValue > 0) {
+            //     vec3 lightPos = vec3(0.2, -0.1, 0.0);
+            //     vec3 lightDir = -normalize(viewPos - lightPos);
+            //     float dist = length(viewPos - lightPos);
                 
-                vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
+            //     vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
 
-                #ifdef HandLight_Colors
-                    if(heldItemId == 10001)
-                        lightColor *= vec3(0.2, 3.0, 10.0);
-                    else if(heldItemId == 10002)
-                        lightColor *= vec3(10.0, 1.5, 0.0);
-                    else if(heldItemId == 10003)
-                        lightColor *= vec3(15.0, 4.0, 1.5);
-                    else if(heldItemId == 10004)
-                        lightColor *= vec3(3.0, 6.0, 15.0);
-                    else if(heldItemId == 10005)
-                        lightColor *= vec3(1.5, 1.0, 10.0);
-                    else if(heldItemId == 10006)
-                        lightColor *= vec3(4.0, 1.0, 10.0);
-                    else
-                #endif
-                    lightColor *= vec3(15.0, 7.2, 2.9);
+            //     #ifdef HandLight_Colors
+            //         if(heldItemId == 10001)
+            //             lightColor *= vec3(0.2, 3.0, 10.0);
+            //         else if(heldItemId == 10002)
+            //             lightColor *= vec3(10.0, 1.5, 0.0);
+            //         else if(heldItemId == 10003)
+            //             lightColor *= vec3(15.0, 4.0, 1.5);
+            //         else if(heldItemId == 10004)
+            //             lightColor *= vec3(3.0, 6.0, 15.0);
+            //         else if(heldItemId == 10005)
+            //             lightColor *= vec3(1.5, 1.0, 10.0);
+            //         else if(heldItemId == 10006)
+            //             lightColor *= vec3(4.0, 1.0, 10.0);
+            //         else
+            //     #endif
+            //         lightColor *= vec3(15.0, 7.2, 2.9);
 
-				#ifdef HandLight_Shadows
-					float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-					lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-				#endif
+			// 	#ifdef HandLight_Shadows
+			// 		float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+			// 		lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+			// 	#endif
 
-                // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-                colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-            }
-            if(heldBlockLightValue2 > 0) {
-                vec3 lightPos = vec3(-0.2, -0.1, 0.0);
-                vec3 lightDir = -normalize(viewPos - lightPos);
-                float dist = length(viewPos - lightPos);
+            //     // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+            //     colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+            // }
+            // if(heldBlockLightValue2 > 0) {
+            //     vec3 lightPos = vec3(-0.2, -0.1, 0.0);
+            //     vec3 lightDir = -normalize(viewPos - lightPos);
+            //     float dist = length(viewPos - lightPos);
                 
-                vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+            //     vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
 
-                #ifdef HandLight_Colors
-                    if(heldItemId2 == 10001)
-                        lightColor *= vec3(0.2, 3.0, 10.0);
-                    else if(heldItemId2 == 10002)
-                        lightColor *= vec3(10.0, 1.5, 0.0);
-                    else if(heldItemId2 == 10003)
-                        lightColor *= vec3(15.0, 4.0, 1.5);
-                    else if(heldItemId2 == 10004)
-                        lightColor *= vec3(3.0, 6.0, 15.0);
-                    else if(heldItemId2 == 10005)
-                        lightColor *= vec3(1.5, 1.0, 10.0);
-                    else if(heldItemId2 == 10006)
-                        lightColor *= vec3(4.0, 1.0, 10.0);
-                    else
-                #endif
-                    lightColor *= vec3(15.0, 7.2, 2.9);
+            //     #ifdef HandLight_Colors
+            //         if(heldItemId2 == 10001)
+            //             lightColor *= vec3(0.2, 3.0, 10.0);
+            //         else if(heldItemId2 == 10002)
+            //             lightColor *= vec3(10.0, 1.5, 0.0);
+            //         else if(heldItemId2 == 10003)
+            //             lightColor *= vec3(15.0, 4.0, 1.5);
+            //         else if(heldItemId2 == 10004)
+            //             lightColor *= vec3(3.0, 6.0, 15.0);
+            //         else if(heldItemId2 == 10005)
+            //             lightColor *= vec3(1.5, 1.0, 10.0);
+            //         else if(heldItemId2 == 10006)
+            //             lightColor *= vec3(4.0, 1.0, 10.0);
+            //         else
+            //     #endif
+            //         lightColor *= vec3(15.0, 7.2, 2.9);
 
-				#ifdef HandLight_Shadows
-					float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-					lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-				#endif
+			// 	#ifdef HandLight_Shadows
+			// 		float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+			// 		lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+			// 	#endif
 
-                // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-                colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-            }
+            //     // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+            //     colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+            // }
         #endif
 
 		colorOut.a = albedo.a;

@@ -42,14 +42,20 @@ uniform float shadowHeight;
 uniform int moonPhase;
 uniform float fogDensityMult;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
-#include "/lighting.glsl"
-#include "/clouds.glsl"
-#include "/raytrace.glsl"
+uniform float heldBlockLightValue;
+uniform float heldBlockLightValue2;
+uniform int   heldItemId;
+uniform int   heldItemId2;
+
+#include "/lib/defines.glsl"
+#include "/lib/material.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
+#include "/lib/lighting.glsl"
+#include "/lib/clouds.glsl"
+#include "/lib/raytrace.glsl"
 
 in vec2 texcoord;
 in vec3 viewVector;

@@ -47,12 +47,12 @@ flat out vec3 glNormal;
 flat out int entity;
 // flat out mat3 tbn;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
-#include "/noise.glsl"
-#include "/shadows.glsl"
-#include "/waving.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/shadows.glsl"
+#include "/lib/waving.glsl"
 
 void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

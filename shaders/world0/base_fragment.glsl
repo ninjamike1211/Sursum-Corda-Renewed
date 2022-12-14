@@ -56,14 +56,15 @@ layout(location = 7) out vec4 pomOut;
 #define debugOut
 #define baseFragment
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/shadows.glsl"
-#include "/lighting.glsl"
-#include "/parallax.glsl"
-#include "/water.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/material.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/shadows.glsl"
+#include "/lib/lighting.glsl"
+#include "/lib/parallax.glsl"
+#include "/lib/water.glsl"
 
 in vec2 texcoord;
 in vec4 glColor;
@@ -160,7 +161,8 @@ void main() {
 	float lod = textureQueryLod(texture, texcoord).x;
 
 	vec2 texcoordFinal = texcoord;
-	pomOut = vec4(0.0, 1.0, 0.0, 1.0);
+	// pomOut = vec4(0.0, 1.0, 0.0, 1.0);
+	pomOut.rga = vec3(0.0, 1.0, 1.0);
 	vec3 geomNormal = glNormal;
 
 // ---------------------- Paralax Occlusion Mapping ----------------------
@@ -192,10 +194,12 @@ void main() {
 				float pomFade = clamp(length(viewPos) - POM_Distance, 0.0, POM_FadeWidth) / POM_FadeWidth;
 
 				if(pomFade < 1.0) {
-
+					float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
 					vec3 shadowTexcoord = vec3(-1.0);
-					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, POM_Layers, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
-					
+
+					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, /* floor( */POM_Layers /* * (1.0 + 0.15 * (jitter * 2.0 - 1.0)) )*/, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
+					// pomOut.b = pomOffset;
+
 					#ifdef POM_Shadow
 						pomOut.g = parallaxShadows(shadowTexcoord, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
@@ -313,8 +317,9 @@ void main() {
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
 		// 	discard;
 
-		albedo.a = isEyeInWater == 0 ? 0.1 : 0.5;
-		albedo.rgb = vec3(0.0);
+		albedo.a = isEyeInWater == 0 ? 0.5 : 0.5;
+		// albedo.rgb = vec3(0.0);
+		albedo.rgb = 0.2 * glColor.rgb;
 
 		#ifndef Water_Flat
 			// vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
@@ -400,9 +405,11 @@ void main() {
 		vec3 offset = normalToView(lightDir) * pomOut.r;
 		vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
 		
+		float shadowMult = 1.0;
 		#ifdef Shadow_LeakFix
             // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-			shadowResult *= texture2D(colortex12, vec2(0.0)).a;
+			shadowMult = texture2D(colortex12, vec2(0.0)).a;
+			shadowResult *= shadowMult;
         #endif
 
 		// Perform lighting calcualtions
@@ -412,91 +419,97 @@ void main() {
 		colorOut.rgb += calcAmbient(albedo.rgb, lightmapOut.rg, skyAmbient, specMap);
 
 	// -------------- Dynamic Hand Light --------------
+
         #ifdef HandLight
-            if(heldBlockLightValue > 0) {
-                vec3 lightPos = vec3(0.2, -0.1, 0.0);
-                vec3 lightDir = -normalize(viewPos - lightPos);
-                float dist = length(viewPos - lightPos);
+			DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, lightmapOut.b > 0.5);
+			
+        //     if(heldBlockLightValue > 0) {
+        //         vec3 lightPos = vec3(0.2, -0.1, 0.0);
+        //         vec3 lightDir = -normalize(viewPos - lightPos);
+        //         float dist = length(viewPos - lightPos);
                 
-                vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
+        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
 
-                #ifdef HandLight_Colors
-                    if(heldItemId == 10001)
-                        lightColor *= vec3(0.2, 3.0, 10.0);
-                    else if(heldItemId == 10002)
-                        lightColor *= vec3(10.0, 1.5, 0.0);
-                    else if(heldItemId == 10003)
-                        lightColor *= vec3(15.0, 4.0, 1.5);
-                    else if(heldItemId == 10004)
-                        lightColor *= vec3(3.0, 6.0, 15.0);
-                    else if(heldItemId == 10005)
-                        lightColor *= vec3(1.5, 1.0, 10.0);
-                    else if(heldItemId == 10006)
-                        lightColor *= vec3(4.0, 1.0, 10.0);
-                    else
-                #endif
-                    lightColor *= vec3(15.0, 7.2, 2.9);
+        //         #ifdef HandLight_Colors
+        //             if(heldItemId == 10001)
+        //                 lightColor *= vec3(0.2, 3.0, 10.0);
+        //             else if(heldItemId == 10002)
+        //                 lightColor *= vec3(10.0, 1.5, 0.0);
+        //             else if(heldItemId == 10003)
+        //                 lightColor *= vec3(15.0, 4.0, 1.5);
+        //             else if(heldItemId == 10004)
+        //                 lightColor *= vec3(3.0, 6.0, 15.0);
+        //             else if(heldItemId == 10005)
+        //                 lightColor *= vec3(1.5, 1.0, 10.0);
+        //             else if(heldItemId == 10006)
+        //                 lightColor *= vec3(4.0, 1.0, 10.0);
+        //             else
+        //         #endif
+        //             lightColor *= vec3(15.0, 7.2, 2.9);
 
-				#ifdef HandLight_Shadows
-					float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-					lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-				#endif
+		// 		#ifdef HandLight_Shadows
+		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+		// 		#endif
 
-                // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-                colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-            }
-            if(heldBlockLightValue2 > 0) {
-                vec3 lightPos = vec3(-0.2, -0.1, 0.0);
-                vec3 lightDir = -normalize(viewPos - lightPos);
-                float dist = length(viewPos - lightPos);
+        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+        //     }
+        //     if(heldBlockLightValue2 > 0) {
+        //         vec3 lightPos = vec3(-0.2, -0.1, 0.0);
+        //         vec3 lightDir = -normalize(viewPos - lightPos);
+        //         float dist = length(viewPos - lightPos);
                 
-                vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
 
-                #ifdef HandLight_Colors
-                    if(heldItemId2 == 10001)
-                        lightColor *= vec3(0.2, 3.0, 10.0);
-                    else if(heldItemId2 == 10002)
-                        lightColor *= vec3(10.0, 1.5, 0.0);
-                    else if(heldItemId2 == 10003)
-                        lightColor *= vec3(15.0, 4.0, 1.5);
-                    else if(heldItemId2 == 10004)
-                        lightColor *= vec3(3.0, 6.0, 15.0);
-                    else if(heldItemId2 == 10005)
-                        lightColor *= vec3(1.5, 1.0, 10.0);
-                    else if(heldItemId2 == 10006)
-                        lightColor *= vec3(4.0, 1.0, 10.0);
-                    else
-                #endif
-                    lightColor *= vec3(15.0, 7.2, 2.9);
+        //         #ifdef HandLight_Colors
+        //             if(heldItemId2 == 10001)
+        //                 lightColor *= vec3(0.2, 3.0, 10.0);
+        //             else if(heldItemId2 == 10002)
+        //                 lightColor *= vec3(10.0, 1.5, 0.0);
+        //             else if(heldItemId2 == 10003)
+        //                 lightColor *= vec3(15.0, 4.0, 1.5);
+        //             else if(heldItemId2 == 10004)
+        //                 lightColor *= vec3(3.0, 6.0, 15.0);
+        //             else if(heldItemId2 == 10005)
+        //                 lightColor *= vec3(1.5, 1.0, 10.0);
+        //             else if(heldItemId2 == 10006)
+        //                 lightColor *= vec3(4.0, 1.0, 10.0);
+        //             else
+        //         #endif
+        //             lightColor *= vec3(15.0, 7.2, 2.9);
 
-				#ifdef HandLight_Shadows
-					float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-					lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-				#endif
+		// 		#ifdef HandLight_Shadows
+		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+		// 		#endif
 
-                // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-                colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-            }
+        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+        //     }
         #endif
 
 		colorOut.a = albedo.a;
 
 	// ---------------------- SSS ----------------------
 		#ifdef SSS
-			float subsurface = specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
 
-			if(subsurface > 0.0) {
-				vec3 shadowPos = calcShadowPosScene(scenePos);
-				float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
-				float diff = blockerDist * (far-near) - near;
+			float subsurface = extractSubsurface(specMap);
+			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
+			// float subsurface = specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
 
-				#ifdef Shadow_LeakFix
-					subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-				#endif
+			// if(subsurface > 0.0) {
+			// 	vec3 shadowPos = calcShadowPosScene(scenePos);
+			// 	float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
+			// 	float diff = blockerDist * (far-near) - near;
 
-				colorOut.rgb += albedo.rgb * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * skyDirect;
+			// 	#ifdef Shadow_LeakFix
+			// 		subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
+			// 	#endif
 
-			}
+			// 	colorOut.rgb += albedo.rgb * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * skyDirect;
+
+			// }
 		#endif
 	#endif
 
@@ -518,7 +531,7 @@ void main() {
 	// #endif
 
 	// albedoOut.rgb = vec3(length(glColor.rgb) > EPS);
-	// albedoOut.rgb = abs(glColor.rgb);
+	// albedoOut.rgb = glColor.rgb;
 
 	// albedoOut.rgb = textureBicubicFull(normals, texcoord, textureBounds).aaa;
 	// albedoOut.rgb = textureBicubicWrap(normals, texcoord, textureBounds).aaa;

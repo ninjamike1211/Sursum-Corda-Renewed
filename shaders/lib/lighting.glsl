@@ -6,11 +6,16 @@
 // #include "/functions.glsl"
 // #include "/noise.glsl"
 
+// uniform sampler2D depthtex1;
 // uniform mat4  gbufferProjection;
 // uniform float viewWidth;
 // uniform float viewHeight;
 // uniform float frameTimeCounter;
 // uniform float fogDensityMult;
+// uniform float heldBlockLightValue;
+// uniform float heldBlockLightValue2;
+// uniform int   heldItemId;
+// uniform int   heldItemId2;
 */
 
 // const vec3 metalsF0[8] = vec3[8] (
@@ -612,6 +617,107 @@ float ssShadows(vec3 startPos, vec3 endPos, float jitter, sampler2D depthtex) {
 
     return 1.0;
 }
+
+#ifdef SSS
+void SubsurfaceScattering(inout vec3 color, in vec3 albedo, in float subsurface, in float blockerDist, in vec3 light) {
+    if(subsurface > 0.0 ) {
+        // vec3 shadowPos = calcShadowPos(viewPos, gbufferModelViewInverse);
+        // float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
+        float diff = blockerDist * (far-near) - near;
+
+        // #ifdef Shadow_LeakFix
+        //     subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
+        // #endif
+
+        color += albedo * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * light;
+    }
+}
+#endif
+
+#ifdef HandLight
+void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3 normal, in vec4 specMap, bool isHand) {
+    if(heldBlockLightValue > 0) {
+        vec3 lightPos = vec3(0.2, -0.1, -0.24);
+        // vec3 lightPos = screenToView(vec2(0.873, 0.213), 0.55);
+        vec3 lightDir = -normalize(viewPos - lightPos);
+        float dist = length(viewPos - lightPos);
+        
+        vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
+
+        #ifdef HandLight_Colors
+            if(heldItemId == 10001)
+                lightColor *= vec3(0.2, 3.0, 10.0);
+            else if(heldItemId == 10002)
+                lightColor *= vec3(10.0, 1.5, 0.0);
+            else if(heldItemId == 10003)
+                lightColor *= vec3(15.0, 4.0, 1.5);
+            else if(heldItemId == 10004)
+                lightColor *= vec3(3.0, 6.0, 15.0);
+            else if(heldItemId == 10005)
+                lightColor *= vec3(1.5, 1.0, 10.0);
+            else if(heldItemId == 10006)
+                lightColor *= vec3(4.0, 1.0, 10.0);
+            else
+        #endif
+            lightColor *= vec3(15.0, 7.2, 2.9);
+
+        if(!isHand || dist > 0.07) {
+            #ifdef HandLight_Shadows
+                // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+                float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
+                lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+            #endif
+
+            // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+            color += cookTorrancePBRLighting(albedo, normalize(-viewPos), normal, specMap, lightColor, lightDir);
+        }
+        else {
+            color += lightColor * albedo * 0.001;
+        }
+
+        // color = vec3(dist);
+    }
+    if(heldBlockLightValue2 > 0) {
+        vec3 lightPos = vec3(-0.2, -0.1, -0.24);
+        // vec3 lightPos = screenToView(vec2(0.127, 0.213), 0.55);
+        vec3 lightDir = -normalize(viewPos - lightPos);
+        float dist = length(viewPos - lightPos);
+        
+        vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+
+        #ifdef HandLight_Colors
+            if(heldItemId2 == 10001)
+                lightColor *= vec3(0.2, 3.0, 10.0);
+            else if(heldItemId2 == 10002)
+                lightColor *= vec3(10.0, 1.5, 0.0);
+            else if(heldItemId2 == 10003)
+                lightColor *= vec3(15.0, 4.0, 1.5);
+            else if(heldItemId2 == 10004)
+                lightColor *= vec3(3.0, 6.0, 15.0);
+            else if(heldItemId2 == 10005)
+                lightColor *= vec3(1.5, 1.0, 10.0);
+            else if(heldItemId2 == 10006)
+                lightColor *= vec3(4.0, 1.0, 10.0);
+            else
+        #endif
+            lightColor *= vec3(15.0, 7.2, 2.9);
+
+        if(!isHand || dist > 0.07) {
+            #ifdef HandLight_Shadows
+                // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+                float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
+                lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+            #endif
+
+            // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+            color += cookTorrancePBRLighting(albedo, normalize(-viewPos), normal, specMap, lightColor, lightDir);
+        }
+        else {
+            color += lightColor * albedo * 0.001;
+        }
+    }
+}
+#endif
 
 #ifdef baseFragment
 void applyEndPortal(in vec3 worldPos, out vec3 albedo, out vec4 specMap) {

@@ -8,8 +8,8 @@ uniform float shadowHeight;
 uniform int moonPhase;
 uniform float eyeAltitude;
 
-#include "/defines.glsl"
-#include "/sky2.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/sky2.glsl"
 
 
 in vec2 texcoord;

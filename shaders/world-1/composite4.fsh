@@ -20,9 +20,9 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
 
 /* RENDERTARGETS: 0*/
 layout(location = 0) out vec4 colorOut;

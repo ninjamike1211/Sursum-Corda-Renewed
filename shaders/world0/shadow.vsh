@@ -10,8 +10,8 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelViewInverse;
 uniform float rainStrength;
 uniform float frameTimeCounter;
-uniform sampler2D normals; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
-uniform sampler2D texture; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
+// uniform sampler2D normals; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
+// uniform sampler2D texture; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
 
 flat out vec2 singleTexSize;
 
@@ -46,12 +46,12 @@ uniform bool  cameraMoved;
 uniform float fogDensityMult;
 uniform float eyeAltitude;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
-#include "/noise.glsl"
-#include "/shadows.glsl"
-#include "/waving.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/shadows.glsl"
+#include "/lib/waving.glsl"
 
 void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

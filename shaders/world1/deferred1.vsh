@@ -36,10 +36,10 @@ flat out vec3 skyAmbient;
 flat out vec3 skyDirect;
 flat out vec3 lightDir;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
 
 void main() {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;

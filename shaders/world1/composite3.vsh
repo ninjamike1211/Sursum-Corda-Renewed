@@ -19,9 +19,9 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
 
 out vec2 texcoord;
 flat out float centerDepthLinear;

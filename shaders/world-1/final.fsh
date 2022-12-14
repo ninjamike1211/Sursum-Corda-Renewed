@@ -21,10 +21,10 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
 
 in vec2 texcoord;
 
@@ -142,5 +142,5 @@ void main() {
     // gl_FragColor = vec4(abs(texture2D(colortex6, texcoord)));
 
     // if(texcoord.x > 0.95)
-    //     gl_FragColor = vec4(cameraMoved);
+    //     gl_FragColor = vec4(mod(eyeAltitude, 1.0));
 }

@@ -47,15 +47,21 @@ uniform float shadowHeight;
 uniform int moonPhase;
 uniform float fogDensityMult;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
-#include "/shadows.glsl"
-#include "/lighting.glsl"
-#include "/clouds.glsl"
-#include "/raytrace.glsl"
+uniform float heldBlockLightValue;
+uniform float heldBlockLightValue2;
+uniform int   heldItemId;
+uniform int   heldItemId2;
+
+#include "/lib/defines.glsl"
+#include "/lib/material.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
+#include "/lib/shadows.glsl"
+#include "/lib/lighting.glsl"
+#include "/lib/clouds.glsl"
+#include "/lib/raytrace.glsl"
 
 // #define waterRefraction
 
@@ -146,7 +152,7 @@ void main() {
 			if(waterDepth != 0.0) {
 				#ifdef VolWater
 					// waterVolumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(waterScenePos, scenePos, skyDirect, opaqueColor.rgb);
+					waterVolumetricFog(waterScenePos, scenePos, skyDirect, opaqueColor.rgb, texcoord);
 				#else
 					waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
 				#endif
@@ -178,7 +184,7 @@ void main() {
 
 				#ifdef VolWater
 					// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord);
 				#else
 					waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif
@@ -187,7 +193,7 @@ void main() {
 			else {
 				#ifdef VolWater
 					// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(vec3(0.0), scenePos, skyDirect, opaqueColor.rgb);
+					waterVolumetricFog(vec3(0.0), scenePos, skyDirect, opaqueColor.rgb, texcoord);
 				#else
 					waterFog(opaqueColor, vec3(0.0), viewPos, skyDirect);
 				#endif
@@ -261,7 +267,7 @@ void main() {
 				// render water fog
 				#ifdef VolWater
 					// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord);
 				#else
 					waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif
@@ -310,7 +316,7 @@ void main() {
 			if(waterDepth != 0.0 && transparentDepth > waterDepth) {
 				#ifdef VolWater
 					// waterVolumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb);
+					waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord);
 				#else
 					waterFog(transparentColor, vec3(0.0), waterViewPos, skyDirect);
 				#endif

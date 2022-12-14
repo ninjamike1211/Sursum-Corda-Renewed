@@ -47,12 +47,12 @@ flat out vec3 skyDirect;
 flat out mat3 tbn;
 // flat out mat3 tbnView;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
-#include "/waving.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
+#include "/lib/waving.glsl"
 
 // out float isWaterBackface;
 

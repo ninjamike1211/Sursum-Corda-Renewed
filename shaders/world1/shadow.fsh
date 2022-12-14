@@ -35,11 +35,11 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
-#include "/noise.glsl"
-#include "/water.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/water.glsl"
 
 in vec2 texcoord;
 in vec4 glColor;

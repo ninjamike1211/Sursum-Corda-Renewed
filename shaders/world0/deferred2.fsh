@@ -4,8 +4,8 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform sampler2D colortex9;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
 
 in vec2 texcoord;
 

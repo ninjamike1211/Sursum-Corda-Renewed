@@ -230,12 +230,14 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 		// Return texture alligned depth difference after POM
 		return depth * 0.25 * POM_Depth * fadeAmount;
 	#else
-		onEdge = currentLayerDepth - currentDepthMapValue > layerDepth;
+		onEdge = currentLayerDepth - currentDepthMapValue > 0.95 * layerDepth;
 
 		#ifdef POM_SlopeNormals
 		if(onEdge)
 			norm = parallaxSlopeNormal(texcoord, viewVector, currentLayerDepth, layerDepth, texcoordRange, lod) * float(onEdge);
 		#endif
+
+		pomOut.b = float(onEdge);
 
 		shadowTexcoord = vec3(texcoord, currentLayerDepth) /* - vec3(deltaTexcoord, layerDepth) */;
 		return currentLayerDepth * 0.25 * POM_Depth * fadeAmount;

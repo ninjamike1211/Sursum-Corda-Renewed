@@ -50,12 +50,12 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/noise.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
-#include "/waving.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
+#include "/lib/waving.glsl"
 
 // out float isWaterBackface;
 
@@ -207,6 +207,7 @@ void main() {
 
         #if defined hand
             oldClipPos = gl_ProjectionMatrix * vec4(viewPos - at_velocity, 1.0);
+            // glColor.rgb = vec3(gl_Vertex.x);
         #else
             if(cameraMoved && any(lessThanEqual(at_velocity, vec3(EPS)))) {
                 vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));

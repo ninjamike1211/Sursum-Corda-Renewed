@@ -35,10 +35,10 @@ uniform float eyeAltitude;
 uniform float sunHeight;
 uniform float shadowHeight;
 
-#include "/defines.glsl"
-#include "/kernels.glsl"
-#include "/functions.glsl"
-#include "/sky2.glsl"
+#include "/lib/defines.glsl"
+#include "/lib/kernels.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
 
 in vec2 texcoord;
 

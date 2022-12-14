@@ -4,7 +4,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform sampler2D colortex9;
 
-#include "/kernels.glsl"
+#include "/lib/kernels.glsl"
 
 in vec2 texcoord;
 
