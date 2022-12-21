@@ -1,10 +1,12 @@
+#ifndef CLOUDS
+#define CLOUDS
 
 // #include "/defines.glsl"
 // #include "/noise.glsl"
 
 // uniform float far;
-// uniform vec3 lightDir;
-// uniform vec3 sunDir
+// uniform vec3  lightDir;
+// uniform vec3  sunDir
 
 void getCloudCoords(vec3 eyeDir, vec3 eyeOrigin, float height, float radius, out vec2 cloudCoords, out float dist, out vec2 angles) {
 	float sphereCenter = height - radius;
@@ -224,3 +226,5 @@ void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 
 
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }
+
+#endif

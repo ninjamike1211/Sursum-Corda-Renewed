@@ -7,21 +7,21 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex14;
 uniform float frameTime;
 uniform mat4 gbufferModelView;
-uniform bool inEnd;
-uniform bool inNether;
+// uniform bool inEnd;
+// uniform bool inNether;
 uniform vec3 sunPosition;
 uniform sampler2D depthtex0;
 uniform float aspectRatio;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
-uniform float rainStrength;
+// uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
@@ -32,7 +32,9 @@ uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
+#include "/lib/sample.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 out vec2 texcoord;
 out vec3 viewVector;
@@ -78,31 +80,39 @@ void main() {
     // imageStore(colorimg5, ivec2(viewWidth/2, viewHeight/2), vec4(exposure, vec3(0.0)));
 
     #ifdef LensFlare
-        sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
-        flareSunCenterVec = vec2(0.5) - sunScreenPos;
-
-        float sunOcclusion = 0.0;
-        int samples = 16;
-        for(int i = 0; i < samples; i++) {
-            vec2 sampleCoords = sunScreenPos + vec2(0.018, 0.018*aspectRatio) * GetVogelDiskSample(i, samples, 0.0);
-
-            if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
-                sunOcclusion += step(1.0, texture2D(depthtex0, sampleCoords).r);
-            else
-                samples--;
-        }
-        if(samples == 0)
-            flareFade = 1.0;
-        else
-            flareFade = sunOcclusion/float(samples);
+        vec4 centerRay = gbufferProjectionInverse * vec4(0.0, 0.0, 1.0, 1.0);
+        vec3 centerVec = centerRay.xyz / centerRay.w;
         
-        flareFade *= smoothstep(1.5, 0.5, length(sunScreenPos * 2.0 - 1.0));
+        if(dot(sunPosition, centerVec) > 0.0) {
+            sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
+            flareSunCenterVec = vec2(0.5) - sunScreenPos;
 
-        float spriteAngle = atan(-flareSunCenterVec.x, flareSunCenterVec.y);
-        flareRotMat = mat2(cos(spriteAngle), -sin(spriteAngle), sin(spriteAngle), cos(spriteAngle));
+            float sunOcclusion = 0.0;
+            int samples = 16;
+            for(int i = 0; i < samples; i++) {
+                vec2 sampleCoords = sunScreenPos + vec2(0.018, 0.018*aspectRatio) * GetVogelDiskSample(i, samples, 0.0);
 
-        flareSprite01 = vec4(sunScreenPos + 0.35 * flareSunCenterVec, sunScreenPos.xy + 0.57 * flareSunCenterVec);
-        flareSprite23 = vec4(sunScreenPos + 0.59 * flareSunCenterVec, sunScreenPos.xy + 0.62 * flareSunCenterVec);
-        flareSprite45 = vec4(sunScreenPos + 0.81 * flareSunCenterVec, sunScreenPos.xy + 0.81 * flareSunCenterVec);
+                if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
+                    sunOcclusion += step(1.0, texture2D(depthtex0, sampleCoords).r);
+                else
+                    samples--;
+            }
+            if(samples == 0)
+                flareFade = 1.0;
+            else
+                flareFade = sunOcclusion/float(samples);
+            
+            flareFade *= smoothstep(1.5, 0.5, length(sunScreenPos * 2.0 - 1.0));
+
+            float spriteAngle = atan(-flareSunCenterVec.x, flareSunCenterVec.y);
+            flareRotMat = mat2(cos(spriteAngle), -sin(spriteAngle), sin(spriteAngle), cos(spriteAngle));
+
+            flareSprite01 = vec4(sunScreenPos + 0.35 * flareSunCenterVec, sunScreenPos.xy + 0.57 * flareSunCenterVec);
+            flareSprite23 = vec4(sunScreenPos + 0.59 * flareSunCenterVec, sunScreenPos.xy + 0.62 * flareSunCenterVec);
+            flareSprite45 = vec4(sunScreenPos + 0.81 * flareSunCenterVec, sunScreenPos.xy + 0.81 * flareSunCenterVec);
+        }
+        else {
+            flareFade = 0.0;
+        }
     #endif
 }

@@ -1,30 +1,30 @@
 #version 400 compatibility
 
 uniform mat4 gbufferProjectionInverse;
-// uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferModelView;
-// uniform vec3 sunDir;
-// uniform vec3 moonDir;
-uniform vec3 lightDir;
-// uniform float eyeAltitude;
+// // uniform vec3 sunDir;
+// // uniform vec3 moonDir;
+// uniform vec3 lightDir;
+// // uniform float eyeAltitude;
 uniform float rainStrength;
-// uniform int worldTime;
-uniform bool inEnd;
-uniform bool inNether;
+// // uniform int worldTime;
+// uniform bool inEnd;
+// uniform bool inNether;
 uniform sampler2D colortex10;
-uniform float sunAngle;
-uniform float shadowAngle;
+// uniform float sunAngle;
+// uniform float shadowAngle;
 uniform float sunHeight;
 uniform float shadowHeight;
 uniform int moonPhase;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4  gbufferModelViewInverse;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
+// uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
 uniform float near;
 uniform float far;
@@ -36,7 +36,8 @@ uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/sky2.glsl"
 
 out vec2 texcoord;

@@ -1,38 +1,35 @@
 #version 420 compatibility
 
 uniform sampler2D colortex0;
-uniform sampler2D colortex3;
-uniform sampler2D colortex6;
 uniform sampler2D colortex13;
 uniform sampler2D noisetex;
-uniform mat4 gbufferModelView;
+// uniform mat4 gbufferModelView;
 // uniform mat4 gbufferModelViewInverse;
-uniform bool inEnd;
-uniform bool inNether;
+// uniform bool inEnd;
+// uniform bool inNether;
 // uniform vec3 lightDir;
 // uniform vec3 sunPosition;
 uniform float aspectRatio;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4  gbufferModelViewInverse;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
-uniform vec3  cameraPosition;
-uniform float rainStrength;
-uniform float near;
-uniform float far;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
+// uniform mat4  gbufferModelViewInverse;
+// uniform mat4  gbufferProjection;
+// uniform mat4  gbufferProjectionInverse;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
+// uniform vec3  cameraPosition;
+// uniform float rainStrength;
+// uniform float near;
+// uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
+// uniform int   frameCounter;
+// uniform int   worldTime;
+// uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
-#include "/lib/kernels.glsl"
 #include "/lib/functions.glsl"
 
 in vec2 texcoord;

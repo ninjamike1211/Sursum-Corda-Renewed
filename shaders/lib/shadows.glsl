@@ -1,20 +1,21 @@
 #ifndef SHADOWS
 #define SHADOWS
 
-// #include "/functions.glsl"
+// #include "/lib/functions.glsl"
+// #include "/lib/sample.glsl"
+// #include "/lib/spaceConvert.glsl"
 
 // uniform sampler2D shadowtex0;
 // uniform sampler2D shadowtex1;
 // uniform sampler2D shadowcolor0;
-// uniform mat4 gbufferModelViewInverse;
-// uniform mat4 shadowModelView;
-// uniform mat4 shadowProjection;
-// uniform float viewWidth;
-// uniform float viewHeight;
-// uniform float fogDensityMult;
-// uniform float eyeAltitude;
-// uniform float frameTimeCounter;
-// uniform int frameCounter;
+// uniform mat4      shadowModelView;
+// uniform mat4      shadowProjection;
+// uniform float     viewWidth;
+// uniform float     viewHeight;
+// uniform float     fogDensityMult;
+// uniform float     eyeAltitude;
+// uniform float     frameTimeCounter;
+// uniform int       frameCounter;
 
 float cubeLength(vec2 v) {
 	return pow(abs(v.x * v.x * v.x) + abs(v.y * v.y * v.y), 1.0 / 3.0);
@@ -220,18 +221,21 @@ void volumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 texcoo
     // vec3 fogColor = mix(vec3(0.5, 0.6, 0.7), vec3(0.0), 1.0-shadowAmount);
     // albedo.rgb = mix(albedo.rgb, fogColor, density);
 
-    vec3 coefs;
-    if(inEnd) {
-        coefs = 2 * vec3(0.006, 0.005, 0.007);
-    }
-    else if(inNether) {
-        coefs = vec3(0.002, 0.0005, 0.000375);
+    #ifdef inEnd
+        vec3 coefs = 2 * vec3(0.006, 0.005, 0.007);
+    #endif
+
+    #ifdef inNether
+        vec3 coefs = vec3(0.002, 0.0005, 0.000375);
         // coefs = 0.01 * fogColor;
         shadowAmount = vec3(1.0);
-    }
-    else {
-        coefs = mix(10.0, 500.0, fogDensityMult) * vec3(2.0, 1.5, 1.0)*vec3(0.0000038, 0.0000105, 0.0000331);
-    }
+    #endif
+    
+    #ifndef inEnd
+    #ifndef inNether
+        vec3 coefs = mix(10.0, 500.0, fogDensityMult) * vec3(2.0, 1.5, 1.0)*vec3(0.0000038, 0.0000105, 0.0000331);
+    #endif
+    #endif
 
     vec3 fogColorUse = mix(SunMoonColor*0.5, SunMoonColor, shadowAmount);
     fogColorUse *= (noiseAmount * 0.8 + 1.2);

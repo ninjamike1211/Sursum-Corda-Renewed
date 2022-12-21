@@ -16,11 +16,10 @@ R16F        colortex14: r: auto exposure
 RGBA16F     colortex15: rgba: history buffer
 
 To do list:
-Add waving grass/leaves/etc
 Fix/change flowing water
 Either find credits for atmosphere or recreate
 Fix/tweak volumetric fog
 Fix water volumetric fog
-Fix direct/ambient light values in overworld
 Fix SSR circle artifact when close to reflector
-Fix NaN's on startup
+Fix Motion Blur white fringing
+Improve bloom handling

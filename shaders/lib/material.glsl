@@ -1,5 +1,11 @@
-#ifndef  MATERIAL
+#ifndef MATERIAL
 #define MATERIAL
+
+
+vec3 extractNormalZ(vec2 normal) {
+	// return vec3(normal, sqrt(1.0 - dot(normal.xy, normal.xy)));
+	return vec3(normal, sqrt(max(1.0 - dot(normal.xy, normal.xy), 0.0)));
+}
 
 /*
 	Normals encoding and decoding based on Spectrum by Zombye, a orthogonal approach

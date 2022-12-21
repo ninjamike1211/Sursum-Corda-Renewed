@@ -25,6 +25,7 @@ uniform bool  cameraMoved;
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
 
 flat out vec4 glColor;
 flat out vec3 glNormal;

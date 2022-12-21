@@ -2,5 +2,6 @@
 
 #define usePBRTextures
 #define usePOM
+#define terrain
 
 #include "base_fragment.glsl"

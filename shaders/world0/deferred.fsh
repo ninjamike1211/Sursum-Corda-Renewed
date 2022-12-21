@@ -3,32 +3,32 @@
 const float sunPathRotation = -20;
 
 uniform float rainStrength;
-uniform mat4 gbufferModelView;
-uniform bool inEnd;
-uniform bool inNether;
+// uniform mat4 gbufferModelView;
+// uniform bool inEnd;
+// uniform bool inNether;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4  gbufferModelViewInverse;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
-uniform vec3  cameraPosition;
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
+// uniform mat4  gbufferModelViewInverse;
+// uniform mat4  gbufferProjection;
+// uniform mat4  gbufferProjectionInverse;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
+// uniform vec3  cameraPosition;
+// uniform float near;
+// uniform float far;
+// uniform float viewWidth;
+// uniform float viewHeight;
+// uniform int   frameCounter;
+// uniform int   worldTime;
+// uniform bool  cameraMoved;
 
-uniform sampler2D noisetex;
+// uniform sampler2D noisetex;
 uniform vec3 sunDir;
 uniform vec3 moonDir;
-uniform vec3 sunPosition;
-uniform vec3 moonPosition;
+// uniform vec3 sunPosition;
+// uniform vec3 moonPosition;
 uniform int moonPhase;
 uniform float eyeAltitude;
 
@@ -36,8 +36,6 @@ uniform float sunHeight;
 uniform float shadowHeight;
 
 #include "/lib/defines.glsl"
-#include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
 #include "/lib/sky2.glsl"
 
 in vec2 texcoord;

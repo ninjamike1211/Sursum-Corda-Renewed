@@ -3,37 +3,39 @@ uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
 uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
 uniform sampler2D colortex10;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform sampler2D normals;
-uniform float shadowAngle;
-uniform float sunAngle;
+uniform sampler2D colortex12;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
+// uniform sampler2D normals;
+// uniform float shadowAngle;
+// uniform float sunAngle;
 uniform float sunHeight;
 uniform float shadowHeight;
 uniform int moonPhase;
-uniform vec3 lightDir;
+// uniform vec3 lightDir;
 uniform vec3 cameraPosition;
+uniform float frameTime;
 uniform float frameTimeCounter;
 uniform int   frameCounter;
-uniform int   worldTime;
+// uniform int   worldTime;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform int renderStage;
+// uniform int renderStage;
 // uniform float frameTime;
 // uniform ivec2 atlasSize;
 uniform bool  cameraMoved;
-uniform bool  inEnd;
-uniform bool  inNether;
+// uniform bool  inEnd;
+// uniform bool  inNether;
 
 in vec4 at_tangent;
 in vec2 mc_midTexCoord;
-// in vec3 at_midBlock;
+in vec3 at_midBlock;
 
 out vec2 texcoord;
 out vec4 glColor;
@@ -53,6 +55,8 @@ flat out mat3 tbn;
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/sky2.glsl"
 #include "/lib/waving.glsl"
@@ -121,6 +125,11 @@ void main() {
     #else
         entity = blockEntityId;
     #endif
+
+    if(entity == 10030 && glColor.r < 0.5) {
+        entity = 10010;
+        glColor *= 1.7;
+    }
     
     vec4 modelPos = gl_Vertex;
 
@@ -130,7 +139,7 @@ void main() {
         if(entity > 10000) {
             vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, texcoord, textureBounds);
+            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, colortex12);
         }
     #endif
 

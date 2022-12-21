@@ -13,12 +13,14 @@ uniform sampler2D depthtex1;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
-uniform sampler2D noisetex;
+// uniform sampler2D noisetex;
+
 uniform vec3 lightDir;
 uniform vec3 sunDir;
 uniform vec3 sunDirView;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferPreviousModelView;
 uniform mat4 gbufferPreviousProjection;
@@ -28,10 +30,8 @@ uniform float frameTimeCounter;
 uniform float eyeAltitude;
 uniform int isEyeInWater;
 uniform float rainStrength;
-uniform bool inEnd;
-uniform bool inNether;
-
-uniform mat4  gbufferProjection;
+// uniform bool inEnd;
+// uniform bool inNether;
 uniform mat4  shadowModelView;
 uniform mat4  shadowProjection;
 uniform float near;
@@ -41,22 +41,24 @@ uniform float viewHeight;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
-
 uniform float sunHeight;
 uniform float shadowHeight;
 uniform int moonPhase;
 uniform float fogDensityMult;
-
 uniform float heldBlockLightValue;
 uniform float heldBlockLightValue2;
 uniform int   heldItemId;
 uniform int   heldItemId2;
+uniform vec3 fogColor;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
+#include "/lib/sample.glsl"
 #include "/lib/sky2.glsl"
 #include "/lib/shadows.glsl"
 #include "/lib/lighting.glsl"

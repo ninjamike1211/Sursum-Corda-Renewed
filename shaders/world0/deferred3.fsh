@@ -48,6 +48,9 @@ uniform float fogDensityMult;
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
+#include "/lib/sample.glsl"
 #include "/lib/shadows.glsl"
 #include "/lib/lighting.glsl"
 #include "/lib/raytrace.glsl"
@@ -97,17 +100,21 @@ void main() {
         
         // SSAO
         #ifdef SSAO
+            if(isHand < 0.5) {
+                vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
+                vec3 occlusion = vec3(0.0);
 
-            vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
-            vec3 occlusion = vec3(0.0);
+                for(int i = 0; i < 5; i++) {
+                    vec2 offset = vec2(0.0, (i-2)) * texelSize;
 
-            for(int i = 0; i < 5; i++) {
-                vec2 offset = vec2(0.0, (i-2)) * texelSize;
+                    occlusion += 0.2 * texture2D(colortex9, texcoord + offset).rgb;
+                }
 
-                occlusion += 0.2 * texture2D(colortex9, texcoord + offset).rgb;
+                SSAOOut = vec4(occlusion, 1.0);
             }
-
-            SSAOOut = vec4(occlusion, 1.0);
+            else {
+                SSAOOut = vec4(1.0);
+            }
         #else
             SSAOOut = vec4(1.0);
         #endif

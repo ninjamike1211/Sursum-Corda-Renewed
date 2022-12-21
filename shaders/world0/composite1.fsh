@@ -1,24 +1,21 @@
 #version 420 compatibility
 
-uniform float wetness;
+// uniform float wetness;
 uniform float rainStrength;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
-uniform sampler2D depthtex2;
+// uniform sampler2D depthtex2;
 uniform sampler2D colortex0;
 uniform usampler2D colortex1;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
-uniform sampler2D colortex6;
 uniform sampler2D colortex10;
-uniform sampler2D colortex13;
-uniform sampler2D colortex15;
 uniform sampler2D noisetex;
 uniform vec3 sunDir;
-uniform vec3 sunDirView;
-uniform vec3 sunPosition;
+// uniform vec3 sunDirView;
+// uniform vec3 sunPosition;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 uniform float eyeAltitude;
@@ -27,15 +24,15 @@ uniform int isEyeInWater;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelView;
 uniform vec3 lightDir;
-uniform bool inEnd;
-uniform bool inNether;
-uniform float aspectRatio;
+// uniform bool inEnd;
+// uniform bool inNether;
+// uniform float aspectRatio;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
 uniform mat4  gbufferProjection;
-uniform mat4  shadowModelView;
+// uniform mat4  shadowModelView;
 uniform mat4  shadowProjection;
 uniform float near;
 uniform float far;
@@ -49,6 +46,7 @@ uniform float sunHeight;
 uniform float shadowHeight;
 uniform int moonPhase;
 uniform float fogDensityMult;
+uniform vec3 fogColor;
 
 uniform float heldBlockLightValue;
 uniform float heldBlockLightValue2;
@@ -60,6 +58,8 @@ uniform int   heldItemId2;
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/lighting.glsl"
 #include "/lib/sky2.glsl"
 #include "/lib/raytrace.glsl"
@@ -111,6 +111,7 @@ void main() {
         // Darken sky reflecion if underwater
         if(isEyeInWater == 1)
             skyColor *= vec3(0.1, 0.3, 0.4);
+            // skyColor = fogColor;
 
         // Fade out sky reflection in dark enviroments
         #ifdef Shadow_LeakFix

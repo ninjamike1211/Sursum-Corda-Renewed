@@ -138,13 +138,13 @@ void main() {
     // gl_FragColor = texture2D(colortex12, texcoord);
 
     // if(texcoord.x > 0.95)
-    //     gl_FragColor = texture2D(colortex12, texcoord).aaaa;
+    //     gl_FragColor = texture2D(colortex12, vec2(0.0)).aaaa;
     // else if(texcoord.x > 0.9)
-    //     gl_FragColor = vec4(0.0, 0.0, texture2D(colortex12, texcoord).b, 1.0);
+    //     gl_FragColor = vec4(0.0, 0.0, texture2D(colortex12, vec2(0.0)).b, 1.0);
     // else if(texcoord.x > 0.85)
-    //     gl_FragColor = vec4(0.0, texture2D(colortex12, texcoord).g * 0.5 + 0.5, 0.0, 1.0);
+    //     gl_FragColor = vec4(0.0, texture2D(colortex12, vec2(0.0)).g, 0.0, 1.0);
     // else if(texcoord.x > 0.8)
-    //     gl_FragColor = vec4(texture2D(colortex12, texcoord).r, 0.0, 0.0, 1.0);
+    //     gl_FragColor = vec4(texture2D(colortex12, vec2(0.0)).r, 0.0, 0.0, 1.0);
 
     // gl_FragColor = vec4(length(texture2D(colortex6, texcoord).rg) > EPS);
     // gl_FragColor = vec4(abs(texture2D(colortex6, texcoord)));
@@ -154,4 +154,7 @@ void main() {
 
     // if(texcoord.x > 0.9)
     //     gl_FragColor = vec4(sunAngle + 0.1);
+
+    // if(texcoord.x > 0.9)
+    //     gl_FragColor = vec4(isnan(gl_FragColor));
 }

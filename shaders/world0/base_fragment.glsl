@@ -1,3 +1,11 @@
+uniform sampler2D texture;
+uniform sampler2D normals;
+uniform sampler2D specular;
+uniform sampler2D depthtex1;
+uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
+
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
@@ -14,14 +22,15 @@ uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float rainStrength;
+uniform float wetness;
 uniform float frameTimeCounter;
 uniform int frameCounter;
 // uniform int renderStage;
 uniform int isEyeInWater;
 uniform int   worldTime;
 uniform ivec2 atlasSize;
-uniform bool inEnd;
-uniform bool inNether;
+// uniform bool inEnd;
+// uniform bool inNether;
 uniform bool  cameraMoved;
 uniform int heldItemId;
 uniform int heldBlockLightValue;
@@ -29,17 +38,11 @@ uniform int heldItemId2;
 uniform int heldBlockLightValue2;
 uniform vec4 entityColor;
 uniform float fogDensityMult;
+uniform vec3 fogColor;
 
-uniform sampler2D colortex9;
+// uniform sampler2D colortex9;
 uniform sampler2D colortex12;
-uniform sampler2D texture;
-uniform sampler2D normals;
-uniform sampler2D specular;
-uniform sampler2D depthtex1;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform sampler2D noisetex;
+// uniform sampler2D noisetex;
 
 flat in vec2 singleTexSize;
 
@@ -61,6 +64,9 @@ layout(location = 7) out vec4 pomOut;
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/sample.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
 #include "/lib/lighting.glsl"
 #include "/lib/parallax.glsl"
@@ -150,7 +156,7 @@ void main() {
 
 		lightmapOut = vec4(lmcoord, 0.0, 1.0);
 
-		pomOut = vec4(0.0, 0.0, 0.0, 1.0);
+		pomOut = vec4(0.0, 1.0, 0.0, 1.0);
 
 		// colorOut = albedoOut;
 
@@ -198,7 +204,7 @@ void main() {
 					vec3 shadowTexcoord = vec3(-1.0);
 
 					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, /* floor( */POM_Layers /* * (1.0 + 0.15 * (jitter * 2.0 - 1.0)) )*/, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
-					// pomOut.b = pomOffset;
+					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
 						pomOut.g = parallaxShadows(shadowTexcoord, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
@@ -312,6 +318,8 @@ void main() {
 		gl_FragDepth = gl_FragCoord.z;
 	#endif
 
+	#endif
+
 	if(entity == 10010) {
 
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
@@ -321,6 +329,8 @@ void main() {
 		// albedo.rgb = vec3(0.0);
 		albedo.rgb = 0.2 * glColor.rgb;
 
+		albedo.a = 0.4;
+
 		#ifndef Water_Flat
 			// vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 			vec3 worldPos = scenePos + cameraPosition;
@@ -328,6 +338,7 @@ void main() {
 			// albedo.rgb = vec3(waterHeight(worldPos.xz));
 
 			#ifdef Water_POM
+			if(geomNormal.y > 0.99999) {
 				// vec3 worldPosInitial = worldPos;
 				waterParallaxMapping(worldPos, vec2(1.0));
 
@@ -345,19 +356,70 @@ void main() {
 				#ifdef POM_PDO
 					gl_FragDepth = screenPos.z;
 				#endif
+			}
+			else {
+				waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
+			}
 			#endif
 
 			// if(abs(glNormal.y) > 0.1)
 			normalVal = normalize(tbn * waterNormal(worldPos)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
+		
+			if(rainStrength > 0.0) {
+				vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter);
+				vec3 puddleNormal = normalize(vec3(noiseVals.y, 1.0, noiseVals.z));
+
+				normalVal = normalize(normalVal + 0.01 * mix(vec3(0.0), puddleNormal, rainStrength));
+			}
 		#else
 			waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
 		#endif
 		specMap = vec4(1.0, 0.02, 0.0, 0.0);
 
 	}
-	#endif
+	// #endif
 
 	vec3 viewNormal = (gbufferModelView * vec4(normalVal, 0.0)).xyz;
+
+	#if defined terrain || defined block || defined entities || defined hand
+		float isWet = wetness * smoothstep(29.0/32.0, 31.0/32.0, lmcoord.g) * smoothstep(-0.75, -0.25, normalVal.y);
+		
+		if(glNormal.y > 0.99 && isWet > 0.0) {
+			vec3 worldPos = scenePos + cameraPosition;
+
+			specMap.r = max(specMap.r, mix(specMap.r, 0.7, isWet));
+
+			float belowBlock = round(worldPos.y) - worldPos.y;
+
+			#ifdef terrain
+			// if(length(textureBounds.zw - textureBounds.xy) > length(vec2(0.9)) && belowBlock < 0.25) {
+			if(entity < 10000) {
+
+				float puddleHeight = SimplexPerlin2D(0.25 * worldPos.xz) - ((0.7) * (1.0 - wetness)) + pomOut.b + belowBlock;
+
+				if(puddleHeight > 0.3) {
+					vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter) * rainStrength;
+					vec3 puddleNormal = normalize(vec3(noiseVals.y, 300.0, noiseVals.z));
+					// vec3 puddleNormal = vec3(0.0, 1.0, 0.0);
+
+					normalVal  = mix(normalVal,  puddleNormal, smoothstep(0.3, 0.6, puddleHeight));
+					geomNormal = mix(geomNormal, puddleNormal, smoothstep(0.3, 0.6, puddleHeight));
+					
+					pomOut.g = mix(pomOut.g, 1.0, smoothstep(0.3, 0.6, puddleHeight));
+
+					albedo.rgb *= mix(1.0, 0.8, isWet * smoothstep(0.3, 0.9, puddleHeight));
+					// albedo.rgb = vec3(1.0);
+
+					specMap.r = mix(specMap.r, 0.95, isWet / wetness * smoothstep(0.3, 0.6, puddleHeight));
+				}
+			}
+			#endif
+				
+		}
+		else
+			specMap.r = max(specMap.r, mix(specMap.r, 0.7, isWet));
+
+	#endif
 
 	#ifdef DirectionalLightmap
 		vec3 dFdSceneposX = dFdx(scenePos);

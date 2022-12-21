@@ -1,3 +1,6 @@
+#ifndef WATER
+#define WATER
+
 /*  
  *  Requirements:
  *  include "noise.glsl"
@@ -198,3 +201,5 @@ void waterParallaxMapping(inout vec3 worldPos, vec2 texWorldSize) {
     float yOffset = mix(currentDepthMapValue, lastDepthMapValue, weight) * Water_Depth;
     worldPos.y -= yOffset;
 }
+
+#endif

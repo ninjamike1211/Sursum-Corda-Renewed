@@ -1,9 +1,12 @@
+#ifndef SKY
+#define SKY
+
 // #include "/defines.glsl"
 
 // uniform float rainStrength;
 // uniform float sunHeight;
 // uniform float shadowHeight;
-// uniform int moonPhase;
+// uniform int   moonPhase;
 
 #define AS_MAIN_SAMPLES 16 //Scattering steps
 #define AS_LIGHT_SAMPLES 8 //Transmittance steps
@@ -501,3 +504,5 @@ vec3 get_sky_color_nether(vec3 ray_origin, vec3 ray_direction, vec3 light_direct
     //Output
 	return atmospheric_scattering_single(ray_origin, ray_direction, light_direction, atmosphere);
 }
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef BLOOMTILE
+#define BLOOMTILE
+
 // Tile pattern based on algorithm from Null (original here: https://www.shadertoy.com/view/fl2cRD)
 
 float getTilePos(float tile) {
@@ -82,7 +85,4 @@ vec2 getTileCoordRead(vec2 texcoord, vec2 pixelSize, int tile, out vec4 bounds) 
     return texcoord * (innerMaxBounds - innerMinBounds) + innerMinBounds;
 }
 
-
-
-
-
+#endif

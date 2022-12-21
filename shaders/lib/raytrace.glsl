@@ -1,11 +1,13 @@
+#ifndef RAYTRACE
+#define RAYTRACE
+
 // Code by Belmu (https://gist.github.com/BelmuTM/af0fe99ee5aab386b149a53775fe94a3#file-raytracer-glsl)
 
 // #include "/defines.glsl"
-// #include "/functions.glsl"
+// #include "/spaceConvert.glsl"
 
 /* Dependencies:
 uniform sampler2D depthtex1;
-uniform mat4 gbufferProjection;
 */
 
 #define BINARY_REFINEMENT 1
@@ -136,3 +138,5 @@ bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter) {
     return intersect;
     // Outputting the boolean
 }
+
+#endif

@@ -1,22 +1,36 @@
 #version 400 compatibility
 
-uniform vec3 lightDir;
-uniform mat4 gbufferModelView;
-uniform bool inEnd;
-uniform bool inNether;
-uniform ivec2 atlasSize;
-uniform vec3 cameraPosition;
-uniform mat4 gbufferModelViewInverse;
+uniform sampler2D colortex12;
+
 uniform mat4 shadowModelViewInverse;
 uniform float rainStrength;
+uniform float frameTime;
 uniform float frameTimeCounter;
-// uniform sampler2D normals; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
-// uniform sampler2D texture; // Not used, but no functions which use it are called, only needed for code in POM.glsl to compile
+
+uniform mat4  gbufferModelView;
+uniform mat4  gbufferModelViewInverse;
+uniform mat4  gbufferProjection;
+uniform mat4  gbufferProjectionInverse;
+uniform vec3  cameraPosition;
+uniform float near;
+uniform float far;
+uniform float viewWidth;
+uniform float viewHeight;
+uniform int   frameCounter;
+uniform bool  cameraMoved;
+uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
+uniform mat4      shadowModelView;
+uniform mat4      shadowProjection;
+uniform float     fogDensityMult;
+uniform float     eyeAltitude;
 
 flat out vec2 singleTexSize;
 
 in vec4 at_tangent;
 in vec2 mc_midTexCoord;
+in vec3 at_midBlock;
 in vec4 mc_Entity;
 
 out vec2 texcoord;
@@ -29,28 +43,14 @@ flat out vec3 glNormal;
 flat out int entity;
 // flat out mat3 tbn;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
-uniform float fogDensityMult;
-uniform float eyeAltitude;
-
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
 #include "/lib/noise.glsl"
+#include "/lib/sample.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
+#include "/lib/functions.glsl"
 #include "/lib/waving.glsl"
 
 void main() {
@@ -80,6 +80,10 @@ void main() {
 
     vec4 modelPos = gl_Vertex;
 
+    if(entity == 10030 && glColor.r < 0.5) {
+        modelPos.y -= 0.2;
+    }
+
     vec2 halfSize = abs(texcoord - mc_midTexCoord);
 	vec4 textureBounds = vec4(mc_midTexCoord.xy - halfSize, mc_midTexCoord.xy + halfSize);
     // singleTexSize = textureBounds.zw-textureBounds.xy;
@@ -88,7 +92,7 @@ void main() {
     if(entity > 10000) {
         vec3 worldPos = modelPos.xyz + cameraPosition;
         
-        modelPos.xyz += wavingOffset(worldPos, entity, texcoord, textureBounds);
+        modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, colortex12);
     }
     #endif
 

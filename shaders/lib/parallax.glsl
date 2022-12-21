@@ -1,9 +1,11 @@
+#ifndef PARALLAX
+#define PARALLAX
 
 // #include "/defines.glsl"
-// #include "/functions.glsl"
 
-// uniform ivec2 atlasSize;
+// uniform ivec2     atlasSize;
 // uniform sampler2D normals;
+// uniform vec3 lightDir;
 
 #if POM_Filter == 0
 	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, float lod) {
@@ -370,3 +372,5 @@ float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, out float shadow,
 	vec3 screenPos = clipPos.xyz / clipPos.w * 0.5 + 0.5;
 	return screenPos.z;
 }
+
+#endif

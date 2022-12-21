@@ -1,21 +1,21 @@
 #version 400 compatibility
 
 uniform usampler2D colortex1;
-uniform sampler2D depthtex0;
+uniform sampler2D depthtex2;
 uniform sampler2D depthtex1;
 uniform sampler2D noisetex;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferProjectionInverse;
-uniform bool inEnd;
-uniform bool inNether;
+// uniform bool inEnd;
+// uniform bool inNether;
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
+// uniform sampler2D shadowtex0;
+// uniform sampler2D shadowtex1;
+// uniform sampler2D shadowcolor0;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
+// uniform mat4  shadowModelView;
+// uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
 uniform float rainStrength;
 uniform float near;
@@ -26,9 +26,10 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
-uniform float     eyeAltitude;
+// uniform float     eyeAltitude;
 uniform float     frameTimeCounter;
 uniform float fogDensityMult;
+uniform vec3 fogColor;
 
 uniform float heldBlockLightValue;
 uniform float heldBlockLightValue2;
@@ -38,8 +39,10 @@ uniform int   heldItemId2;
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 #include "/lib/lighting.glsl"
 
 in vec2 texcoord;
@@ -51,13 +54,13 @@ layout(location = 0) out vec4 SSAOOut;
 void main() {
 
     #ifdef SSAO
-        float depth = texture2D(depthtex0, texcoord).r;
+        float depth = texture2D(depthtex2, texcoord).r;
         uvec2 normalRaw = texture2D(colortex1, texcoord).rg;
 
         vec3 viewPos = calcViewPos(viewVector, depth);
         vec3 normalGeometry = NormalDecode(normalRaw.y);
 
-        SSAOOut = vec4(mix(calcSSAO(normalToView(normalGeometry), viewPos, texcoord, depthtex0, noisetex), vec3(1.0), 0.0), 1.0);
+        SSAOOut = vec4(mix(calcSSAO(normalToView(normalGeometry), viewPos, texcoord, depthtex2, noisetex), vec3(1.0), 0.0), 1.0);
     #else
         SSAOOut = vec4(1.0);
     #endif

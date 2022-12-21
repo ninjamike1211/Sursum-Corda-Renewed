@@ -2,43 +2,24 @@
 #define LIGHTING
 
 /*
-// #include "/defines.glsl"
-// #include "/functions.glsl"
-// #include "/noise.glsl"
+// #include "/lib/defines.glsl"
+// #include "/lib/noise.glsl"
+// #include "/lib/functions.glsl"
+// #include "/lib/spaceConvert.glsl"
 
 // uniform sampler2D depthtex1;
-// uniform mat4  gbufferProjection;
-// uniform float viewWidth;
-// uniform float viewHeight;
-// uniform float frameTimeCounter;
-// uniform float fogDensityMult;
-// uniform float heldBlockLightValue;
-// uniform float heldBlockLightValue2;
-// uniform int   heldItemId;
-// uniform int   heldItemId2;
+// uniform float     rainStrength;
+// uniform float     viewWidth;
+// uniform float     viewHeight;
+// uniform float     frameTimeCounter;
+// uniform float     fogDensityMult;
+// uniform vec3      fogColor;
+// uniform float     heldBlockLightValue;
+// uniform float     heldBlockLightValue2;
+// uniform int       heldItemId;
+// uniform int       heldItemId2;
+// uniform int       worldTime;
 */
-
-// const vec3 metalsF0[8] = vec3[8] (
-//     vec3(0.56, 0.57, 0.58), // Iron
-//     vec3(1.00, 0.71, 0.29), // Gold
-//     vec3(0.96, 0.96, 0.97), // Aluminium
-//     vec3(0.56, 0.57, 0.58), // Chrome
-//     vec3(0.98, 0.82, 0.76), // Copper
-//     vec3(0.56, 0.57, 0.58), // Lead
-//     vec3(0.56, 0.57, 0.58), // Platinum
-//     vec3(0.98, 0.97, 0.95)  // Silver
-// );
-
-// const vec3 metalsF0[8] = vec3[8](
-//     vec3(0.7323620366092286, 0.7167327174985388, 0.7091896461414436), // Iron
-//     vec3(1.0539195094529696, 1.027785864151901,  0.6520659895749682), // Gold
-//     vec3(0.9706793033860285, 0.9777863969150392, 0.9917750974816536), // Aluminium
-//     vec3(0.7487388173705779, 0.7470894380842715, 0.7605161153716048), // Chrome
-//     vec3(1.0349547086698894, 0.9518412528274076, 0.7662936415871581), // Copper
-//     vec3(0.82339703574297,   0.821581064334115,  0.8457226032417902), // Lead
-//     vec3(0.8426306452778194, 0.8253700126733226, 0.7968226770078278), // Platinum
-//     vec3(1.0440489482492765, 1.0696036644002451, 1.1282074921867093)  // Silver
-// );
 
 const vec3 metalsF0[8] = vec3[8](
     vec3(0.53123, 0.51236, 0.49583), // Iron
@@ -51,31 +32,30 @@ const vec3 metalsF0[8] = vec3[8](
     vec3(0.96200, 0.94947, 0.92212)  // Silver
 );
 
-// const vec3 metalsF0[8] = vec3[8] (
-//     sRGBToLinear3(vec3(0.78, 0.77, 0.74)),
-//     sRGBToLinear3(vec3(1.00, 0.90, 0.61)),
-//     sRGBToLinear3(vec3(1.00, 0.98, 1.00)),
-//     sRGBToLinear3(vec3(0.77, 0.80, 0.79)),
-//     sRGBToLinear3(vec3(1.00, 0.89, 0.73)),
-//     sRGBToLinear3(vec3(0.79, 0.87, 0.85)),
-//     sRGBToLinear3(vec3(0.92, 0.90, 0.83)),
-//     sRGBToLinear3(vec3(1.00, 1.00, 0.91))
-// );
 
-// const vec3 metalsF82[8] = vec3[8] (
-//     sRGBToLinear3(vec3(0.74, 0.76, 0.76)),
-//     sRGBToLinear3(vec3(1.00, 0.93, 0.73)),
-//     sRGBToLinear3(vec3(0.96, 0.97, 0.98)),
-//     sRGBToLinear3(vec3(0.74, 0.79, 0.78)),
-//     sRGBToLinear3(vec3(1.00, 0.90, 0.80)),
-//     sRGBToLinear3(vec3(0.83, 0.80, 0.83)),
-//     sRGBToLinear3(vec3(0.89, 0.87, 0.81)),
-//     sRGBToLinear3(vec3(1.00, 1.00, 0.95))
-// );
+float dayTimeFactor() {
+	float adjustedTime = mod(worldTime + 785.0, 24000.0);
 
+	if(adjustedTime > 13570.0)
+			return sin((adjustedTime - 3140.0) * PI / 10430.0);
 
-// uniform float fogDensityMult;
-// uniform vec3 fogColor;
+	return sin(adjustedTime * PI / 13570.0);
+}
+
+vec3 skyLightColor() {
+	#ifdef inEnd
+		return vec3(0.075, 0.04, 0.15);
+	#endif
+
+	#ifdef inNether
+		return vec3(0.4, 0.02, 0.01);
+	#endif
+
+    float timeFactor = dayTimeFactor();
+    vec3 night = mix(vec3(0.02, 0.02, 0.035), vec3(0.03), rainStrength);
+    vec3 day = mix(mix(vec3(1.0, 0.6, 0.4), vec3(0.9, 0.87, 0.85), clamp(5.0 * (timeFactor - 0.2), 0.0, 1.0)), vec3(0.3), rainStrength);
+    return mix(night, day, clamp(2.0 * (timeFactor + 0.4), 0.0, 1.0));
+}
 
 void fog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {
     vec3 coefs = mix(10.0, 500.0, fogDensityMult) * vec3(2.0, 1.5, 1.0)*vec3(0.0000038, 0.0000105, 0.0000331);
@@ -109,9 +89,9 @@ vec3 adjustLightMap(vec2 lmcoord, vec3 SunMoonColor) {
     vec3 skyAmbient = mix(vec3(0.06), 4 * SunMoonColor, lmcoord.y);
     vec3 torchAmbient = mix(vec3(0.0), 1.5*vec3(15.0, 7.2, 2.9), lmcoord.x) /* * (1.2 - skyAmbient) */;
 
-    if(inNether) {
+    #ifdef inNether
         torchAmbient = mix(vec3(0.5, 0.1, 0.05), vec3(8.0, 2.2, 0.6), lmcoord.x);
-    }
+    #endif
 
     return skyAmbient + torchAmbient;
 }
