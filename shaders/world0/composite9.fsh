@@ -3,34 +3,19 @@
 uniform sampler2D colortex0;
 uniform sampler2D colortex13;
 uniform sampler2D noisetex;
-// uniform mat4 gbufferModelView;
-// uniform mat4 gbufferModelViewInverse;
-// uniform bool inEnd;
-// uniform bool inNether;
-// uniform vec3 lightDir;
-// uniform vec3 sunPosition;
 uniform float aspectRatio;
-
-// uniform sampler2D shadowtex0;
-// uniform sampler2D shadowtex1;
-// uniform sampler2D shadowcolor0;
-// uniform mat4  gbufferModelViewInverse;
-// uniform mat4  gbufferProjection;
-// uniform mat4  gbufferProjectionInverse;
-// uniform mat4  shadowModelView;
-// uniform mat4  shadowProjection;
-// uniform vec3  cameraPosition;
-// uniform float rainStrength;
-// uniform float near;
-// uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-// uniform int   frameCounter;
-// uniform int   worldTime;
-// uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Final composite shader
+    // Applies tonemapping and gamma correction to final image
+    // Applies lens flare effect
+
 
 in vec2 texcoord;
 in vec3 viewVector;
@@ -49,7 +34,6 @@ flat in float exposure;
 /* RENDERTARGETS: 0,14 */
 layout(location = 0) out vec4 colorOut;
 layout(location = 1) out vec4 exposureOutput;
-// layout(location = 2) out vec4 testOut;
 
 vec3 change_luminance(vec3 c_in, float l_out) {
     float l_in = luminance(c_in);
@@ -92,6 +76,7 @@ void main() {
     colorOut = texture(colortex0, texcoord);
     
 
+// ------------------------ Tone Mapping ------------------------
     // reinhard tone mapping
     // colorOut.rgb = vec3(1.0) - exp(-colorOut.rgb * exposure);
     // albedo.rgb /= albedo.rgb + vec3(1.0);
@@ -106,6 +91,8 @@ void main() {
 
     exposureOutput = vec4(exposure);
 
+
+// ------------------------- Lens Flare -------------------------
     #ifdef LensFlare
     if(flareFade > 0.0) {
 

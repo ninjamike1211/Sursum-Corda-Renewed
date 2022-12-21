@@ -9,6 +9,11 @@ uniform float viewHeight;
 #include "/lib/sample.glsl"
 #include "/lib/bloomTile.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Accumulate and apply bloom effect to final image
+
+
 /* RENDERTARGETS: 0*/
 layout(location = 0) out vec4 colorOut;
 

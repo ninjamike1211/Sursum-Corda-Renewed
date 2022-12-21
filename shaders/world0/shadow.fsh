@@ -78,7 +78,7 @@ void main() {
 
         float caustics = (pow(waterHeightFunc(worldPos.xz), 5.0) * 0.9 + 0.1) * 2.0;
 
-        shadowColor.rgb = glColor.rgb * caustics;
+        shadowColor.rgb = glColor.rgb * caustics * 2.0;
 
         // shadowColor.rgb = vec3(caustics);
     }

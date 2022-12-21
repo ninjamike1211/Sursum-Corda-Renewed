@@ -14,6 +14,11 @@ uniform bool cameraMoved;
 #include "/lib/defines.glsl"
 #include "/lib/TAA.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Apply Temporal Anti-aliasing
+
+
 in vec2 texcoord;
 
 /* RENDERTARGETS: 0,15 */
@@ -23,6 +28,8 @@ layout(location = 1) out vec4 historyOut;
 void main() {
 	colorOut = texture(colortex0, texcoord);
 
+
+// ----------------------------- TAA ----------------------------
 	#ifdef TAA
 		applyTAA(colorOut, historyOut, texcoord, colortex0, colortex15, colortex6);
 	#endif

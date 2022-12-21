@@ -11,18 +11,25 @@ uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform int   frameCounter;
-uniform bool  cameraMoved;
 uniform float rainStrength;
 uniform float sunHeight;
 uniform float shadowHeight;
+uniform int   frameCounter;
 uniform int   moonPhase;
+uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/sky2.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Standard fullscreen post-process vertex shader
+    // Calculates view vector for cheap view position
+    // Calculates direct and indirect light colors
+
 
 out vec2 texcoord;
 out vec3 viewVector;
@@ -35,15 +42,7 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     viewVector = calcViewVector(texcoord);
-    // vec4 ray = gbufferProjectionInverse * vec4(texcoord * 2.0 - 1.0, 0.0, 1.0);
-	// viewVector = (ray.xyz / ray.w);
-	// viewVector /= viewVector.z;
-
-    // vec3 sunColor = skyColor(normalize(sunPosition), normalize(sunPosition), eyeAltitude, mat3(gbufferModelViewInverse));
-    // vec3 moonColor = skyMoonColor(normalize(moonPosition), normalize(moonPosition), eyeAltitude, mat3(gbufferModelViewInverse));
-    // SunMoonColor = vec3(mix(0.0, 1.5, smoothstep(0.0, 1.0, sunColor.r)) + mix(0.0, 0.6, smoothstep(0.0, 0.01, moonColor.r)));
-    // SunMoonColor = lightColor(normalize(sunPosition), normalize(moonPosition), eyeAltitude, mat3(gbufferModelViewInverse));
-    // skyDirect = skyLightColor(worldTime, rainStrength);
+    
     skyDirect = sunLightSample();
     skyAmbient = skyLightSample(colortex10);
 }

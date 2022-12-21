@@ -8,13 +8,19 @@ uniform float viewHeight;
 #include "/lib/functions.glsl"
 #include "/lib/bloomTile.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Calculate and output unfiltered bloom tiles to colortex11
+
+
 /* RENDERTARGETS: 11*/
 layout(location = 0) out vec4 bloomOut;
 
 in vec2 texcoord;
 
 void main() {
-    
+
+// ------------------------- Bloom Tiles ------------------------
     int mipmap;
     vec2 samplecoord;
     getTileCoordStore(texcoord, 1.0 / vec2(viewWidth, viewHeight), Bloom_Tiles, mipmap, samplecoord);

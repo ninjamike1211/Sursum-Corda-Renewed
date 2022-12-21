@@ -8,6 +8,11 @@ uniform float viewHeight;
 #include "/lib/kernels.glsl"
 #include "/lib/bloomTile.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Apply vertical filtering to bloom tiles
+
+
 /* RENDERTARGETS: 11*/
 layout(location = 0) out vec4 bloomOut;
 

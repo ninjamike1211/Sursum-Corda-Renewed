@@ -8,6 +8,11 @@ uniform float viewWidth;
 
 #include "/lib/defines.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Apply Motion Blur
+
+
 /* RENDERTARGETS: 0*/
 layout(location = 0) out vec4 colorOut;
 

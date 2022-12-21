@@ -2,30 +2,21 @@
 
 #define ExposureSpeed 1.0
 
-uniform mat4 gbufferProjectionInverse;
 uniform sampler2D colortex0;
 uniform sampler2D colortex14;
-uniform float frameTime;
-uniform mat4 gbufferModelView;
-// uniform bool inEnd;
-// uniform bool inNether;
-uniform vec3 sunPosition;
 uniform sampler2D depthtex0;
-uniform float aspectRatio;
-
-// uniform sampler2D shadowtex0;
-// uniform sampler2D shadowtex1;
-// uniform sampler2D shadowcolor0;
+uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-// uniform mat4  shadowModelView;
-// uniform mat4  shadowProjection;
+uniform mat4  gbufferProjectionInverse;
+uniform vec3  sunPosition;
 uniform vec3  cameraPosition;
-// uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float aspectRatio;
+uniform float frameTime;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
@@ -35,6 +26,13 @@ uniform bool  cameraMoved;
 #include "/lib/sample.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Standard fullscreen post-process vertex shader
+    // Auto exposure (currently not used)
+    // Calculate sprite positions and sizes for lens flare
+
 
 out vec2 texcoord;
 out vec3 viewVector;
@@ -61,6 +59,8 @@ void main() {
 	// viewVector = (ray.xyz / ray.w);
 	// viewVector /= viewVector.z;
 
+
+// ------------------------ Auto Exposure -----------------------
     vec3 avgColor = textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb;
     float exposureScreen = 0.1 / dot(avgColor, vec3(0.2125, 0.7154, 0.0721));
     // float exposureScreen = luminance(avgColor);
@@ -79,6 +79,8 @@ void main() {
 
     // imageStore(colorimg5, ivec2(viewWidth/2, viewHeight/2), vec4(exposure, vec3(0.0)));
 
+
+// --------------------- Lens Flare Sprites ---------------------
     #ifdef LensFlare
         vec4 centerRay = gbufferProjectionInverse * vec4(0.0, 0.0, 1.0, 1.0);
         vec3 centerVec = centerRay.xyz / centerRay.w;

@@ -1,20 +1,24 @@
 uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
+uniform sampler2D colortex12;
 uniform sampler2D depthtex1;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 gbufferProjection;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 shadowModelView;
-uniform mat4 shadowProjection;
-uniform vec3 lightDir;
-uniform vec3 lightDirView;
-uniform vec3 cameraPosition;
+uniform mat4  gbufferModelView;
+uniform mat4  gbufferModelViewInverse;
+uniform mat4  gbufferProjection;
+uniform mat4  gbufferProjectionInverse;
+uniform mat4  shadowModelView;
+uniform mat4  shadowProjection;
+uniform vec4  entityColor;
+uniform vec3  lightDir;
+uniform vec3  lightDirView;
+uniform vec3  cameraPosition;
+uniform vec3  fogColor;
+uniform ivec2 atlasSize;
 uniform float eyeAltitude;
 uniform float alphaTestRef;
 uniform float near;
@@ -24,20 +28,15 @@ uniform float viewHeight;
 uniform float rainStrength;
 uniform float wetness;
 uniform float frameTimeCounter;
-uniform int frameCounter;
-uniform int isEyeInWater;
-uniform int   worldTime;
-uniform ivec2 atlasSize;
-uniform bool  cameraMoved;
-uniform int heldItemId;
-uniform int heldBlockLightValue;
-uniform int heldItemId2;
-uniform int heldBlockLightValue2;
-uniform vec4 entityColor;
 uniform float fogDensityMult;
-uniform vec3 fogColor;
-
-uniform sampler2D colortex12;
+uniform int   frameCounter;
+uniform int   isEyeInWater;
+uniform int   worldTime;
+uniform int   heldItemId;
+uniform int   heldBlockLightValue;
+uniform int   heldItemId2;
+uniform int   heldBlockLightValue2;
+uniform bool  cameraMoved;
 
 /* RENDERTARGETS: 0,1,2,3,4,5,6,8 */
 layout(location = 0) out vec4 colorOut;
@@ -49,7 +48,6 @@ layout(location = 5) out vec4 waterDepth;
 layout(location = 6) out vec4 velocityOut;
 layout(location = 7) out vec4 pomOut;
 
-#define debugOut
 #define baseFragment
 
 #include "/lib/defines.glsl"
@@ -65,18 +63,32 @@ layout(location = 7) out vec4 pomOut;
 #include "/lib/parallax.glsl"
 #include "/lib/water.glsl"
 
-in vec2 texcoord;
+
+// ------------------------ File Contents -----------------------
+    // Gbuffers primary fragment shader
+    // Motion vector calculations for TAA or Motion Blur
+	// End portal visuals and overrides
+	// Reading and processing textures and materials
+	// Parallax Mapping, including Parallax Shadows, Pixel-Depth-Offset, and Slope Normals
+	// Fixes and overries for specific geometry
+	// Water rendering, including normals and POM
+	// Weather rain and puddle effects
+	// Directional Lightmap
+	// Transparent object rendering, including PCSS Shadows, lighting, Dynamic Handlight, and Sub-surface Scattering
+
+
 in vec4 glColor;
-flat in vec3 glNormal;
-in vec2 lmcoord;
 in vec3 viewPos;
 in vec3 scenePos;
 in vec3 tbnPos;
+in vec2 texcoord;
+in vec2 lmcoord;
+flat in mat3 tbn;
 flat in vec4 textureBounds;
-flat in int entity;
+flat in vec3 glNormal;
 flat in vec3 skyAmbient;
 flat in vec3 skyDirect;
-flat in mat3 tbn;
+flat in int  entity;
 
 #if defined TAA || defined MotionBlur
 	in vec4 oldClipPos;
@@ -117,7 +129,7 @@ flat in mat3 tbn;
 
 void main() {
 
-// ------------------------ TAA Velocity ------------------------
+// ----------------------- Motion Vectors -----------------------
 	#if defined TAA || defined MotionBlur
 		vec2 oldPos = oldClipPos.xy / oldClipPos.w;
 		oldPos = oldPos * 0.5 + 0.5;

@@ -1,19 +1,10 @@
 #version 400 compatibility
 
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelView;
-// uniform bool inEnd;
-// uniform bool inNether;
-
-// uniform sampler2D shadowtex0;
-// uniform sampler2D shadowtex1;
-// uniform sampler2D shadowcolor0;
+uniform mat4  gbufferProjectionInverse;
+uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-// uniform mat4  shadowModelView;
-// uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
-// uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
@@ -26,6 +17,12 @@ uniform bool  cameraMoved;
 #include "/lib/kernels.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Standard fullscreen post-process vertex shader
+    // Calculates view vector for cheap view position
+    
 
 out vec2 texcoord;
 out vec3 viewVector;

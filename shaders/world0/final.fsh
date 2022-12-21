@@ -33,6 +33,11 @@ uniform bool  cameraMoved;
 #include "/lib/noise.glsl"
 #include "/lib/functions.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Final shader, allows displaying of various buffers
+
+
 in vec2 texcoord;
 
 uniform sampler2D colortex0;

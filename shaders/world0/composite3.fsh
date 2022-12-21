@@ -3,22 +3,11 @@
 uniform sampler2D colortex0;
 uniform sampler2D colortex3;
 uniform sampler2D depthtex0;
-// uniform float aspectRatio;
-// // uniform float centerDepthSmooth;
-uniform mat4 gbufferModelView;
-// uniform bool inEnd;
-// uniform bool inNether;
-
-// uniform sampler2D shadowtex0;
-// uniform sampler2D shadowtex1;
-// uniform sampler2D shadowcolor0;
+uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
 uniform mat4  gbufferProjectionInverse;
-// uniform mat4  shadowModelView;
-// uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
-// uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
@@ -32,6 +21,11 @@ uniform bool  cameraMoved;
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Apply Depth of Field
+
+
 in vec2 texcoord;
 flat in float centerDepthLinear;
 
@@ -39,6 +33,8 @@ flat in float centerDepthLinear;
 layout(location = 0) out vec4 colorOut;
 
 void main() {
+
+// ----------------------------- DOF ----------------------------
     #ifdef DOF
         // float currentDist = unpackCoC(texture(colortex14, texcoord).r);
         float hand = texture(colortex3, texcoord).b;

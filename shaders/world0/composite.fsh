@@ -13,7 +13,6 @@ uniform sampler2D depthtex1;
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
-// uniform sampler2D noisetex;
 
 uniform vec3 lightDir;
 uniform vec3 sunDir;
@@ -30,8 +29,6 @@ uniform float frameTimeCounter;
 uniform float eyeAltitude;
 uniform int isEyeInWater;
 uniform float rainStrength;
-// uniform bool inEnd;
-// uniform bool inNether;
 uniform mat4  shadowModelView;
 uniform mat4  shadowProjection;
 uniform float near;
@@ -67,6 +64,18 @@ uniform vec3 fogColor;
 
 // #define waterRefraction
 
+
+// ------------------------ File Contents -----------------------
+    // Main Composite pass, combining opaque and transparent geometry
+	// Read texture values and calculate various positions
+	// Water Refraction (current broken)
+	// Apply SSAO to opaque objects
+	// Apply water and atmospheric fog to opaque objects
+	// Apply sky, sun/moon, and atmospheric/water fog to sky
+	// Apply water and atmospheric fog to transparent objects
+	// Alpha blending
+
+
 in vec2 texcoord;
 in vec3 viewVector;
 flat in vec3 skyAmbient;
@@ -78,29 +87,31 @@ const int noiseTextureResolution = 512;
 layout(location = 0) out vec4 colorOut;
 layout(location = 1) out vec4 specMapOut;
 layout(location = 2) out vec4 velocityOut;
-// layout(location = 1) out vec4 SSAOOut;
 
 
-// Fast screen reprojection by Eldeston#3590 with reference from Chocapic13 and Jessie#7257
-// Source: https://discord.com/channels/237199950235041794/525510804494221312/955506913834070016
-vec2 toPrevScreenPos(vec2 currScreenPos, float depth){
-    vec3 currViewPos = vec3(vec2(gbufferProjectionInverse[0].x, gbufferProjectionInverse[1].y) * (currScreenPos.xy * 2.0 - 1.0) + gbufferProjectionInverse[3].xy, gbufferProjectionInverse[3].z);
-    currViewPos /= (gbufferProjectionInverse[2].w * (depth * 2.0 - 1.0) + gbufferProjectionInverse[3].w);
-    vec3 currFeetPlayerPos = mat3(gbufferModelViewInverse) * currViewPos + gbufferModelViewInverse[3].xyz;
+#if defined TAA || defined MotionBlur
+	// Fast screen reprojection by Eldeston#3590 with reference from Chocapic13 and Jessie#7257
+	// Source: https://discord.com/channels/237199950235041794/525510804494221312/955506913834070016
+	vec2 toPrevScreenPos(vec2 currScreenPos, float depth){
+		vec3 currViewPos = vec3(vec2(gbufferProjectionInverse[0].x, gbufferProjectionInverse[1].y) * (currScreenPos.xy * 2.0 - 1.0) + gbufferProjectionInverse[3].xy, gbufferProjectionInverse[3].z);
+		currViewPos /= (gbufferProjectionInverse[2].w * (depth * 2.0 - 1.0) + gbufferProjectionInverse[3].w);
+		vec3 currFeetPlayerPos = mat3(gbufferModelViewInverse) * currViewPos + gbufferModelViewInverse[3].xyz;
 
-    vec3 prevFeetPlayerPos = depth > 0.56 ? currFeetPlayerPos + cameraPosition - previousCameraPosition : currFeetPlayerPos;
-    vec3 prevViewPos = mat3(gbufferPreviousModelView) * prevFeetPlayerPos + gbufferPreviousModelView[3].xyz;
-    vec2 finalPos = vec2(gbufferPreviousProjection[0].x, gbufferPreviousProjection[1].y) * prevViewPos.xy + gbufferPreviousProjection[3].xy;
-    return (finalPos / -prevViewPos.z) * 0.5 + 0.5;
-}
+		vec3 prevFeetPlayerPos = depth > 0.56 ? currFeetPlayerPos + cameraPosition - previousCameraPosition : currFeetPlayerPos;
+		vec3 prevViewPos = mat3(gbufferPreviousModelView) * prevFeetPlayerPos + gbufferPreviousModelView[3].xyz;
+		vec2 finalPos = vec2(gbufferPreviousProjection[0].x, gbufferPreviousProjection[1].y) * prevViewPos.xy + gbufferPreviousProjection[3].xy;
+		return (finalPos / -prevViewPos.z) * 0.5 + 0.5;
+	}
 
-vec2 toPrevScreenPos(vec2 currScreenPos){
-    return toPrevScreenPos(currScreenPos, texture(depthtex0, currScreenPos.xy).x);
-}
+	vec2 toPrevScreenPos(vec2 currScreenPos){
+		return toPrevScreenPos(currScreenPos, texture(depthtex0, currScreenPos.xy).x);
+	}
+#endif
 
 
 void main() {
-	// Read buffers and basic position/normal calculations
+
+// --------------------- Read texture values --------------------
 	vec4 transparentColor 	= texture(colortex0, texcoord);
 	uvec2 normalRaw 		= texture(colortex1, texcoord).rg;
 	vec4 specMap 			= texture(colortex4, texcoord);
@@ -121,6 +132,8 @@ void main() {
 
 	specMapOut = specMap;
 
+
+// ---------------------- Water Refraction ----------------------
 	// Water Refraction NEEDS TO BE FIXED, ASSUMES VIEW SPACE NORMALS WHEN THERE AREN'T
 	#ifdef waterRefraction
 		if(waterDepth != 0.0) {
@@ -138,16 +151,18 @@ void main() {
 		}
 	#endif
 
-	// Opaque objects
+
+// ----------------------- Opaque Objects -----------------------
 	if(depth < 1.0) {
 
-		// Apply SSAO
+	// -------------------------- SSAO --------------------------
 		#ifdef SSAO
 			vec3 occlusion = texture(colortex9, texcoord).rgb;
 			opaqueColor.rgb *= occlusion;
 		#endif
 
-		// opaque water and atmospheric fog
+
+	// ---------------- Water and Atmospheric Fog ---------------
 		// fog when player is not underwater
 		if(isEyeInWater == 0) {
 			// if there is water in the current pixel, render both water and atmospheric fog
@@ -203,7 +218,8 @@ void main() {
 		}
 	}
 
-	// Sky rendering
+
+// ------------------------ Sky Rendering -----------------------
 	else {
 		// Read sky value from buffer
 		vec3 eyeDir = mat3(gbufferModelViewInverse) * normalize(viewPos);
@@ -284,9 +300,11 @@ void main() {
 		}
 	}
 
-	// Transparent objects and blending
+
+// ----------- Transparent Objects and Alpha Blending -----------
 	if(transparentColor.a > 0.0 && transparentDepth < 1.0) {
-		// transparent water and atmospheric fog
+		
+	// ---------------- Water and Atmospheric Fog ---------------
 		// fog when player is not underwater
 		if(isEyeInWater == 0) {
 			// If there is water in front of the transparent object
@@ -339,7 +357,8 @@ void main() {
 			}
 		}
 
-		// Blending transparent and opaque into single output
+
+	// --------------------- Alpha Blending ---------------------
 		colorOut = vec4(mix(opaqueColor.rgb, transparentColor.rgb / transparentColor.a, transparentColor.a), 1.0);
 	}
 	else {

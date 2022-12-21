@@ -45,6 +45,15 @@ flat out int  entity;
 #include "/lib/waving.glsl"
 
 
+// ------------------------ File Contents -----------------------
+    // Gbuffers primary vertex shader
+    // Calculates basic geometry values
+    // Applies fixes/overrides for specific geometry
+    // Position calculations, including waving geometry
+    // Normals and TBN calculations
+    // Motion vector calculations for TAA or Motion Blur
+
+
 #if defined TAA || defined MotionBlur
     uniform vec3 previousCameraPosition;
     uniform mat4 gbufferPreviousModelView;
@@ -69,6 +78,7 @@ flat out int  entity;
 
 void main() {
 
+// -------------------- Basic Geometry Values -------------------
     #ifdef weather
         glColor = vec4(gl_Color.rgb, 0.5);
     #else
