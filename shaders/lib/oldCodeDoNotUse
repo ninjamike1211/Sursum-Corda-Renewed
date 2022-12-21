@@ -1,0 +1,194 @@
+// const vec3 metalsF0[8] = vec3[8] (
+//     vec3(0.56, 0.57, 0.58), // Iron
+//     vec3(1.00, 0.71, 0.29), // Gold
+//     vec3(0.96, 0.96, 0.97), // Aluminium
+//     vec3(0.56, 0.57, 0.58), // Chrome
+//     vec3(0.98, 0.82, 0.76), // Copper
+//     vec3(0.56, 0.57, 0.58), // Lead
+//     vec3(0.56, 0.57, 0.58), // Platinum
+//     vec3(0.98, 0.97, 0.95)  // Silver
+// );
+
+// const vec3 metalsF0[8] = vec3[8](
+//     vec3(0.7323620366092286, 0.7167327174985388, 0.7091896461414436), // Iron
+//     vec3(1.0539195094529696, 1.027785864151901,  0.6520659895749682), // Gold
+//     vec3(0.9706793033860285, 0.9777863969150392, 0.9917750974816536), // Aluminium
+//     vec3(0.7487388173705779, 0.7470894380842715, 0.7605161153716048), // Chrome
+//     vec3(1.0349547086698894, 0.9518412528274076, 0.7662936415871581), // Copper
+//     vec3(0.82339703574297,   0.821581064334115,  0.8457226032417902), // Lead
+//     vec3(0.8426306452778194, 0.8253700126733226, 0.7968226770078278), // Platinum
+//     vec3(1.0440489482492765, 1.0696036644002451, 1.1282074921867093)  // Silver
+// );
+
+// const vec3 metalsF0[8] = vec3[8] (
+//     sRGBToLinear3(vec3(0.78, 0.77, 0.74)),
+//     sRGBToLinear3(vec3(1.00, 0.90, 0.61)),
+//     sRGBToLinear3(vec3(1.00, 0.98, 1.00)),
+//     sRGBToLinear3(vec3(0.77, 0.80, 0.79)),
+//     sRGBToLinear3(vec3(1.00, 0.89, 0.73)),
+//     sRGBToLinear3(vec3(0.79, 0.87, 0.85)),
+//     sRGBToLinear3(vec3(0.92, 0.90, 0.83)),
+//     sRGBToLinear3(vec3(1.00, 1.00, 0.91))
+// );
+
+// const vec3 metalsF82[8] = vec3[8] (
+//     sRGBToLinear3(vec3(0.74, 0.76, 0.76)),
+//     sRGBToLinear3(vec3(1.00, 0.93, 0.73)),
+//     sRGBToLinear3(vec3(0.96, 0.97, 0.98)),
+//     sRGBToLinear3(vec3(0.74, 0.79, 0.78)),
+//     sRGBToLinear3(vec3(1.00, 0.90, 0.80)),
+//     sRGBToLinear3(vec3(0.83, 0.80, 0.83)),
+//     sRGBToLinear3(vec3(0.89, 0.87, 0.81)),
+//     sRGBToLinear3(vec3(1.00, 1.00, 0.95))
+// );
+
+//     if(heldBlockLightValue > 0) {
+        //         vec3 lightPos = vec3(0.2, -0.1, 0.0);
+        //         vec3 lightDir = -normalize(viewPos - lightPos);
+        //         float dist = length(viewPos - lightPos);
+                
+        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
+
+        //         #ifdef HandLight_Colors
+        //             if(heldItemId == 10001)
+        //                 lightColor *= vec3(0.2, 3.0, 10.0);
+        //             else if(heldItemId == 10002)
+        //                 lightColor *= vec3(10.0, 1.5, 0.0);
+        //             else if(heldItemId == 10003)
+        //                 lightColor *= vec3(15.0, 4.0, 1.5);
+        //             else if(heldItemId == 10004)
+        //                 lightColor *= vec3(3.0, 6.0, 15.0);
+        //             else if(heldItemId == 10005)
+        //                 lightColor *= vec3(1.5, 1.0, 10.0);
+        //             else if(heldItemId == 10006)
+        //                 lightColor *= vec3(4.0, 1.0, 10.0);
+        //             else
+        //         #endif
+        //             lightColor *= vec3(15.0, 7.2, 2.9);
+
+		// 		#ifdef HandLight_Shadows
+		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+		// 		#endif
+
+        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+        //     }
+        //     if(heldBlockLightValue2 > 0) {
+        //         vec3 lightPos = vec3(-0.2, -0.1, 0.0);
+        //         vec3 lightDir = -normalize(viewPos - lightPos);
+        //         float dist = length(viewPos - lightPos);
+                
+        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+
+        //         #ifdef HandLight_Colors
+        //             if(heldItemId2 == 10001)
+        //                 lightColor *= vec3(0.2, 3.0, 10.0);
+        //             else if(heldItemId2 == 10002)
+        //                 lightColor *= vec3(10.0, 1.5, 0.0);
+        //             else if(heldItemId2 == 10003)
+        //                 lightColor *= vec3(15.0, 4.0, 1.5);
+        //             else if(heldItemId2 == 10004)
+        //                 lightColor *= vec3(3.0, 6.0, 15.0);
+        //             else if(heldItemId2 == 10005)
+        //                 lightColor *= vec3(1.5, 1.0, 10.0);
+        //             else if(heldItemId2 == 10006)
+        //                 lightColor *= vec3(4.0, 1.0, 10.0);
+        //             else
+        //         #endif
+        //             lightColor *= vec3(15.0, 7.2, 2.9);
+
+		// 		#ifdef HandLight_Shadows
+		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+		// 		#endif
+
+        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
+        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
+        //     }
+
+
+
+
+        // float subsurface = specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
+
+			// if(subsurface > 0.0) {
+			// 	vec3 shadowPos = calcShadowPosScene(scenePos);
+			// 	float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
+			// 	float diff = blockerDist * (far-near) - near;
+
+			// 	#ifdef Shadow_LeakFix
+			// 		subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
+			// 	#endif
+
+			// 	colorOut.rgb += albedo.rgb * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * skyDirect;
+
+			// }
+
+
+
+        // glColor.rgb = at_velocity;
+
+        // #if defined entities
+        //     if(entityId == 10001) {
+        //         vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
+        //         oldClipPos = gbufferPreviousProjection * oldViewPos;
+        //     }
+        //     else {
+        //         oldClipPos = gbufferPreviousProjection * vec4(viewPos - at_velocity, 1.0);
+        //     }
+        // #elif defined block
+        //     // if(textureLod(normals, texcoord, 0.0).r < EPS) {
+        //     if(cameraMoved && any(lessThanEqual(at_velocity, vec3(EPS)))) {
+        //         vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
+        //         oldClipPos = gbufferPreviousProjection * oldViewPos;
+        //     }
+        //     else {
+        //         oldClipPos = gbufferPreviousProjection * vec4(viewPos - at_velocity, 1.0);
+        //     }
+        // #elif defined hand
+        //     oldClipPos = gl_ProjectionMatrix * vec4(viewPos - at_velocity, 1.0);
+        // #elif defined taaEntityVelocity
+        //     oldClipPos = gbufferPreviousProjection * vec4(viewPos - at_velocity, 1.0);
+        // #else
+        //     vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
+        //     oldClipPos = gbufferPreviousProjection * oldViewPos;
+        // #endif
+
+
+
+    // if (entity == 10010 /* water ID */) {
+    //     // vec3 worldPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+    //     vec3 pos = gl_Vertex.xyz + cameraPosition;
+    //     vec3 posRound = floor(pos + 0.5);
+    //     vec3 posDiff = abs(pos - posRound);
+    //     // float maxDiff = max(max(posDiff.x, posDiff.y), posDiff.z);
+
+    //     // if(maxDiff > 0.0 && maxDiff < 0.005) {
+    //     //     isWaterBackface = 1.0;
+    //     // }
+    //     // else {
+    //     //     isWaterBackface = 0.0;
+    //     // }
+
+    //     // isWaterBackface = step(0.0, maxDiff) * step(maxDiff, 0.005);
+    //     isWaterBackface = float(clamp(posDiff, 0.0, 0.005) == posDiff);
+    //     isWaterBackface *= float((textureBounds.z - textureBounds.x) <= 15.0 / atlasSize.x);
+
+	// 	// if (gl_Normal.y > 0.01) {
+	// 	// 	//the bottom face doesn't have a backface.
+	// 	// }
+	// 	// else if (gl_Normal.y < -0.01) {
+	// 	// 	//sneaky back face of top needs weird checks.
+	// 	// 	if (at_midBlock.y < 30.75) {
+	// 	// 		gl_Position = vec4(10.0);
+	// 	// 		return;
+	// 	// 	}
+	// 	// }
+	// 	// else {
+	// 	// 	if (dot(gl_Normal, at_midBlock) > 0.0) {
+	// 	// 		gl_Position = vec4(10.0);
+	// 	// 		return;
+	// 	// 	}
+	// 	// }
+	// }

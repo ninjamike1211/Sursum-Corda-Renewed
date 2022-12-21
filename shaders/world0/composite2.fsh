@@ -21,7 +21,7 @@ layout(location = 0) out vec4 colorOut;
 layout(location = 1) out vec4 historyOut;
 
 void main() {
-	colorOut = texture2D(colortex0, texcoord);
+	colorOut = texture(colortex0, texcoord);
 
 	#ifdef TAA
 		applyTAA(colorOut, historyOut, texcoord, colortex0, colortex15, colortex6);

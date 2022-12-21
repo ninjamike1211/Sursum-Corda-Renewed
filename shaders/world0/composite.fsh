@@ -95,20 +95,20 @@ vec2 toPrevScreenPos(vec2 currScreenPos, float depth){
 }
 
 vec2 toPrevScreenPos(vec2 currScreenPos){
-    return toPrevScreenPos(currScreenPos, texture2D(depthtex0, currScreenPos.xy).x);
+    return toPrevScreenPos(currScreenPos, texture(depthtex0, currScreenPos.xy).x);
 }
 
 
 void main() {
 	// Read buffers and basic position/normal calculations
-	vec4 transparentColor 	= texture2D(colortex0, texcoord);
-	uvec2 normalRaw 		= texture2D(colortex1, texcoord).rg;
-	vec4 specMap 			= texture2D(colortex4, texcoord);
-	float waterDepth 		= texture2D(colortex5, texcoord).r;
-	velocityOut 			= texture2D(colortex6, texcoord);
-	vec4 opaqueColor 		= texture2D(colortex7, texcoord);
-	float transparentDepth 	= texture2D(depthtex0, texcoord).r;
-	float depth 			= texture2D(depthtex1, texcoord).r;
+	vec4 transparentColor 	= texture(colortex0, texcoord);
+	uvec2 normalRaw 		= texture(colortex1, texcoord).rg;
+	vec4 specMap 			= texture(colortex4, texcoord);
+	float waterDepth 		= texture(colortex5, texcoord).r;
+	velocityOut 			= texture(colortex6, texcoord);
+	vec4 opaqueColor 		= texture(colortex7, texcoord);
+	float transparentDepth 	= texture(depthtex0, texcoord).r;
+	float depth 			= texture(depthtex1, texcoord).r;
 
 	vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth);
 	vec3 viewPos 			= calcViewPos(viewVector, depth);
@@ -130,7 +130,7 @@ void main() {
 
 			// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
 			if(raytrace(viewPos, refractDir, 64, jitter, hitPos)) {
-				opaqueColor = texture2D(colortex7, hitPos.xy);
+				opaqueColor = texture(colortex7, hitPos.xy);
 			}
 			else {
 			    opaqueColor = vec4(0.0);
@@ -143,7 +143,7 @@ void main() {
 
 		// Apply SSAO
 		#ifdef SSAO
-			vec3 occlusion = texture2D(colortex9, texcoord).rgb;
+			vec3 occlusion = texture(colortex9, texcoord).rgb;
 			opaqueColor.rgb *= occlusion;
 		#endif
 
@@ -207,7 +207,7 @@ void main() {
 	else {
 		// Read sky value from buffer
 		vec3 eyeDir = mat3(gbufferModelViewInverse) * normalize(viewPos);
-		vec3 sky = texture2D(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
+		vec3 sky = texture(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
 
 		// Sun disk
 		float sunDisk = smoothstep(-0.034, 0.05, eyeDir.y) * smoothstep(0.9995, 0.9998, dot(normalize(viewPos), sunDirView));

@@ -23,3 +23,6 @@ Fix water volumetric fog
 Fix SSR circle artifact when close to reflector
 Fix Motion Blur white fringing
 Improve bloom handling
+Add support for darkness/blindness/nausia effects
+Fix block breaking texture
+Fix POM skipping on heightmap edges on texture edges

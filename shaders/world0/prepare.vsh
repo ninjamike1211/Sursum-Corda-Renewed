@@ -28,7 +28,7 @@ void main() {
 
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-    vec3 moodData = texture2D(colortex12, vec2(0.0)).rgb;
+    vec3 moodData = texture(colortex12, vec2(0.0)).rgb;
     moodData.gb = moodData.gb * 2.0 - 1.0;
 
     if(moodData.g == -1.0)
@@ -60,7 +60,7 @@ void main() {
     windAmplitude = (snoise(vec2(Wind_AmplitudeSpeed * frameTimeCounter)) * 0.5 + 0.5);
     windAmplitude = mix(Wind_MinAmp, Wind_MinAmpRain, rainStrength) + mix((Wind_MaxAmp - Wind_MinAmp), (Wind_MaxAmpRain - Wind_MinAmpRain), rainStrength) * windAmplitude;
 
-    vec2  prevPhaseData = texture2D(colortex12, vec2(1.0)).rb;
+    vec2  prevPhaseData = texture(colortex12, vec2(1.0)).rb;
     float prevPhase  = prevPhaseData.y * TAU;
     
     float nextPhase = prevPhase + ((prevPhaseData.r * Wind_Phase_Slope + Wind_Phase_Offset) * frameTime);

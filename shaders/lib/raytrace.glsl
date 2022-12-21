@@ -34,22 +34,22 @@ float minOf3(vec3 x) { return min(x.x, min(x.y, x.z)); }
 // }
 
 // The favorite raytracer of your favorite raytracer
-bool raytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, out vec3 rayPos, sampler2D depthtex) {
+bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, out vec3 rayPos, sampler2D depthtex) {
     // "out vec3 rayPos" is our ray's position, we use it as an "out" parameter to be able to output both the intersection check and the hit position
 
     rayPos  = viewToScreen(viewPos);
     // Starting position in screen space, it's better to perform space conversions OUTSIDE of the loop to increase performance
-    rayDir  = viewToScreen(viewPos + rayDir) - rayPos;
+    vec3 rayDir  = viewToScreen(viewPos + viewRayDir) - rayPos;
     rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.99 / (stepCount+jitter));
     // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
 
-    // TODO Fix broken fix which randomly broke again
+
     // Thanks Bálint#1673 for the fix which prevents ssr errors in close range
 
     // if (rayDir.z > 0.0) rayDir.z = min(rayDir.z, viewPos.z - EPS); // This was the line used, fixes the clipping issue but breaks SSR
     
-    // if (rayDir.z > 0.0 && rayDir.z >= -viewPos.z)
-    //     return false;
+    if (viewRayDir.z > 0.0 && viewRayDir.z >= -viewPos.z)
+        return false;
 
     bool intersect = false;
     // Our intersection isn't found by default
@@ -60,7 +60,7 @@ bool raytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, out vec3 r
     for(int i = 0; i <= stepCount && !intersect; i++, rayPos += rayDir) {
         // Loop until we reach the max amount of steps OR if an intersection is found, add 1 at each iteration AND march the ray (position += direction)
 
-        if(clamp(rayPos.xy, 0.0, 1.0) != rayPos.xy) return false;
+        if(clamp(rayPos.xyz, 0.0, 1.0) != rayPos.xyz) return false;
         // Checking if the ray goes outside of the screen (if clamping the coordinates to [0;1] returns a different value, then we're outside)
         // There's no need to continue ray marching if the ray goes outside of the screen
 

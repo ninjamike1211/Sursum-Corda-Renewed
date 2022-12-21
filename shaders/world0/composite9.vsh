@@ -65,7 +65,7 @@ void main() {
     float exposureScreen = 0.1 / dot(avgColor, vec3(0.2125, 0.7154, 0.0721));
     // float exposureScreen = luminance(avgColor);
 
-    float exposurePrev = texture2D(colortex14, vec2(0.5)).r;
+    float exposurePrev = texture(colortex14, vec2(0.5)).r;
     float diff = exposureScreen - exposurePrev;
     if(abs(diff) <= ExposureSpeed * frameTime)
         exposure = exposureScreen;
@@ -93,7 +93,7 @@ void main() {
                 vec2 sampleCoords = sunScreenPos + vec2(0.018, 0.018*aspectRatio) * GetVogelDiskSample(i, samples, 0.0);
 
                 if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
-                    sunOcclusion += step(1.0, texture2D(depthtex0, sampleCoords).r);
+                    sunOcclusion += step(1.0, texture(depthtex0, sampleCoords).r);
                 else
                     samples--;
             }

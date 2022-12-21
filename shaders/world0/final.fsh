@@ -64,90 +64,90 @@ void main() {
     if(texcoord.x > viewBufferSweep) {
     #endif
         #if viewBuffer == 0
-            gl_FragColor = texture2D(colortex0, texcoord);
+            gl_FragColor = texture(colortex0, texcoord);
         #elif viewBuffer == 1
-            gl_FragColor = texture2D(colortex1, texcoord);
+            gl_FragColor = texture(colortex1, texcoord);
         #elif viewBuffer == 2
-            gl_FragColor = texture2D(colortex2, texcoord);
+            gl_FragColor = texture(colortex2, texcoord);
         #elif viewBuffer == 3
-            gl_FragColor = texture2D(colortex3, texcoord);
+            gl_FragColor = texture(colortex3, texcoord);
         #elif viewBuffer == 4
-            gl_FragColor = texture2D(colortex4, texcoord);
+            gl_FragColor = texture(colortex4, texcoord);
         #elif viewBuffer == 5
-            gl_FragColor = texture2D(colortex5, texcoord);
+            gl_FragColor = texture(colortex5, texcoord);
         #elif viewBuffer == 6
-            gl_FragColor = texture2D(colortex6, texcoord);
+            gl_FragColor = texture(colortex6, texcoord);
         #elif viewBuffer == 7
-            gl_FragColor = texture2D(colortex7, texcoord);
+            gl_FragColor = texture(colortex7, texcoord);
         #elif viewBuffer == 8
-            gl_FragColor = texture2D(colortex8, texcoord);
+            gl_FragColor = texture(colortex8, texcoord);
         #elif viewBuffer == 9
-            gl_FragColor = texture2D(colortex9, texcoord);
+            gl_FragColor = texture(colortex9, texcoord);
         #elif viewBuffer == 10
-            gl_FragColor = texture2D(colortex10, texcoord);
+            gl_FragColor = texture(colortex10, texcoord);
         #elif viewBuffer == 11
-            gl_FragColor = texture2D(colortex11, texcoord);
+            gl_FragColor = texture(colortex11, texcoord);
         #elif viewBuffer == 12
-            gl_FragColor = texture2D(colortex12, texcoord);
+            gl_FragColor = texture(colortex12, texcoord);
         #elif viewBuffer == 13
-            gl_FragColor = texture2D(colortex13, texcoord);
+            gl_FragColor = texture(colortex13, texcoord);
         #elif viewBuffer == 14
-            gl_FragColor = texture2D(colortex14, texcoord);
+            gl_FragColor = texture(colortex14, texcoord);
         #elif viewBuffer == 15
-            gl_FragColor = texture2D(colortex15, texcoord);
+            gl_FragColor = texture(colortex15, texcoord);
         #elif viewBuffer == -1
-            gl_FragColor = texture2D(depthtex0, texcoord);
+            gl_FragColor = texture(depthtex0, texcoord);
         #elif viewBuffer == -2
-            gl_FragColor = texture2D(depthtex1, texcoord);
+            gl_FragColor = texture(depthtex1, texcoord);
         #elif viewBuffer == -3
-            gl_FragColor = texture2D(depthtex1, texcoord);
+            gl_FragColor = texture(depthtex1, texcoord);
         #elif viewBuffer == -4
-            gl_FragColor = texture2D(shadowtex0, texcoord);
+            gl_FragColor = texture(shadowtex0, texcoord);
         #elif viewBuffer == -5
-            gl_FragColor = texture2D(shadowtex1, texcoord);
+            gl_FragColor = texture(shadowtex1, texcoord);
         #elif viewBuffer == -6
-            gl_FragColor = texture2D(shadowcolor0, texcoord);
+            gl_FragColor = texture(shadowcolor0, texcoord);
         #elif viewBuffer == -7
-            gl_FragColor = texture2D(shadowcolor1, texcoord);
+            gl_FragColor = texture(shadowcolor1, texcoord);
         #elif viewBuffer == 100
-            gl_FragColor = vec4(NormalDecode(texture2D(colortex1, texcoord).r) * 0.5 + 0.5, 1.0);
+            gl_FragColor = vec4(NormalDecode(texture(colortex1, texcoord).r) * 0.5 + 0.5, 1.0);
         #elif viewBuffer == 101
-            gl_FragColor = vec4(NormalDecode(texture2D(colortex1, texcoord).g) * 0.5 + 0.5, 1.0);
+            gl_FragColor = vec4(NormalDecode(texture(colortex1, texcoord).g) * 0.5 + 0.5, 1.0);
         #elif viewBuffer == 102
-            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture2D(depthtex0, texcoord).r)), 1.0);
+            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r)), 1.0);
         #elif viewBuffer == 103
-            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture2D(depthtex1, texcoord).r)), 1.0);
+            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r)), 1.0);
         #elif viewBuffer == 104
-            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture2D(depthtex2, texcoord).r)), 1.0);
+            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r)), 1.0);
         #endif
     #if viewBuffer != 0
     }
     else {
-        gl_FragColor = texture2D(colortex0, texcoord);
+        gl_FragColor = texture(colortex0, texcoord);
     }
     #endif
 
     // gl_FragColor = vec4(interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), 0));
     // gl_FragColor = vec4(InterleavedGradientNoise(texcoord * vec2(viewWidth, viewHeight)));
 
-    // vec4 specMap = texture2D(colortex4, texcoord);
+    // vec4 specMap = texture(colortex4, texcoord);
     // float emissiveness = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
     // if(texcoord.x > viewBufferSweep)
     //     gl_FragColor = vec4(emissiveness);
 
-    // gl_FragColor = texture2D(colortex12, texcoord);
+    // gl_FragColor = texture(colortex12, texcoord);
 
     // if(texcoord.x > 0.95)
-    //     gl_FragColor = texture2D(colortex12, vec2(0.0)).aaaa;
+    //     gl_FragColor = texture(colortex12, vec2(0.0)).aaaa;
     // else if(texcoord.x > 0.9)
-    //     gl_FragColor = vec4(0.0, 0.0, texture2D(colortex12, vec2(0.0)).b, 1.0);
+    //     gl_FragColor = vec4(0.0, 0.0, texture(colortex12, vec2(0.0)).b, 1.0);
     // else if(texcoord.x > 0.85)
-    //     gl_FragColor = vec4(0.0, texture2D(colortex12, vec2(0.0)).g, 0.0, 1.0);
+    //     gl_FragColor = vec4(0.0, texture(colortex12, vec2(0.0)).g, 0.0, 1.0);
     // else if(texcoord.x > 0.8)
-    //     gl_FragColor = vec4(texture2D(colortex12, vec2(0.0)).r, 0.0, 0.0, 1.0);
+    //     gl_FragColor = vec4(texture(colortex12, vec2(0.0)).r, 0.0, 0.0, 1.0);
 
-    // gl_FragColor = vec4(length(texture2D(colortex6, texcoord).rg) > EPS);
-    // gl_FragColor = vec4(abs(texture2D(colortex6, texcoord)));
+    // gl_FragColor = vec4(length(texture(colortex6, texcoord).rg) > EPS);
+    // gl_FragColor = vec4(abs(texture(colortex6, texcoord)));
 
     // if(texcoord.x > 0.95)
     //     gl_FragColor = vec4(cameraMoved);

@@ -723,14 +723,14 @@ void applyEndPortal(in vec3 worldPos, out vec3 albedo, out vec4 specMap) {
     albedo += 2.5 * sin(1.0 * frameTimeCounter + 6/8.0 * PI) * vec3(0.18, 0.10, 0.09) * pow(Cellular2D(3 * rot6 * ((worldPos.xz + worldPos.y)  *  0.1) + vec2(0.0, 0.2 * frameTimeCounter)), 1.8);
     albedo += 2.5 * sin(1.3 * frameTimeCounter + 3/8.0 * PI) * vec3(0.05, 0.15, 0.20) * pow(Cellular2D(3 * rot7 * (gl_FragCoord.xy / viewWidth *  0.8) + vec2(0.0, 0.2 * frameTimeCounter)), 1.8);
 
-    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(texture, rot0 * ((worldPos.xz + worldPos.yy) * 0.6)  + vec2(0.0, 0.09 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(texture, rot1 * ((worldPos.xz + worldPos.yy) * 0.5)  + vec2(0.0, 0.08 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(texture, rot2 * ((worldPos.xz + worldPos.yy) * 0.4)  + vec2(0.0, 0.07 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.18, 0.12, 0.20) * textureLod(texture, rot3 * (gl_FragCoord.xy / viewWidth *  1.8) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.15, 0.15, 0.08) * textureLod(texture, rot4 * (gl_FragCoord.xy / viewWidth *  1.3) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.03, 0.20, 0.13) * textureLod(texture, rot5 * (gl_FragCoord.xy / viewWidth *  1.0) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.18, 0.10, 0.09) * textureLod(texture, rot6 * (gl_FragCoord.xy / viewWidth *  0.8) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
-    albedo += 5.0 * vec3(0.05, 0.15, 0.20) * textureLod(texture, rot7 * (gl_FragCoord.xy / viewWidth *  0.5) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(tex, rot0 * ((worldPos.xz + worldPos.yy) * 0.6)  + vec2(0.0, 0.09 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(tex, rot1 * ((worldPos.xz + worldPos.yy) * 0.5)  + vec2(0.0, 0.08 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.10, 0.20, 0.18) * textureLod(tex, rot2 * ((worldPos.xz + worldPos.yy) * 0.4)  + vec2(0.0, 0.07 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.18, 0.12, 0.20) * textureLod(tex, rot3 * (gl_FragCoord.xy / viewWidth *  1.8) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.15, 0.15, 0.08) * textureLod(tex, rot4 * (gl_FragCoord.xy / viewWidth *  1.3) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.03, 0.20, 0.13) * textureLod(tex, rot5 * (gl_FragCoord.xy / viewWidth *  1.0) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.18, 0.10, 0.09) * textureLod(tex, rot6 * (gl_FragCoord.xy / viewWidth *  0.8) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
+    albedo += 5.0 * vec3(0.05, 0.15, 0.20) * textureLod(tex, rot7 * (gl_FragCoord.xy / viewWidth *  0.5) + vec2(0.0, 0.06 * frameTimeCounter), 0.0).r;
 
     // albedo  = textureLod(texture, 1.0 * gl_FragCoord.xy / viewWidth + vec2(0.0, 0.1 * frameTimeCounter), 0.0).rgb;
     // albedo += textureLod(texture, 0.5 * gl_FragCoord.xy / viewWidth + vec2(0.0, 0.1 * frameTimeCounter), 0.0).rgb;

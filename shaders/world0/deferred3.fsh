@@ -69,8 +69,8 @@ layout(location = 1) out vec4 SSAOOut;
 
 void main() {
     // Read depth value
-    float depth = texture2D(depthtex0, texcoord).r;
-    vec4 albedo = texture2D(colortex2, texcoord);
+    float depth = texture(depthtex0, texcoord).r;
+    vec4 albedo = texture(colortex2, texcoord);
     albedo.rgb = sRGBToLinear(albedo).rgb;
 
     colorOut.a = 1.0;
@@ -78,10 +78,10 @@ void main() {
     // Opaque rendering if there is an obect there to render
     if(depth < 1.0) {
         // Reading texture value and calculate position
-        uvec2 normalRaw = texture2D(colortex1, texcoord).rg;
-        vec3 lmcoordRaw = texture2D(colortex3, texcoord).rgb;
-        vec4 specMap = texture2D(colortex4, texcoord);
-        vec3 pomResults = texture2D(colortex8, texcoord).rgb;
+        uvec2 normalRaw = texture(colortex1, texcoord).rg;
+        vec3 lmcoordRaw = texture(colortex3, texcoord).rgb;
+        vec4 specMap = texture(colortex4, texcoord);
+        vec3 pomResults = texture(colortex8, texcoord).rgb;
 
         vec3 normal 	= NormalDecode(normalRaw.x);
 	    vec3 normalGeometry = NormalDecode(normalRaw.y);
@@ -107,7 +107,7 @@ void main() {
                 for(int i = 0; i < 5; i++) {
                     vec2 offset = vec2(0.0, (i-2)) * texelSize;
 
-                    occlusion += 0.2 * texture2D(colortex9, texcoord + offset).rgb;
+                    occlusion += 0.2 * texture(colortex9, texcoord + offset).rgb;
                 }
 
                 SSAOOut = vec4(occlusion, 1.0);
@@ -128,12 +128,12 @@ void main() {
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
         // shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
 
-        // blockerDist = shadowPos.z - texture2D(shadowtex0, shadowPos.xy).r;
+        // blockerDist = shadowPos.z - texture(shadowtex0, shadowPos.xy).r;
 
         float shadowMult = 1.0;
         #ifdef Shadow_LeakFix
             // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-            shadowMult = texture2D(colortex12, vec2(0.0)).a;
+            shadowMult = texture(colortex12, vec2(0.0)).a;
             shadowResult *= shadowMult;
         #endif
 
@@ -141,7 +141,7 @@ void main() {
 
         // Contact Shadows (NOT FINISHED)
         // vec3 coords;
-        // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+        // float jitter = texture(noisetex, texcoord * 20.0 + frameTimeCounter).r;
         // // if(calcSSRNew(viewPos, normalize(shadowLightPosition), 0.0, coords, gbufferProjection, depthtex0, colortex1) == 1)
         // // if(raytrace(viewPos, normalize(shadowLightPosition), 640, jitter, coords))
         // if(shadowRaytrace(viewPos, lightDirView, 64, 1.0))
@@ -194,7 +194,7 @@ void main() {
         //         }
         //         else {
         //             #ifdef HandLight_Shadows
-        //                 float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+        //                 float jitter = texture(noisetex, texcoord * 20.0 + frameTimeCounter).r;
         //                 lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex0);
         //             #endif
 
@@ -231,7 +231,7 @@ void main() {
         //         }
         //         else {
         //             #ifdef HandLight_Shadows
-        //                 float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+        //                 float jitter = texture(noisetex, texcoord * 20.0 + frameTimeCounter).r;
         //                 lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex0);
         //             #endif
 
@@ -248,7 +248,7 @@ void main() {
 
             // if(subsurface > 0.0 ) {
             //     // vec3 shadowPos = calcShadowPos(viewPos, gbufferModelViewInverse);
-            //     // float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
+            //     // float shadowMapDepth = texture(shadowtex0, shadowPos.xy).r;
             //     float diff = blockerDist * (far-near) - near;
 
             //     #ifdef Shadow_LeakFix

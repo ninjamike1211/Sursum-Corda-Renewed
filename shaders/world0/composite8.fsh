@@ -17,7 +17,7 @@ in vec2 texcoord;
 
 void main() {
     
-    colorOut = texture2D(colortex0, texcoord);
+    colorOut = texture(colortex0, texcoord);
 
     #ifdef Bloom
         vec3 bloom = vec3(0.0);
@@ -28,7 +28,7 @@ void main() {
             #ifdef Bloom_Bicubic
                 bloom += Bloom_Strength * 0.25 * textureBicubic(colortex11, samplecoord).rgb;
             #else
-                bloom += Bloom_Strength * 0.25 * texture2D(colortex11, samplecoord).rgb;
+                bloom += Bloom_Strength * 0.25 * texture(colortex11, samplecoord).rgb;
             #endif
         }
 

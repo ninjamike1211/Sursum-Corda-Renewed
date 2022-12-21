@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 
 in vec2 texcoord;
 in vec4 glcolor;
@@ -14,7 +14,7 @@ void main() {
 	// if(vec2(clamp(texcoord.x, 0.35, 0.4063), clamp(texcoord.y, 0.0, 0.99)) != texcoord)
 	// 	discard;
 
-	albedo = texture2D(texture, texcoord) * glcolor;
+	albedo = texture(tex, texcoord) * glcolor;
 
 	// if(albedo.r < 0.1)
 	// 	discard;

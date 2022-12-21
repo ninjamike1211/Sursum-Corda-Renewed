@@ -21,7 +21,7 @@ void main() {
         for(int i = 0; i < 5; i++) {
             vec2 offset = vec2((i-2), 0.0) * texelSize;
 
-            occlusion += 0.2 * texture2D(colortex9, texcoord + offset).rgb;
+            occlusion += 0.2 * texture(colortex9, texcoord + offset).rgb;
         }
 
         SSAOOut = vec4(occlusion, 1.0);

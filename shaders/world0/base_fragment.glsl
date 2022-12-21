@@ -1,4 +1,4 @@
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D depthtex1;
@@ -25,12 +25,9 @@ uniform float rainStrength;
 uniform float wetness;
 uniform float frameTimeCounter;
 uniform int frameCounter;
-// uniform int renderStage;
 uniform int isEyeInWater;
 uniform int   worldTime;
 uniform ivec2 atlasSize;
-// uniform bool inEnd;
-// uniform bool inNether;
 uniform bool  cameraMoved;
 uniform int heldItemId;
 uniform int heldBlockLightValue;
@@ -40,11 +37,7 @@ uniform vec4 entityColor;
 uniform float fogDensityMult;
 uniform vec3 fogColor;
 
-// uniform sampler2D colortex9;
 uniform sampler2D colortex12;
-// uniform sampler2D noisetex;
-
-flat in vec2 singleTexSize;
 
 /* RENDERTARGETS: 0,1,2,3,4,5,6,8 */
 layout(location = 0) out vec4 colorOut;
@@ -90,14 +83,16 @@ flat in mat3 tbn;
 	in vec4 newClipPos;
 #endif
 
-/* To fix stupid Optijank errors where it doesn't recognize POM,
+/* To fix stupid Optijank errors where it doesn't recognize the POM macro,
    Thanks Builderb0y#1380 for figuring this one out
 
 #ifdef POM
 #endif
+
+#ifdef POM_SlopeNormals
+#endif
 */
 
-// in float isWaterBackface;
 
 #ifdef entities
 	uniform mat4 gbufferPreviousModelView;
@@ -119,9 +114,10 @@ flat in mat3 tbn;
 	}
 #endif
 
+
 void main() {
 
-// ---------------------- TAA Velocity ----------------------
+// ------------------------ TAA Velocity ------------------------
 	#if defined TAA || defined MotionBlur
 		vec2 oldPos = oldClipPos.xy / oldClipPos.w;
 		oldPos = oldPos * 0.5 + 0.5;
@@ -131,23 +127,13 @@ void main() {
 
 		velocityOut = vec4(newPos - oldPos, 0.0, 1.0);
 
-		// #ifdef hand
-		// 	velocityOut.xy *= MC_HAND_DEPTH;
-		// #endif
 	#endif
 
-// ------------------------- Water ------------------------
-	// if(entity == 10010) {
-	// 	waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
 
-	// 	return;
-	// }
-
-// ---------------------- End Portal ----------------------
+// ------------------------- End Portal -------------------------
 	if(entity == 10020) {
 
 		vec3 worldPos  = scenePos + cameraPosition;
-		// vec2 samplePos = fract(worldPos.xz + worldPos.y);
 
 		applyEndPortal(worldPos, albedoOut.rgb, specMapOut);
 
@@ -158,58 +144,58 @@ void main() {
 
 		pomOut = vec4(0.0, 1.0, 0.0, 1.0);
 
-		// colorOut = albedoOut;
-
 		return;
 	}
 
+// ---------------- Texture and Material Handling ---------------
 	// Calculate lod beforehand
-	float lod = textureQueryLod(texture, texcoord).x;
+	float lod = textureQueryLod(tex, texcoord).x;
 
 	vec2 texcoordFinal = texcoord;
-	// pomOut = vec4(0.0, 1.0, 0.0, 1.0);
 	pomOut.rga = vec3(0.0, 1.0, 1.0);
 	vec3 geomNormal = glNormal;
 
-// ---------------------- Paralax Occlusion Mapping ----------------------
+
 	#ifdef usePBRTextures
-		vec2 slopeNormal = vec2(0.0);
-		bool onEdge = false;
-		vec3 normalVal = vec3(0.0);
 		
+	// ------------------ Paralax Occlusion Mapping -----------------
 		#if defined POM && defined usePOM
+			
+			vec3 normalVal = vec3(0.0);
+
+
 			// Exclude grass and flat plants (they often cause issues)
 			if(entity < 10002 || (entity > 10004 && entity < 10010)) {
 
-				// Calculate world space texture size
+				vec2 slopeNormal = vec2(0.0);
+				bool onEdge = false;
+
+			// ---------- Texture Size in World Space ----------
 				vec2 texcoordDx = dFdx(texcoord) / (textureBounds.zw-textureBounds.xy);
 				vec3 tbnDx = dFdx(tbnPos);
-				// vec2 texWorldSizeX = tbnDx.xy / texcoordDx;
 				vec3 sceneDx = dFdx(scenePos);
 
 				vec2 texcoordDy = dFdy(texcoord) / (textureBounds.zw-textureBounds.xy);
 				vec3 tbnDy = dFdy(tbnPos);
-				// vec2 texWorldSizeY = tbnDy.xy / texcoordDy;
 				vec3 sceneDy = dFdy(scenePos);
 
-				// vec2 texWorldSize = min(max(texWorldSizeX, texWorldSizeY), vec2(1.0));
-				// vec2 texWorldSize = vec2(viewDx.x, viewDy.y) / vec2(texcoordDx.x, texcoordDy.y);
 				vec2 texWorldSize = vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy));
 
-
+			// --------------- POM Distance Fade ---------------
 				float pomFade = clamp(length(viewPos) - POM_Distance, 0.0, POM_FadeWidth) / POM_FadeWidth;
 
+			// --------- Parallax Mapping and shadows ----------
 				if(pomFade < 1.0) {
-					float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
 					vec3 shadowTexcoord = vec3(-1.0);
 
-					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, /* floor( */POM_Layers /* * (1.0 + 0.15 * (jitter * 2.0 - 1.0)) )*/, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
+					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, POM_Layers, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
 					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
 						pomOut.g = parallaxShadows(shadowTexcoord, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
 
+				// ---------- Parallax Pixel Depth Offset ----------
 					#ifdef POM_PDO
 						vec3 texDir = normalize(scenePos) * tbn;
 						vec3 sceneDiff = tbn * ((texDir / texDir.z) * pomOffset);
@@ -218,7 +204,6 @@ void main() {
 						vec3 screenPos = projectAndDivide(gbufferProjection, viewPosFinal) * 0.5 + 0.5;
 
 						gl_FragDepth = screenPos.z;
-						// gl_FragDepth = gl_FragCoord.z;
 
 						vec3 lightDirTbn = lightDir * tbn;
 						vec3 lightDiff = lightDirTbn / lightDirTbn.z * pomOffset;
@@ -231,20 +216,14 @@ void main() {
 				}
 				#endif
 
-				#ifdef POM_SlopeNormals
-					#if POM_Filter > 0
-						// geomNormal = tbn * parallaxSmoothSlopeNormal(texcoordFinal, textureBounds, lod);
+			// ------------- Parallax Slope Normals ------------
+				#if defined POM_SlopeNormals && POM_Filter == 0
+					if(onEdge) {
+						normalVal = tbn * vec3(slopeNormal, 0.0);
+						geomNormal = normalVal;
+					}
+					else
 						normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
-						// normalVal = geomNormal;
-
-					#else
-						if(onEdge) {
-							normalVal = tbn * vec3(slopeNormal, 0.0);
-							geomNormal = normalVal;
-						}
-						else
-							normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
-					#endif
 				#else
 					normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
 				#endif
@@ -256,7 +235,7 @@ void main() {
 				normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
 			}
 		#else
-			normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
+			vec3 normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
 		#endif
 
 		vec4 specMap = textureLod(specular, texcoordFinal, lod);
@@ -265,9 +244,8 @@ void main() {
 		vec4 specMap = vec4(0.0, 0.0, 0.0, 1.0);
 	#endif
 
-
 	// Read texture values
-	vec4 albedo = textureLod(texture, texcoordFinal, lod) * glColor;
+	vec4 albedo = textureLod(tex, texcoordFinal, lod) * glColor;
 	if (albedo.a < alphaTestRef) discard;
 
 	#ifdef hand
@@ -275,6 +253,9 @@ void main() {
 	#else
 		lightmapOut = vec4(lmcoord, 0.0, 1.0);
 	#endif
+
+
+// ---------------------- Fixes/Overrides -----------------------
 
 	// Apply SSS to grass and similar blocks
 	if(entity > 10000) {
@@ -310,14 +291,13 @@ void main() {
 		specMap.a = 254.0/255.0;
 	#endif
 
-	// Water
+
+// --------------------------- Water ----------------------------
 	#ifdef water
-
-	// Fixes depth not writing for transparents under very specific circumstances
-	#if !defined Water_Flat && defined Water_POM && defined POM_PDO && !defined POM
-		gl_FragDepth = gl_FragCoord.z;
-	#endif
-
+		// Fixes depth not writing for transparents under very specific circumstances
+		#if !defined Water_Flat && defined Water_POM && defined POM_PDO && !defined POM
+			gl_FragDepth = gl_FragCoord.z;
+		#endif
 	#endif
 
 	if(entity == 10010) {
@@ -381,6 +361,8 @@ void main() {
 
 	vec3 viewNormal = (gbufferModelView * vec4(normalVal, 0.0)).xyz;
 
+
+// ------------------- Rain and Puddle Effects ------------------
 	#if defined terrain || defined block || defined entities || defined hand
 		float isWet = wetness * smoothstep(29.0/32.0, 31.0/32.0, lmcoord.g) * smoothstep(-0.75, -0.25, normalVal.y);
 		
@@ -389,13 +371,13 @@ void main() {
 
 			specMap.r = max(specMap.r, mix(specMap.r, 0.7, isWet));
 
-			float belowBlock = round(worldPos.y) - worldPos.y;
+			// float belowBlock = round(worldPos.y) - worldPos.y;
 
 			#ifdef terrain
 			// if(length(textureBounds.zw - textureBounds.xy) > length(vec2(0.9)) && belowBlock < 0.25) {
 			if(entity < 10000) {
 
-				float puddleHeight = SimplexPerlin2D(0.25 * worldPos.xz) - ((0.7) * (1.0 - wetness)) + pomOut.b + belowBlock;
+				float puddleHeight = SimplexPerlin2D(0.25 * worldPos.xz) - ((0.7) * (1.0 - wetness)) + pomOut.b;
 
 				if(puddleHeight > 0.3) {
 					vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter) * rainStrength;
@@ -421,6 +403,8 @@ void main() {
 
 	#endif
 
+
+// -------------------- Directional Lightmap --------------------
 	#ifdef DirectionalLightmap
 		vec3 dFdSceneposX = dFdx(scenePos);
 		vec3 dFdSceneposY = dFdy(scenePos);
@@ -448,20 +432,12 @@ void main() {
 
 	albedoOut = vec4(albedo.rgb, 1.0);
 
-	// Transparent rendering
-	// if(		renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT
-	// 		|| renderStage == MC_RENDER_STAGE_TRIPWIRE
-	// 		|| renderStage == MC_RENDER_STAGE_PARTICLES
-	// 		|| renderStage == MC_RENDER_STAGE_RAIN_SNOW
-	// 		|| renderStage == MC_RENDER_STAGE_WORLD_BORDER
-	// 		|| renderStage == MC_RENDER_STAGE_HAND_TRANSLUCENT)
-	// {
-	// if(albedo.a < 1.0) {
+
+// -------------------- Transparent Rendering -------------------
 	#ifdef afterDeferred
-		// float SSAO = texture2D(colortex9, gl_FragCoord.xy / )
 		albedo.rgb = sRGBToLinear(albedo).rgb;
 
-		// Prepare lighting and shadows
+	// -------------------- Shadows --------------------
 		float NGdotL = dot(geomNormal, lightDir);
 		float blockerDist;
 		vec3 offset = normalToView(lightDir) * pomOut.r;
@@ -470,114 +446,33 @@ void main() {
 		float shadowMult = 1.0;
 		#ifdef Shadow_LeakFix
             // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-			shadowMult = texture2D(colortex12, vec2(0.0)).a;
-			shadowResult *= shadowMult;
+			shadowResult *= texture(colortex12, vec2(0.0)).a;
         #endif
 
-		// Perform lighting calcualtions
+	// -------------------- Lighting -------------------
 		vec3 viewDir = normalize(-viewPos);
 
 		colorOut.rgb = cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, skyDirect*shadowResult, lightDirView);
 		colorOut.rgb += calcAmbient(albedo.rgb, lightmapOut.rg, skyAmbient, specMap);
 
-	// -------------- Dynamic Hand Light --------------
 
+	// --------------- Dynamic Hand Light --------------
         #ifdef HandLight
 			DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, lightmapOut.b > 0.5);
-			
-        //     if(heldBlockLightValue > 0) {
-        //         vec3 lightPos = vec3(0.2, -0.1, 0.0);
-        //         vec3 lightDir = -normalize(viewPos - lightPos);
-        //         float dist = length(viewPos - lightPos);
-                
-        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
-
-        //         #ifdef HandLight_Colors
-        //             if(heldItemId == 10001)
-        //                 lightColor *= vec3(0.2, 3.0, 10.0);
-        //             else if(heldItemId == 10002)
-        //                 lightColor *= vec3(10.0, 1.5, 0.0);
-        //             else if(heldItemId == 10003)
-        //                 lightColor *= vec3(15.0, 4.0, 1.5);
-        //             else if(heldItemId == 10004)
-        //                 lightColor *= vec3(3.0, 6.0, 15.0);
-        //             else if(heldItemId == 10005)
-        //                 lightColor *= vec3(1.5, 1.0, 10.0);
-        //             else if(heldItemId == 10006)
-        //                 lightColor *= vec3(4.0, 1.0, 10.0);
-        //             else
-        //         #endif
-        //             lightColor *= vec3(15.0, 7.2, 2.9);
-
-		// 		#ifdef HandLight_Shadows
-		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-		// 		#endif
-
-        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-        //     }
-        //     if(heldBlockLightValue2 > 0) {
-        //         vec3 lightPos = vec3(-0.2, -0.1, 0.0);
-        //         vec3 lightDir = -normalize(viewPos - lightPos);
-        //         float dist = length(viewPos - lightPos);
-                
-        //         vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
-
-        //         #ifdef HandLight_Colors
-        //             if(heldItemId2 == 10001)
-        //                 lightColor *= vec3(0.2, 3.0, 10.0);
-        //             else if(heldItemId2 == 10002)
-        //                 lightColor *= vec3(10.0, 1.5, 0.0);
-        //             else if(heldItemId2 == 10003)
-        //                 lightColor *= vec3(15.0, 4.0, 1.5);
-        //             else if(heldItemId2 == 10004)
-        //                 lightColor *= vec3(3.0, 6.0, 15.0);
-        //             else if(heldItemId2 == 10005)
-        //                 lightColor *= vec3(1.5, 1.0, 10.0);
-        //             else if(heldItemId2 == 10006)
-        //                 lightColor *= vec3(4.0, 1.0, 10.0);
-        //             else
-        //         #endif
-        //             lightColor *= vec3(15.0, 7.2, 2.9);
-
-		// 		#ifdef HandLight_Shadows
-		// 			float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
-		// 			lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
-		// 		#endif
-
-        //         // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
-        //         colorOut.rgb += cookTorrancePBRLighting(albedo.rgb, viewDir, viewNormal, specMap, lightColor, lightDir);
-        //     }
         #endif
 
 		colorOut.a = albedo.a;
 
 	// ---------------------- SSS ----------------------
 		#ifdef SSS
-
 			float subsurface = extractSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
-			// float subsurface = specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
-
-			// if(subsurface > 0.0) {
-			// 	vec3 shadowPos = calcShadowPosScene(scenePos);
-			// 	float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
-			// 	float diff = blockerDist * (far-near) - near;
-
-			// 	#ifdef Shadow_LeakFix
-			// 		subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-			// 	#endif
-
-			// 	colorOut.rgb += albedo.rgb * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * skyDirect;
-
-			// }
 		#endif
 	#endif
 
-	// Output values to buffers
-	normalOut = uvec2(NormalEncode(normalVal), NormalEncode(geomNormal));
 
+// -------------------- Final Texture Writes --------------------
+	normalOut = uvec2(NormalEncode(normalVal), NormalEncode(geomNormal));
 	specMapOut = specMap;
 
 

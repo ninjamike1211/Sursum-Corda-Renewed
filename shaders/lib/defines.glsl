@@ -176,7 +176,7 @@ const int shadowcolor0Format = RGBA16F;
 // Waving objects and wind
 	#define wavingPlants
 
-	#define Wind_AngleSpeed			0.075
+	#define Wind_AngleSpeed			0.05
 	#define Wind_AmplitudeSpeed		0.2
 	#define Wind_MinAmp				0.1
 	#define Wind_MaxAmp				0.25

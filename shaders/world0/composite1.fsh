@@ -74,8 +74,8 @@ layout(location = 0) out vec4 colorOut;
 // layout(location = 1) out vec4 testOut; 12
 
 void main() {
-    colorOut = texture2D(colortex0, texcoord);
-    vec4 specMap = texture2D(colortex4, texcoord);
+    colorOut = texture(colortex0, texcoord);
+    vec4 specMap = texture(colortex4, texcoord);
 
     // albedo = linearToSRGB(albedo);
 
@@ -84,11 +84,11 @@ void main() {
 
     if(specMap.r > 0.45) {
         // Read buffers
-        uint normalRaw   = texture2D(colortex1, texcoord).x;
-        vec4 albedo      = texture2D(colortex2, texcoord);
-        vec2 lmcoord     = texture2D(colortex3, texcoord).rg;
-        float waterDepth = texture2D(colortex5, texcoord).r;
-        float depth      = texture2D(depthtex0, texcoord).r;
+        uint normalRaw   = texture(colortex1, texcoord).x;
+        vec4 albedo      = texture(colortex2, texcoord);
+        vec2 lmcoord     = texture(colortex3, texcoord).rg;
+        float waterDepth = texture(colortex5, texcoord).r;
+        float depth      = texture(depthtex0, texcoord).r;
 
         // Calculate basic values
         vec3 normal     = NormalDecode(normalRaw);
@@ -101,7 +101,7 @@ void main() {
 
         // Read sky value from buffer
         vec3 eyeDir     = mat3(gbufferModelViewInverse) * (-reflect(normalize(-viewPos), normalView));
-        vec3 skyColor   = texture2D(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
+        vec3 skyColor   = texture(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
         
         // Apply clouds
         #ifdef cloudsEnable
@@ -120,7 +120,7 @@ void main() {
         
         // Screen Space reflections
         #ifdef SSR
-            float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
+            float jitter = texture(noisetex, texcoord * 20.0 + frameTimeCounter).r;
             jitter = 1.0;
 
             vec3 rayPos = vec3(-1.0);
@@ -128,7 +128,7 @@ void main() {
 
             vec3 reflectColor;
             if(rayHit) {
-                reflectColor = texture2D(colortex0, rayPos.xy).rgb;
+                reflectColor = texture(colortex0, rayPos.xy).rgb;
                 // reflectColor = vec3(rayPos.xy, 0.0);
 
                 // reflectColor.rgb = vec3(rayPos.xyz);

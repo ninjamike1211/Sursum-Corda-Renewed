@@ -7,7 +7,7 @@
 // uniform bool inEnd;
 // uniform bool inNether;
 
-uniform sampler2D texture;
+uniform sampler2D tex;
 // // uniform sampler2D normals;
 // uniform sampler2D colortex9; 
 uniform float alphaTestRef;
@@ -63,7 +63,7 @@ void main() {
 
     vec2 texcoordFinal = texcoord;
 
-    shadowColor = texture2D(texture, texcoordFinal) * glColor;
+    shadowColor = texture(tex, texcoordFinal) * glColor;
     if (shadowColor.a < alphaTestRef) discard;
 
     if(entity == 10010) {
@@ -71,10 +71,10 @@ void main() {
 
         // vec3 worldPos = (shadowModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
         vec3 worldPos = worldPosVertex;
-        // float caustics = texture2D(colortex9, fract(worldPos.xz * 0.1 + frameTimeCounter * 0.015)).r;
-        // caustics = max(caustics, texture2D(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * 0.02)).r);
-        // caustics = max(caustics, texture2D(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * vec2(-0.013, 0.013))).r);
-        // caustics = max(caustics, texture2D(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * vec2(0.009, -0.009))).r);
+        // float caustics = texture(colortex9, fract(worldPos.xz * 0.1 + frameTimeCounter * 0.015)).r;
+        // caustics = max(caustics, texture(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * 0.02)).r);
+        // caustics = max(caustics, texture(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * vec2(-0.013, 0.013))).r);
+        // caustics = max(caustics, texture(colortex9, fract(worldPos.xz * 0.1 - frameTimeCounter * vec2(0.009, -0.009))).r);
 
         float caustics = (pow(waterHeightFunc(worldPos.xz), 5.0) * 0.9 + 0.1) * 2.0;
 
@@ -83,6 +83,6 @@ void main() {
         // shadowColor.rgb = vec3(caustics);
     }
 
-    // testOut.rgb = tbn * texture2D(normals, texcoord).rgb;
+    // testOut.rgb = tbn * texture(normals, texcoord).rgb;
     // testOut.rgb = glNormal;
 }

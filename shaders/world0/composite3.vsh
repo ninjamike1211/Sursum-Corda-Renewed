@@ -38,5 +38,5 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
     // centerDepthLinear = linearizeDepthFast(centerDepthSmooth);
-    centerDepthLinear = linearizeDepthFast(texture2D(depthtex0, vec2(0.5)).r);
+    centerDepthLinear = linearizeDepthFast(texture(depthtex0, vec2(0.5)).r);
 }

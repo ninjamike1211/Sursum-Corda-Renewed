@@ -40,15 +40,15 @@ layout(location = 0) out vec4 colorOut;
 
 void main() {
     #ifdef DOF
-        // float currentDist = unpackCoC(texture2D(colortex14, texcoord).r);
-        float hand = texture2D(colortex3, texcoord).b;
-        float depth = linearizeDepthFast(texture2D(depthtex0, texcoord).r);
+        // float currentDist = unpackCoC(texture(colortex14, texcoord).r);
+        float hand = texture(colortex3, texcoord).b;
+        float depth = linearizeDepthFast(texture(depthtex0, texcoord).r);
         // float blockerDist = 0.0;
         // float count = 0.0;
 
         // for(int i = 0; i < DOF_Blocker_Samples; i++) {
         //     vec2 samplePos = texcoord + DOF_Factor * GetVogelDiskSample(i, DOF_Blocker_Samples, 0.0) * vec2(1.0, aspectRatio);
-        //     float dist = (texture2D(colortex14, samplePos).r * 2.0 - 1.0) * DOF_Factor;
+        //     float dist = (texture(colortex14, samplePos).r * 2.0 - 1.0) * DOF_Factor;
 
         //     if(currentDist - dist > -0.01) {
         //         blockerDist += abs(dist-currentDist);
@@ -72,16 +72,16 @@ void main() {
 
         for(int i = 0; i < samples; i++) {
             vec2 samplePos = texcoord + coc * GetVogelDiskSample(i, samples, 0.0) * vec2(1.0, aspectRatio);
-            // float sampleDepth = linearizeDepthFast(texture2D(depthtex0, samplePos).r);
+            // float sampleDepth = linearizeDepthFast(texture(depthtex0, samplePos).r);
             // if(depth - sampleDepth > 0.1)
-            //     // albedo.rgb += texture2D(colortex0, texcoord).rgb;
+            //     // albedo.rgb += texture(colortex0, texcoord).rgb;
             //     samplesUsed--;
             // else
-                colorOut.rgb += texture2D(colortex0, samplePos).rgb;
+                colorOut.rgb += texture(colortex0, samplePos).rgb;
         }
 
         colorOut.rgb /= samplesUsed;
     #else
-        colorOut = texture2D(colortex0, texcoord);
+        colorOut = texture(colortex0, texcoord);
     #endif
 }

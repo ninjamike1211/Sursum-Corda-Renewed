@@ -28,6 +28,6 @@ void main() {
         vec2 samplecoord = texcoord + (i-3)*offset;
         samplecoord = min(max(samplecoord, bounds.xy), bounds.zw);
 
-        bloomOut.rgb += gaussian_7[i] * texture2D(colortex11, samplecoord).rgb;
+        bloomOut.rgb += gaussian_7[i] * texture(colortex11, samplecoord).rgb;
     }
 }

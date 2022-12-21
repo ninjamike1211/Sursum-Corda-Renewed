@@ -136,6 +136,8 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 viewVector, inout float curre
 	vec2 nearestEdge = floor(texcoord * atlasSize + (sign(-viewVector) * 0.5 + 0.5)) / atlasSize;
 	vec2 viewVecNorm = normalize(viewVector);
 
+	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
+
 	int i = 0;
 	while(i < 3) {
 
@@ -182,7 +184,9 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 viewVector, inout float curre
 // Parallax Occlusion Mapping, outputs new texcoord with inout parameter and returns texture-alligned depth into texture after POM
 float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, out vec3 shadowTexcoord, out bool onEdge, out vec2 norm) {
 
-	 vec3 texDir = normalize(pos) * tbn;
+	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
+
+	vec3 texDir = normalize(pos) * tbn;
 
 	// Calculate texture space vectors and deltas used in loop
 	float layerDepth    = 1.0 / layerCount;
@@ -247,6 +251,8 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 }
 
 float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, vec2 norm) {
+
+	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
 
 	vec3 texLightDir = normalize(lightDir) * tbn;
 
