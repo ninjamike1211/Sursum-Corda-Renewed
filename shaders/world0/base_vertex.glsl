@@ -136,7 +136,7 @@ void main() {
         if(entity > 10000) {
             vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, colortex12);
+            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, colortex12);
         }
     #endif
 

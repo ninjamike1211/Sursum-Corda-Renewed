@@ -8,7 +8,7 @@
 // uniform float frameTimeCounter;
 // uniform float rainStrength;
 
-vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, sampler2D varSampler) {
+vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 glNormal, sampler2D varSampler) {
 
 	// float prevWindAmplitude = 0.1 * (snoise(vec2(0.05 * (frameTimeCounter - frameTime) + worldPos.x + worldPos.z)) * 0.5 + 0.5);
 
@@ -96,7 +96,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, sampler2D varSampler
 	return vec3(0.0);
 }
 
-vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds) {
+vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, vec3 glNormal) {
 	switch(entity) {
 		case 10001: { // Leaves
 			// return vec3(

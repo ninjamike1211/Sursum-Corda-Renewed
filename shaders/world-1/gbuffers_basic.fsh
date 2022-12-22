@@ -1,27 +1,17 @@
 #version 400 compatibility
 
-uniform mat4 gbufferModelView;
-uniform bool inNether;
-uniform bool inEnd;
 uniform float alphaTestRef;
-
-uniform mat4  gbufferModelViewInverse;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform vec3  cameraPosition;
-uniform float rainStrength;
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
-#include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
+
+
+// ------------------------ File Contents -----------------------
+	// Gbuffers basic objects fragment shader
+	// Motion vector calculations for TAA or Motion Blur
+    // Position calculations
+    // Normals calculations
+
 
 /* RENDERTARGETS: 1,2,4,6 */
 layout(location = 0) out uvec2 normalOut;

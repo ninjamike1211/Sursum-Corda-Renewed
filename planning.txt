@@ -27,3 +27,4 @@ Add support for darkness/blindness/nausia effects
 Fix block breaking texture
 Fix POM skipping on heightmap edges on texture edges
 Add water refraction
+Add stars

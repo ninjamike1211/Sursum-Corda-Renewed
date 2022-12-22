@@ -1,5 +1,5 @@
 #version 400 compatibility
 
-#define taaEntityVelocity
+#define inNether
 
 #include "base_vertex.glsl"

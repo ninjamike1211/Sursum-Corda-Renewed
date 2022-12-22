@@ -27,6 +27,14 @@ uniform bool  cameraMoved;
 #include "/lib/functions.glsl"
 #include "/lib/TAA.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Gbuffers basic objects vertex shader
+    // Position calculations
+    // Normals calculations
+    // Motion vector calculations for TAA or Motion Blur
+
+
 flat out vec4 glColor;
 flat out vec3 glNormal;
 

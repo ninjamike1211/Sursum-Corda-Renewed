@@ -69,7 +69,6 @@ uniform vec3 fogColor;
     // Main Composite pass, combining opaque and transparent geometry
 	// Read texture values and calculate various positions
 	// Water Refraction (current broken)
-	// Apply SSAO to opaque objects
 	// Apply water and atmospheric fog to opaque objects
 	// Apply sky, sun/moon, and atmospheric/water fog to sky
 	// Apply water and atmospheric fog to transparent objects
@@ -154,13 +153,6 @@ void main() {
 
 // ----------------------- Opaque Objects -----------------------
 	if(depth < 1.0) {
-
-	// -------------------------- SSAO --------------------------
-		#ifdef SSAO
-			vec3 occlusion = texture(colortex9, texcoord).rgb;
-			opaqueColor.rgb *= occlusion;
-		#endif
-
 
 	// ---------------- Water and Atmospheric Fog ---------------
 		// fog when player is not underwater

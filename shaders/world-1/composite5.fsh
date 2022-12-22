@@ -1,28 +1,17 @@
 #version 420 compatibility
 
 uniform sampler2D colortex0;
-uniform sampler2D colortex4;
-uniform mat4 gbufferModelView;
-uniform bool inNether;
-uniform bool inEnd;
-
-uniform mat4  gbufferModelViewInverse;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform vec3  cameraPosition;
-uniform float rainStrength;
-uniform float near;
-uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
-#include "/lib/kernels.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/bloomTile.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Calculate and output unfiltered bloom tiles to colortex11
+
 
 /* RENDERTARGETS: 11*/
 layout(location = 0) out vec4 bloomOut;
@@ -30,7 +19,8 @@ layout(location = 0) out vec4 bloomOut;
 in vec2 texcoord;
 
 void main() {
-    
+
+// ------------------------- Bloom Tiles ------------------------
     int mipmap;
     vec2 samplecoord;
     getTileCoordStore(texcoord, 1.0 / vec2(viewWidth, viewHeight), Bloom_Tiles, mipmap, samplecoord);

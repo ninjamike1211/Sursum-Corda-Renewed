@@ -1,7 +1,5 @@
 #version 400 compatibility
 
-uniform vec3 cameraPosition;
-
 out vec4 starData;
 
 void main() {

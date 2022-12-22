@@ -8,6 +8,11 @@ uniform float viewHeight;
 #include "/lib/kernels.glsl"
 #include "/lib/bloomTile.glsl"
 
+
+// ------------------------ File Contents -----------------------
+    // Apply horizontal filtering to bloom tiles
+
+
 /* RENDERTARGETS: 11*/
 layout(location = 0) out vec4 bloomOut;
 
@@ -28,6 +33,6 @@ void main() {
         vec2 samplecoord = texcoord + (i-3)*offset;
         samplecoord = min(max(samplecoord, bounds.xy), bounds.zw);
 
-        bloomOut.rgb += gaussian_7[i] * texture2D(colortex11, samplecoord).rgb;
+        bloomOut.rgb += gaussian_7[i] * texture(colortex11, samplecoord).rgb;
     }
 }
