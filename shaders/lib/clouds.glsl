@@ -10,13 +10,13 @@
 
 void getCloudCoords(vec3 eyeDir, vec3 eyeOrigin, float height, float radius, out vec2 cloudCoords, out float dist, out vec2 angles) {
 	float sphereCenter = height - radius;
-	dist = ray_sphere_intersection(eyeOrigin - vec3(0.0, sphereCenter, 0.0), eyeDir, radius).y;
+	dist = ray_sphere_intersection(vec3(0.0, eyeOrigin.y, 0.0) - vec3(0.0, sphereCenter, 0.0), eyeDir, radius).y;
 
 	vec3 hitPos = eyeAltitude-sphereCenter + dist * eyeDir;
 	vec3 rayDir = normalize(hitPos);
 
 	angles = atan(hitPos.yy, hitPos.xz);
-	cloudCoords = radius * sin(angles) - cameraPosition.xz;
+	cloudCoords = radius * sin(angles) - eyeOrigin.xz;
 }
 
 void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor) {
@@ -133,7 +133,7 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 
 	float sunDot = smoothstep(0.965, 0.9999999999, dot(eyeDir, sunDir));
 
-	vec3 cloudColorHigh = (0.5*vec3(0.4, 0.02, 0.01) + 0.5*fogColor) * (abs(cloudDotL) * 0.5 + 0.5);
+	vec3 cloudColorHigh = (0.1*vec3(0.4, 0.02, 0.01) + 0.7*fogColor) * (abs(cloudDotL) * 0.5 + 0.5);
 	float cloudAlphaHigh = smoothstep(1.5, 6.0, exp(density)) * smoothstep(200000.0, 400.0, cloudDistHigh);
 
 	baseColor = mix(baseColor, cloudColorHigh, cloudAlphaHigh);
@@ -142,7 +142,7 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 	vec2 cloudCoordsLow;
 	float cloudDistLow;
 	vec2 cloudAnglesLow;
-	getCloudCoords(eyeDir, eyeOrigin, lowCloudHeight, lowCloudRadius, cloudCoordsLow, cloudDistLow, cloudAnglesLow);
+	getCloudCoords(eyeDir, eyeOrigin, 1.5 * lowCloudHeight, lowCloudRadius, cloudCoordsLow, cloudDistLow, cloudAnglesLow);
 
 	noise = 0.52 * SimplexPerlin2D_Deriv(cloudCoordsLow.xy * 0.0004 + vec2(-0.3, 0.1) * frameTimeCounter);
 	noise += 0.36 * SimplexPerlin2D_Deriv(cloudCoordsLow.xy * 0.0009 + vec2(-0.2, 0.21) * frameTimeCounter);
@@ -161,7 +161,7 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 
 	
 	float cloudAlphaLow = smoothstep(2.1, 3.3, exp(density)) * smoothstep(40000, 0, cloudDistLow);
-	vec3 cloudColorLow = (0.7*vec3(0.4, 0.02, 0.01) + 0.3*fogColor) * (abs(cloudDotL) * 0.5 + 0.5);
+	vec3 cloudColorLow = (0.1*vec3(0.4, 0.02, 0.01) + 0.7*fogColor) * (abs(cloudDotL) * 0.5 + 0.5);
 
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }

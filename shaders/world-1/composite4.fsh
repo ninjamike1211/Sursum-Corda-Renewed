@@ -43,6 +43,7 @@ void main() {
             }
             
             colorOut.rgb /= samples;
+            // colorOut.rgb = vec3(1.0);
         }
     #endif
 }

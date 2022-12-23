@@ -96,7 +96,7 @@ void main() {
         
         // Apply clouds
         #ifdef cloudsEnable
-            applyNetherCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * eyePos + vec3(0.0, eyeAltitude, 0.0), skyColor, fogColor);
+            applyNetherCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * eyePos + cameraPosition, skyColor, fogColor);
         #endif
 
         // Darken sky reflecion if underwater

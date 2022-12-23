@@ -2,6 +2,7 @@
 
 const float sunPathRotation = -20;
 
+uniform vec3 fogColor;
 uniform float rainStrength;
 uniform float eyeAltitude;
 uniform float sunHeight;
@@ -26,12 +27,13 @@ void main() {
 
 // ---------------------- Sky Atmospherics ----------------------
     
-    vec3 ray_direction = unprojectSphere(texcoord);
-    vec3 ray_origin = vec3(0.0, 6371e3 + 1.0 * (eyeAltitude + 1064), 0.0);   
+    // vec3 ray_direction = unprojectSphere(texcoord);
+    // vec3 ray_origin = vec3(0.0, 6371e3 + 1.0 * (eyeAltitude + 1064), 0.0);   
     
-    skyOut.rgb = get_sky_color_nether(ray_origin, ray_direction, vec3(0.0, 1.0, 0.0));
-    skyOut.a = 1.0;
+    // skyOut.rgb = get_sky_color_nether(ray_origin, ray_direction, vec3(0.0, 1.0, 0.0));
+    // skyOut.a = 1.0;
 
+    skyOut = vec4(fogColor*0.7, 1.0);
 }
 
 // const float sunPathRotation = -20;

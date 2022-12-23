@@ -70,7 +70,7 @@ void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) 
     float dist = length(viewPos - viewOrigin);
     float fogFactor = clamp(exp(-dist*0.02), 0.0, 1.0);
 
-    albedo.rgb = mix(fogColor, albedo.rgb, fogFactor);
+    albedo.rgb = mix(0.7*fogColor, albedo.rgb, fogFactor);
 }
 
 void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {

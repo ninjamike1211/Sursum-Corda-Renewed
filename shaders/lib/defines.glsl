@@ -199,4 +199,10 @@ const int shadowcolor0Format = RGBA16F;
 	#define Wind_Vine_Offset		0.1
 	#define Wind_Vine_Wavestrength 	0.1
 
+
+// Nether settings
+#ifdef inNether
+	#define Nether_CloudFog
+#endif
+
 #endif

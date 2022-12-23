@@ -37,8 +37,8 @@ layout(location = 1) out uvec2 normalOut;
 layout(location = 2) out vec4 albedoOut;
 layout(location = 3) out vec4 lightmapOut;
 layout(location = 4) out vec4 specMapOut;
-layout(location = 6) out vec4 velocityOut;
-layout(location = 7) out vec4 pomOut;
+layout(location = 5) out vec4 velocityOut;
+layout(location = 6) out vec4 pomOut;
 
 flat in vec3 lightDir;
 flat in vec3 lightDirView;

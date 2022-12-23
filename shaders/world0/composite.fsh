@@ -227,7 +227,7 @@ void main() {
 
 		// Apply clouds
 		#ifdef cloudsEnable
-			applyCloudColor(eyeDir, vec3(0.0, eyeAltitude, 0.0), opaqueColor.rgb, skyDirect);
+			applyCloudColor(eyeDir, cameraPosition, opaqueColor.rgb, skyDirect);
 		#endif
 
 		// Output correct velocity for the sky

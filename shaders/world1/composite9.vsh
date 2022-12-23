@@ -2,32 +2,37 @@
 
 #define ExposureSpeed 1.0
 
-uniform mat4 gbufferProjectionInverse;
 uniform sampler2D colortex0;
 uniform sampler2D colortex14;
-uniform float frameTime;
-uniform mat4 gbufferModelView;
-uniform bool inEnd;
-uniform bool inNether;
-uniform vec3 sunPosition;
 uniform sampler2D depthtex0;
-uniform float aspectRatio;
-
+uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
+uniform mat4  gbufferProjectionInverse;
+uniform vec3  sunPosition;
 uniform vec3  cameraPosition;
-uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float aspectRatio;
+uniform float frameTime;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/functions.glsl"
+#include "/lib/sample.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Standard fullscreen post-process vertex shader
+    // Auto exposure (currently not used)
+    // Calculate sprite positions and sizes for lens flare
+
 
 out vec2 texcoord;
 out vec3 viewVector;
@@ -54,11 +59,13 @@ void main() {
 	// viewVector = (ray.xyz / ray.w);
 	// viewVector /= viewVector.z;
 
+
+// ------------------------ Auto Exposure -----------------------
     vec3 avgColor = textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb;
     float exposureScreen = 0.1 / dot(avgColor, vec3(0.2125, 0.7154, 0.0721));
     // float exposureScreen = luminance(avgColor);
 
-    float exposurePrev = texture2D(colortex14, vec2(0.5)).r;
+    float exposurePrev = texture(colortex14, vec2(0.5)).r;
     float diff = exposureScreen - exposurePrev;
     if(abs(diff) <= ExposureSpeed * frameTime)
         exposure = exposureScreen;
@@ -72,27 +79,42 @@ void main() {
 
     // imageStore(colorimg5, ivec2(viewWidth/2, viewHeight/2), vec4(exposure, vec3(0.0)));
 
+
+// --------------------- Lens Flare Sprites ---------------------
     #ifdef LensFlare
-        sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
-        flareSunCenterVec = vec2(0.5) - sunScreenPos;
+        vec4 centerRay = gbufferProjectionInverse * vec4(0.0, 0.0, 1.0, 1.0);
+        vec3 centerVec = centerRay.xyz / centerRay.w;
+        
+        if(dot(sunPosition, centerVec) > 0.0) {
+            sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
+            flareSunCenterVec = vec2(0.5) - sunScreenPos;
 
-        // vec2 factors = smoothstep(1.0, 0.5, abs(sunScreenPos * 2.0 - 1.0));
-        // flareFade = min(factors.x, factors.y);
-        float sunOcclusion = 0.0;
-        int samples = 16;
-        for(int i = 0; i < samples; i++) {
-            vec2 sampleCoords = sunScreenPos + vec2(0.018, 0.018*aspectRatio) * GetVogelDiskSample(i, samples, 0.0);
+            float sunOcclusion = 0.0;
+            int samples = 16;
+            for(int i = 0; i < samples; i++) {
+                vec2 sampleCoords = sunScreenPos + vec2(0.018, 0.018*aspectRatio) * GetVogelDiskSample(i, samples, 0.0);
 
-            if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
-                sunOcclusion += step(1.0, texture2D(depthtex0, sampleCoords).r);
+                if(clamp(sampleCoords, 0.0, 1.0) == sampleCoords)
+                    sunOcclusion += step(1.0, texture(depthtex0, sampleCoords).r);
+                else
+                    samples--;
+            }
+            if(samples == 0)
+                flareFade = 1.0;
+            else
+                flareFade = sunOcclusion/float(samples);
+            
+            flareFade *= smoothstep(1.5, 0.5, length(sunScreenPos * 2.0 - 1.0));
+
+            float spriteAngle = atan(-flareSunCenterVec.x, flareSunCenterVec.y);
+            flareRotMat = mat2(cos(spriteAngle), -sin(spriteAngle), sin(spriteAngle), cos(spriteAngle));
+
+            flareSprite01 = vec4(sunScreenPos + 0.35 * flareSunCenterVec, sunScreenPos.xy + 0.57 * flareSunCenterVec);
+            flareSprite23 = vec4(sunScreenPos + 0.59 * flareSunCenterVec, sunScreenPos.xy + 0.62 * flareSunCenterVec);
+            flareSprite45 = vec4(sunScreenPos + 0.81 * flareSunCenterVec, sunScreenPos.xy + 0.81 * flareSunCenterVec);
         }
-        flareFade = sunOcclusion/float(samples);
-
-        float spriteAngle = atan(-flareSunCenterVec.x, flareSunCenterVec.y);
-        flareRotMat = mat2(cos(spriteAngle), -sin(spriteAngle), sin(spriteAngle), cos(spriteAngle));
-
-        flareSprite01 = vec4(sunScreenPos + 0.35 * flareSunCenterVec, sunScreenPos.xy + 0.57 * flareSunCenterVec);
-        flareSprite23 = vec4(sunScreenPos + 0.59 * flareSunCenterVec, sunScreenPos.xy + 0.62 * flareSunCenterVec);
-        flareSprite45 = vec4(sunScreenPos + 0.81 * flareSunCenterVec, sunScreenPos.xy + 0.81 * flareSunCenterVec);
+        else {
+            flareFade = 0.0;
+        }
     #endif
 }

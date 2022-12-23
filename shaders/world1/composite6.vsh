@@ -1,5 +1,10 @@
 #version 400 compatibility
 
+
+// ------------------------ File Contents -----------------------
+    // Standard fullscreen post-process vertex shader
+
+
 out vec2 texcoord;
 
 void main() {

@@ -40,6 +40,8 @@ uniform int   heldItemId;
 uniform int   heldItemId2;
 uniform vec3 fogColor;
 
+#define inNether
+
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
@@ -111,7 +113,8 @@ void main() {
 	vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth);
 	vec3 viewPos 			= calcViewPos(viewVector, depth);
 	vec3 scenePos 			= (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-	
+	vec3 eyeDir             = mat3(gbufferModelViewInverse) * normalize(viewPos);
+
 	specMapOut = specMap;
 
 
@@ -121,9 +124,13 @@ void main() {
 	// ---------------- Water and Atmospheric Fog ---------------
 		// fog when player is not underwater
 		if(isEyeInWater == 0) {
-
-			// if there is no water, only render atmospheric fog
-			netherFog(opaqueColor, vec3(0.0), viewPos, fogColor);
+			vec3 fogCloudColor = fogColor;
+			
+			#ifdef Nether_CloudFog
+				applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor);
+			#endif
+			
+			netherFog(opaqueColor, vec3(0.0), viewPos, fogCloudColor);
 		}
 	}
 
@@ -131,7 +138,6 @@ void main() {
 // ------------------------ Sky Rendering -----------------------
 	else {
 		// Read sky value from buffer
-		vec3 eyeDir = mat3(gbufferModelViewInverse) * normalize(viewPos);
 		vec3 sky = texture2D(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
 
 		// Apply moon, hide moon when below horizon
@@ -139,7 +145,7 @@ void main() {
 
 		// Apply clouds
 		#ifdef cloudsEnable
-			applyNetherCloudColor(eyeDir, vec3(0.0, eyeAltitude, 0.0), opaqueColor.rgb, fogColor);
+			applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, opaqueColor.rgb, fogColor);
 		#endif
 
 		// Output correct velocity for the sky
@@ -157,7 +163,13 @@ void main() {
 		
 	// ---------------- Water and Atmospheric Fog ---------------
 		if(isEyeInWater == 0) {
-			netherFog(transparentColor, vec3(0.0), transparentViewPos, fogColor);
+			vec3 fogCloudColor = fogColor;
+
+			#ifdef Nether_CloudFog
+				applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor);
+			#endif
+
+			netherFog(transparentColor, vec3(0.0), transparentViewPos, fogCloudColor);
 		}
 
 

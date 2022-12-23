@@ -97,7 +97,7 @@ void main() {
         
         // Apply clouds
         #ifdef cloudsEnable
-            applyCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * eyePos + vec3(0.0, eyeAltitude, 0.0), skyColor, skyDirect);
+            applyCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * eyePos + cameraPosition, skyColor, skyDirect);
         #endif
 
         // Darken sky reflecion if underwater

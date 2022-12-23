@@ -5,8 +5,13 @@ uniform mat4 gbufferModelView;
 uniform bool inNether;
 uniform bool inEnd;
 
+uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
 uniform mat4  gbufferProjection;
 uniform mat4  gbufferProjectionInverse;
+uniform mat4  shadowModelView;
+uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
 uniform float rainStrength;
 uniform float near;
@@ -20,6 +25,15 @@ uniform bool  cameraMoved;
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+
+
+// ------------------------ File Contents -----------------------
+    // Gbuffers basic objects vertex shader
+    // Position calculations
+    // Normals calculations
+    // Motion vector calculations for TAA or Motion Blur
+
 
 flat out vec4 glColor;
 flat out vec3 glNormal;

@@ -12,6 +12,7 @@ uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float aspectRatio;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
@@ -20,6 +21,7 @@ uniform bool  cameraMoved;
 #include "/lib/kernels.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/sample.glsl"
 
 
 // ------------------------ File Contents -----------------------
