@@ -134,10 +134,12 @@ void main() {
 
 
     // -------------------- Apply Reflection --------------------
+        float fogFactor = netherFogFactor(vec3(0.0), viewPos);
+
         if(abs(waterDepth - depth) < 0.01)
-            colorOut.rgb = mix(colorOut.rgb, reflectColor * smoothstep(0.45, 0.8, specMap.r), fresnel);
+            colorOut.rgb = mix(colorOut.rgb, reflectColor * smoothstep(0.45, 0.8, specMap.r), fogFactor * fresnel);
         else
-            colorOut.rgb += fresnel * reflectColor * smoothstep(0.45, 0.8, specMap.r);
+            colorOut.rgb += fogFactor * fresnel * reflectColor * smoothstep(0.45, 0.8, specMap.r);
     }
 }
 

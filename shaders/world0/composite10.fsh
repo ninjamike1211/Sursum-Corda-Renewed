@@ -3,30 +3,35 @@
 uniform float playerMood;
 uniform float playerMoodSmooth;
 
-in vec2 texcoord;
-
 flat in float moodVelocity;
 flat in float moodAccumulation;
 flat in float moodMultiplier;
 
 flat in float windAmplitude;
 flat in float windAngle;
-flat in vec2  windPhase;
+flat in float windPhase;
+
+flat in vec4  smoothCenterDepth;
+
+#include "/lib/defines.glsl"
 
 /* RENDERTARGETS: 12 */
 layout(location = 0) out vec4 moodOut;
 
 void main() {
 
-    if(texcoord.x < 0.5) {
+    if(all(lessThan(gl_FragCoord.xy - vec2(0.5, 0.5), vec2(EPS)))) {
         moodOut.r = playerMood;
         moodOut.g = moodVelocity;
         moodOut.b = moodAccumulation;
         moodOut.a = moodMultiplier;
     }
-    else {
-        moodOut.r  = windAmplitude;
-        moodOut.g  = windAngle;
-        moodOut.ba = windPhase;
+    else if(all(lessThan(gl_FragCoord.xy - vec2(0.5, 1.5), vec2(EPS)))) {
+        moodOut.r = windAmplitude;
+        moodOut.g = windAngle;
+        moodOut.b = windPhase;
+    }
+    else if(all(lessThan(gl_FragCoord.xy - vec2(1.5, 0.5), vec2(EPS)))) {
+        moodOut = smoothCenterDepth;
     }
 }

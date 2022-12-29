@@ -48,6 +48,8 @@ uniform int   heldItemId;
 uniform int   heldItemId2;
 uniform vec3 fogColor;
 
+#define inEnd
+
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"

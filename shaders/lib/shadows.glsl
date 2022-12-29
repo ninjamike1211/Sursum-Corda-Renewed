@@ -316,8 +316,49 @@ void waterVolumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 t
     }
 }
 
-void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 albedo, vec2 texcoord) {
+// void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 albedo, vec2 texcoord) {
 
+//     #ifdef ShadowNoiseAnimated
+//         float randomVal = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), frameCounter);
+//         float randomAngle = randomVal * TAU;
+//     #else
+//         float randomVal = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), 0);
+//         float randomAngle = randomVal * TAU;
+//     #endif
+
+//     vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
+//     vec3 scatteringCoef = 0.3 * vec3(0.04);
+
+//     vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
+//     rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
+//     vec3 scenePos = sceneOrigin;
+
+//     for(int i = 0; i < VolWater_Steps; i++) {
+//         scenePos += rayIncrement;
+
+//         vec3 shadowPos = calcShadowPosScene(scenePos);
+
+//         vec3 shadowValue = shadowVisibility(shadowPos);
+//         shadowValue = shadowValue * 0.9 + 0.1;
+
+//         // albedo -= 0.02 * (1.0 - exp(-length(rayIncrement)));
+//         // albedo += 0.2 * shadowValue * (1.0 - exp(-length(rayIncrement)));
+
+//         // albedo = mix(albedo, light * shadowValue, exp(-length(rayIncrement)));
+
+//         vec3 transmittance = exp(-absorptionCoef * length(rayIncrement));
+//         vec3 scattering = light * shadowValue * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
+
+//         albedo.rgb = albedo.rgb * transmittance + scattering;
+//     }
+
+//     // shadowValue /= VolWater_Steps;
+
+//     // albedo = shadowValue;
+// }
+
+void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 sceneColor, vec2 texcoord) {
+    
     #ifdef ShadowNoiseAnimated
         float randomVal = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), frameCounter);
         float randomAngle = randomVal * TAU;
@@ -326,35 +367,25 @@ void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 
         float randomAngle = randomVal * TAU;
     #endif
 
-    vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
-    vec3 scatteringCoef = 0.3 * vec3(0.04);
-
     vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
     rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
     vec3 scenePos = sceneOrigin;
+
+    vec3 shadowAmount = vec3(0.0);
 
     for(int i = 0; i < VolWater_Steps; i++) {
         scenePos += rayIncrement;
 
         vec3 shadowPos = calcShadowPosScene(scenePos);
 
-        vec3 shadowValue = shadowVisibility(shadowPos);
-        shadowValue = shadowValue * 0.9 + 0.1;
-
-        // albedo -= 0.02 * (1.0 - exp(-length(rayIncrement)));
-        // albedo += 0.2 * shadowValue * (1.0 - exp(-length(rayIncrement)));
-
-        // albedo = mix(albedo, light * shadowValue, exp(-length(rayIncrement)));
-
-        vec3 transmittance = exp(-absorptionCoef * length(rayIncrement));
-        vec3 scattering = light * shadowValue * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
-
-        albedo.rgb = albedo.rgb * transmittance + scattering;
+        shadowAmount += shadowVisibility(shadowPos);
     }
 
-    // shadowValue /= VolWater_Steps;
+    shadowAmount /= VolWater_Steps;
 
-    // albedo = shadowValue;
+    vec3 fog = shadowAmount * vec3(0.2, 0.5, 0.5) + vec3(0.03, 0.04, 0.05);
+
+    sceneColor = mix(fog, sceneColor, exp(-0.1 * length(sceneEnd - sceneOrigin)));
 }
 
 // Beter shadow distortion from Groundwork-4  (https://github.com/DrDesten/Groundwork)

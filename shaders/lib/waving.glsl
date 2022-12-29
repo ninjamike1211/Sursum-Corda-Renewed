@@ -16,7 +16,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 glNormal, sampl
 	// vec2  windDirection = vec2(cos(windAngle), sin(windAngle));
 	// float windAmplitude = mix(0.1, 0.2, rainStrength) + mix(0.1, 0.0, rainStrength) * (snoise(vec2(0.03 * frameTimeCounter /* + worldPos.x + worldPos.z */)) * 0.5 + 0.5);
 	
-	vec4 windData = texture2D(varSampler, vec2(1.0));
+	vec4 windData = texelFetch(varSampler, ivec2(0,1), 0);
 
 	float windAmplitude = windData.r;
 	float windAngle     = windData.g * TAU;

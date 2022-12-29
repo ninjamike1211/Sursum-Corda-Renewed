@@ -66,9 +66,13 @@ void fog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {
     albedo.rgb = mix(2.0 * SunMoonColor, albedo.rgb, fogFactor);
 }
 
-void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) {
+float netherFogFactor(vec3 viewOrigin, vec3 viewPos) {
     float dist = length(viewPos - viewOrigin);
-    float fogFactor = clamp(exp(-dist*0.02), 0.0, 1.0);
+    return clamp(exp(-dist*0.02), 0.0, 1.0);
+}
+
+void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) {
+    float fogFactor = netherFogFactor(viewOrigin, viewPos);
 
     albedo.rgb = mix(0.7*fogColor, albedo.rgb, fogFactor);
 }

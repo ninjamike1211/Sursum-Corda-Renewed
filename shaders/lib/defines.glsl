@@ -141,7 +141,7 @@ const int shadowcolor0Format = RGBA16F;
 	#define Bloom				// A light-blurring effect that makes bright objects appear more visually bright
 	#define Bloom_Bicubic		// Uses bicubic filtering when sampling bloom, higher quality with only a slight performance hit
 	#define Bloom_Strength 	1.0 // Strength of Bloom [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-	#define Bloom_Tiles		8	// Number of bloom tiles, more means higher quality at higher performance cost
+	#define Bloom_Tiles		6	// Number of bloom tiles, more means higher quality at higher performance cost
  
 
 // #define LensFlare	// A lens flare effect caused by looking at the sun
@@ -162,15 +162,20 @@ const int shadowcolor0Format = RGBA16F;
 
 
 // Depth of Field
-	// #define DOF
-	#define DOF_Samples 128
-	#define DOF_Density 0.05
-	#define DOF_Blocker_Samples 32
-	#define DOF_Factor 0.01
-	#define DOF_FocalLength 0.01
-	#define DOF_ImageDistance 0.01
+	// #define DOF						// Depth of Field effect, makes very close or far objects appear blurry
+	// #define DOF_HandBlur				// Enables blurring of handheld items, which can sometimes looks strange
+	#define DOF_NearBlur				// Enables blurring of objects closer than the point of focus
+	#define DOF_VariableSampleCount		// Enables variable sample count, where the number of samples depends on the size of the blur
+	#define DOF_ConstSamples 	128		// The sample count used when DOF_VariableSampleCount is disabled [8 12 16 24 32 48 64 96 128 192 256 320 384 448 512]
+	#define DOF_SampleDensity 	1.0		// The density (roughly samples/pixel) used when DOF_VariableSampleCount is enabled [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
+	#define DOF_MaxSamples 		512		// Maximum samples when DOF_VariableSampleCount is enabled [16 24 32 48 64 96 128 192 256 320 384 448 512 640 768 1024]
+	#define DOF_MinSamples 		32		// Minimum samples when DOF_VariableSampleCount is enabled [4 6 8 12 16 20 24 32 38 64 72 80 88 96 112 128]
+	#define DOF_BlurAmount		1.0		// Mutliplier for DOF blur radius, effectively a DOF amount slider [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
+	#define DOF_FocusSpeed		7.5		// Speed of focus change [-1.0 1.0 2.0 3.0 4.0 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 13.0 14.0 15.0]
+	#define DOF_ImageDistance 	0.01	// Internal value, distance between image plane and lens
 
-	#define EmissiveStrength 1.0 // Strength of texture emissives [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
+
+#define EmissiveStrength 1.0 // Strength of texture emissives [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
 
 
 // Waving objects and wind
@@ -202,7 +207,7 @@ const int shadowcolor0Format = RGBA16F;
 
 // Nether settings
 #ifdef inNether
-	#define Nether_CloudFog
+	// #define Nether_CloudFog
 #endif
 
 #endif

@@ -3,35 +3,23 @@
 #define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104]
 #define viewBufferSweep 0.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
-uniform mat4 gbufferModelView;
-uniform bool inEnd;
-uniform bool inNether;
-// uniform bool cameraMoved;
-// uniform float sunAngle;
-
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
+uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
 uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
-uniform float rainStrength;
 uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int   frameCounter;
-uniform int   worldTime;
 uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
-#include "/lib/noise.glsl"
-#include "/lib/functions.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -59,9 +47,10 @@ uniform sampler2D colortex15;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform sampler2D depthtex2;
+uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
 uniform sampler2D shadowcolor1;
-
-uniform vec3 fogColor;
 
 /* RENDERTARGETS: 0 */
 void main() {
@@ -162,4 +151,20 @@ void main() {
 
     // if(texcoord.x > 0.9)
     //     gl_FragColor = vec4(isnan(gl_FragColor));
+
+    // if(texcoord.x > 0.5)
+    //     gl_FragColor = vec4(isinf(texture(colortex6, texcoord)));
+
+    // if(texcoord.x > 0.975)
+    //     gl_FragColor = vec4(0.0, 0.0, texelFetch(colortex12, ivec2(1,0), 0).b, 0.0);
+    // else if(texcoord.x > 0.95)
+    //     gl_FragColor = vec4(0.0, texelFetch(colortex12, ivec2(1,0), 0).g, 0.0, 0.0);
+    // else if(texcoord.x > 0.925)
+    //     gl_FragColor = vec4(texelFetch(colortex12, ivec2(1,0), 0).r, 0.0, 0.0, 0.0);
+    // else if(texcoord.x > 0.9) {  
+    //     vec3 centerDepthData = texelFetch(colortex12, ivec2(1,0), 0).rgb;
+    //     gl_FragColor = vec4(centerDepthData.r + (centerDepthData.g / 255.0) + (centerDepthData.b / 255.0 / 256.0));
+    // }
+    // else if(texcoord.x > 0.875)
+    //     gl_FragColor = vec4(texture(depthtex0, vec2(0.5)).r);
 }

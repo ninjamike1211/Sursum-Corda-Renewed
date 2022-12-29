@@ -319,7 +319,7 @@ void main() {
 
 		albedo.a = isEyeInWater == 0 ? 0.5 : 0.5;
 		// albedo.rgb = vec3(0.0);
-		albedo.rgb = 0.2 * glColor.rgb;
+		albedo.rgb = 0.3 * glColor.rgb;
 
 		albedo.a = 0.4;
 
@@ -458,7 +458,7 @@ void main() {
 		float shadowMult = 1.0;
 		#ifdef Shadow_LeakFix
             // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-			shadowResult *= texture(colortex12, vec2(0.0)).a;
+			shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
         #endif
 
 	// -------------------- Lighting -------------------

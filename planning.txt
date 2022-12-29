@@ -6,25 +6,29 @@ RGBA8       colortex4:  rgba: specular
 R32F        colortex5:  r: water depth
 RG16_SNORM  colortex6:  rg: velocity
 RGB16F      colortex7:  rgb: deferred output
-RG8         colortex8:  r: pom offset, g: pom shadow (if self shadowing)
+RG8         colortex8:  r: pom offset, g: pom shadow (if self shadowing), b: pom offset into block
 RGBA8       colortex9:  rgb: ssao, rgba: shadow water caustics texture
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
-RGBA8       colortex12: r: previous mood, g: velocity, b: accumulator, a: smoothed shadow multiplier from mood
+RGBA8       colortex12: rgba: temporal variables (see below)
 RGBA8       colortex13: rgba: lens flare texture
 R16F        colortex14: r: auto exposure
 RGBA16F     colortex15: rgba: history buffer
 
+Temporal Variables (colortex12)
+    (0,0): r: previous mood, g: velocity, b: accumulator, a: smoothed shadow multiplier from mood
+    (0,1): r: wind amplitude, g: wind angle, b: wind phase
+    (1,0): rg: smooth center depth depthtex0, ba: smooth center depth depthtex2 (without hand)
+
 To do list:
-Fix/change flowing water
-Either find credits for atmosphere or recreate
-Fix/tweak volumetric fog
-Fix water volumetric fog
-Fix SSR circle artifact when close to reflector
-Fix Motion Blur white fringing
-Improve bloom handling
-Add support for darkness/blindness/nausia effects
-Fix block breaking texture
-Fix POM skipping on heightmap edges on texture edges
-Add water refraction
-Add stars
+    Fix/change flowing water
+    Either find credits for atmosphere or recreate
+    Fix/tweak volumetric fog
+    Fix water volumetric fog
+    Improve bloom handling
+    Add support for darkness/blindness/nausia effects
+    Fix block breaking texture
+    Fix POM skipping on heightmap edges on texture edges
+    Fix broken POM on some non-standard blocks
+    Fix some line weirdness, especially with depth writing
+    Add water refraction

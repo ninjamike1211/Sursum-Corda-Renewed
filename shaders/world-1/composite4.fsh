@@ -26,7 +26,7 @@ void main() {
     #ifdef MotionBlur
         vec2 velocity = clamp(texture(colortex6, texcoord).xy, vec2(-0.1), vec2(0.1));
 
-        if(length(velocity) > 1.0 / viewWidth) {
+        if(length(velocity) > 0.0) {
             float isHand = texture(colortex3, texcoord).b;
             int samples = 1;
             vec2 delta = MotionBlur_Strength * velocity / (MotionBlur_Samples);
