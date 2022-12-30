@@ -7,13 +7,14 @@
 const int colortex0Format = RGBA16F;
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex0MipmapEnabled = true;
-const int colortex1Format = RG32UI;
-const int colortex3Format = RGB8;
-const int colortex3Format = RGB10_A2;
-const int colortex5Format = R32F;
-const int colortex6Format = RG16_SNORM;
-const int colortex7Format = RGB16F;
-const int colortex8Format = RGB8;
+const int colortex1Format  = RG32UI;
+const int colortex3Format  = RGB8;
+const int colortex3Format  = RGB10_A2;
+const int colortex5Format  = R32F;
+const int colortex6Format  = RG16_SNORM;
+const int colortex7Format  = RGB16F;
+const int colortex8Format  = RGB8;
+const int colortex9Format  = R8;
 const int colortex10Format = RGB16F;
 const int colortex11Format = RGB16F;
 const int colortex12Format = RGBA8;
@@ -128,7 +129,7 @@ const int shadowcolor0Format = RGBA16F;
 	#define POM_PDO						// POM pixel depth offset, writes to the depth buffer to after POM for slightly more accurate depth information at a slight performance cost (sometimes breaks resource packs)
 	#define POM_Depth 			1.0 	// Depth of POM in blocks. Lower values decreases effect. Appealing values may depend on resource pack [0.2 0.4 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.6 1.8 2.0 3.0 4.0]
 	#define POM_Layers 			50 		// Quality of POM. Higher values are better quality with more performance cost [5 10 20 30 40 50 75 100 200]
-	#define POM_Shadow_Layers 	20 		// Quality of POM shadows. Higher values are better quality with more performance cost [5 10 20 30 40 50 75 100 200]
+	#define POM_Shadow_Layers 	50 		// Quality of POM shadows. Higher values are better quality with more performance cost [5 10 20 30 40 50 75 100 200]
 	#define POM_Distance 		16.0	// Distance at which POM stops rendering, lower values increase performance [8.0 12.0 16.0 24.0 32.0 36.0 40.0 44.0 48.0 56.0 64.0 96.0]
 	#define POM_FadeWidth 		8.0		// Width of the blend at the edge of POM rendering
 	#define POM_Filter			0		// POM Heightmap interpolation type. nearest neightbor : blocky, fastest. bilinear : smooth, very fast. bicubic : smoothest, slow. [0 1 2]
@@ -144,7 +145,7 @@ const int shadowcolor0Format = RGBA16F;
 	#define Bloom_Tiles		6	// Number of bloom tiles, more means higher quality at higher performance cost
  
 
-// #define LensFlare	// A lens flare effect caused by looking at the sun
+#define LensFlare	// A lens flare effect caused by looking at the sun
 
 
 // Directional and Hand lighting
@@ -162,16 +163,18 @@ const int shadowcolor0Format = RGBA16F;
 
 
 // Depth of Field
-	// #define DOF						// Depth of Field effect, makes very close or far objects appear blurry
-	// #define DOF_HandBlur				// Enables blurring of handheld items, which can sometimes looks strange
+	#define DOF							// Depth of Field effect, makes very close or far objects appear blurry
+	#define DOF_HandBlur				// Enables blurring of handheld items, which can sometimes looks strange
 	#define DOF_NearBlur				// Enables blurring of objects closer than the point of focus
 	#define DOF_VariableSampleCount		// Enables variable sample count, where the number of samples depends on the size of the blur
+	#define DOF_NearTransitionBlur		// Blurs the DOF CoC buffer so that near objects blur better onto in-focus objects
 	#define DOF_ConstSamples 	128		// The sample count used when DOF_VariableSampleCount is disabled [8 12 16 24 32 48 64 96 128 192 256 320 384 448 512]
 	#define DOF_SampleDensity 	1.0		// The density (roughly samples/pixel) used when DOF_VariableSampleCount is enabled [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
 	#define DOF_MaxSamples 		512		// Maximum samples when DOF_VariableSampleCount is enabled [16 24 32 48 64 96 128 192 256 320 384 448 512 640 768 1024]
 	#define DOF_MinSamples 		32		// Minimum samples when DOF_VariableSampleCount is enabled [4 6 8 12 16 20 24 32 38 64 72 80 88 96 112 128]
 	#define DOF_BlurAmount		1.0		// Mutliplier for DOF blur radius, effectively a DOF amount slider [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 	#define DOF_FocusSpeed		7.5		// Speed of focus change [-1.0 1.0 2.0 3.0 4.0 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 13.0 14.0 15.0]
+	#define DOF_MaxRadius		0.05	// Maximum radius of blur
 	#define DOF_ImageDistance 	0.01	// Internal value, distance between image plane and lens
 
 

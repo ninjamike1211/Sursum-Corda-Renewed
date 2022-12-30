@@ -7,7 +7,7 @@ R32F        colortex5:  r: water depth
 RG16_SNORM  colortex6:  rg: velocity
 RGB16F      colortex7:  rgb: deferred output
 RG8         colortex8:  r: pom offset, g: pom shadow (if self shadowing), b: pom offset into block
-RGBA8       colortex9:  rgb: ssao, rgba: shadow water caustics texture
+R8          colortex9:  r: SSAO, DOF CoC
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
 RGBA8       colortex12: rgba: temporal variables (see below)

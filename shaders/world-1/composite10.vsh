@@ -50,7 +50,9 @@ void main() {
 
     if(DOF_FocusSpeed > 0.0) {
         vec2 prevCenterDepth = prevDepthData.rb + (prevDepthData.ga / 255.0);
-        newCenterDepth       = mix(prevCenterDepth, newCenterDepth, frameTime * DOF_FocusSpeed);
+        
+        float newAmount = clamp(frameTime * DOF_FocusSpeed, 0.0, 1.0);
+        newCenterDepth = mix(prevCenterDepth, newCenterDepth, frameTime * DOF_FocusSpeed);
     }
     
     newCenterDepth *= 255.0;
