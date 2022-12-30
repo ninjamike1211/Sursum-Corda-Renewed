@@ -13,11 +13,12 @@ uniform float alphaTestRef;
     // Normals calculations
 
 
-/* RENDERTARGETS: 1,2,4,6 */
+/* RENDERTARGETS: 1,2,3,4,6 */
 layout(location = 0) out uvec2 normalOut;
 layout(location = 1) out vec4 albedoOut;
-layout(location = 2) out vec4 specMapOut;
-layout(location = 3) out vec4 velocityOut;
+layout(location = 2) out vec4 lightmapOut;
+layout(location = 3) out vec4 specMapOut;
+layout(location = 4) out vec4 velocityOut;
 
 flat in vec4 glColor;
 flat in vec3 glNormal;
@@ -44,6 +45,8 @@ void main() {
 
     normalOut.r = NormalEncode(glNormal);
     normalOut.g = normalOut.r;
+
+	lightmapOut = vec4(1.0, 1.0, 0.0, 1.0);
 
     specMapOut = vec4(0.0);
 }

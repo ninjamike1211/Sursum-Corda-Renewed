@@ -159,7 +159,7 @@ const int shadowcolor0Format = RGBA16F;
 // Motion Blur
 	#define MotionBlur
 	#define MotionBlur_Samples 16
-	#define MotionBlur_Strength 1.0 // Strength of motion blur (only 1.0 is accurate) [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+	#define MotionBlur_Strength 1.0		// Strength of motion blur [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 
 // Depth of Field

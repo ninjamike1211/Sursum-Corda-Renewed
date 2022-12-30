@@ -8,7 +8,7 @@
 // uniform float frameTimeCounter;
 // uniform float rainStrength;
 
-vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 glNormal, sampler2D varSampler) {
+vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, sampler2D varSampler) {
 
 	// float prevWindAmplitude = 0.1 * (snoise(vec2(0.05 * (frameTimeCounter - frameTime) + worldPos.x + worldPos.z)) * 0.5 + 0.5);
 
@@ -80,7 +80,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 glNormal, sampl
 		}
 		case 10006: { // Vines
 
-			float facingX = step(0.1, abs(glNormal.x));
+			float facingX = step(0.1, abs(normal.x));
 
 			float windWave   = sin(windPhase + Wind_Vine_YWavelength * worldPos.y + Wind_Vine_XZWavelength * (worldPos.x + worldPos.z));
 			float windOffset = (windAmplitude * Wind_Vine_Offset) + ((windAmplitude * 0.1 + 0.3) * Wind_Vine_Wavestrength) * windWave;
@@ -96,7 +96,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 glNormal, sampl
 	return vec3(0.0);
 }
 
-vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, vec3 glNormal) {
+vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, vec3 normal) {
 	switch(entity) {
 		case 10001: { // Leaves
 			// return vec3(
@@ -105,7 +105,7 @@ vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, 
 			// 	mix(0.05, 0.08, rainStrength) * ((pow(cos((worldPos.z + frameTimeCounter) * PI * 0.25), 2.0) - 0.5) * mix(1.0, sin(worldPos.y + frameTimeCounter * PI * 2.0), rainStrength) - 0.0)
 			// );
 
-			return glNormal;
+			return normal;
 		}
 		case 10002: { // Single tall plants
 			// float isTop = step(texcoord.y, textureBounds.y);
@@ -123,7 +123,7 @@ vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, 
 			// 	subOffset.y
 			// );
 
-			return glNormal;
+			return normal;
 		}
 		case 10003: { // Double tall plants bottom
 			// float isTop = step(texcoord.y, textureBounds.y);
@@ -134,7 +134,7 @@ vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, 
 			// 	SimplexPerlin2D(vec2(worldPos.z + 0.1 * frameTimeCounter, 0.0)) * cos(worldPos.z + 3.0 * frameTimeCounter)
 			// );
 
-			return glNormal;
+			return normal;
 		}
 		case 10004: { // Double tall plants top
 			// float isTop = step(texcoord.y, textureBounds.y);
@@ -145,10 +145,10 @@ vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, 
 			// 	SimplexPerlin2D(vec2(worldPos.z + 0.1 * frameTimeCounter, 0.0)) * cos(worldPos.z + 3.0 * frameTimeCounter)
 			// );
 
-			return glNormal;
+			return normal;
 		}
 		case 10006: { // Vines
-			float facingX = step(0.1, abs(glNormal.x));
+			float facingX = step(0.1, abs(normal.x));
 
 			// return vec3(
 			// 	0.1 * sin(worldPos.y + frameTimeCounter) * facingX,
@@ -164,7 +164,7 @@ vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, 
 		}
 	}
 
-	return glNormal;
+	return normal;
 }
 
 #endif

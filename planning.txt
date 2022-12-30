@@ -32,3 +32,5 @@ To do list:
     Fix broken POM on some non-standard blocks
     Fix some line weirdness, especially with depth writing
     Add water refraction
+
+    NVidia: borken entities/blockentities, etc
