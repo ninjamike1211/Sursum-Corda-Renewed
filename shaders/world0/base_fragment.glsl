@@ -167,6 +167,9 @@ void main() {
 	pomOut.rga = vec3(0.0, 1.0, 1.0);
 	vec3 geomNormal = glNormal;
 
+	#ifdef POM_PDO
+		gl_FragDepth = gl_FragCoord.z;
+	#endif
 
 	#ifdef usePBRTextures
 		
@@ -222,11 +225,11 @@ void main() {
 						pomOut.r = length(lightDiff);
 					#endif
 				}
-				#ifdef POM_PDO
-				else {
-					gl_FragDepth = gl_FragCoord.z;
-				}
-				#endif
+				// #ifdef POM_PDO
+				// else {
+				// 	gl_FragDepth = gl_FragCoord.z;
+				// }
+				// #endif
 
 			// ------------- Parallax Slope Normals ------------
 				#if defined POM_SlopeNormals && POM_Filter == 0
@@ -241,9 +244,9 @@ void main() {
 				#endif
 			}
 			else {
-				#ifdef POM_PDO
-					gl_FragDepth = gl_FragCoord.z;
-				#endif
+				// #ifdef POM_PDO
+				// 	gl_FragDepth = gl_FragCoord.z;
+				// #endif
 				normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
 			}
 		#else
@@ -305,12 +308,12 @@ void main() {
 
 
 // --------------------------- Water ----------------------------
-	#ifdef water
-		// Fixes depth not writing for transparents under very specific circumstances
-		#if !defined Water_Flat && defined Water_POM && defined POM_PDO && !defined POM
-			gl_FragDepth = gl_FragCoord.z;
-		#endif
-	#endif
+	// #ifdef water
+	// 	// Fixes depth not writing for transparents under very specific circumstances
+	// 	#if !defined Water_Flat && defined Water_POM && defined POM_PDO && !defined POM
+	// 		gl_FragDepth = gl_FragCoord.z;
+	// 	#endif
+	// #endif
 
 	if(entity == 10010) {
 
