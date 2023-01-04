@@ -18,6 +18,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform int   frameCounter;
 uniform bool  cameraMoved;
+uniform bool  isRiding;
 
 #define taaFragment
 
@@ -48,7 +49,10 @@ void main() {
 		applyTAA(colorOut, historyOut, texcoord, colortex0, colortex15, colortex6);
 	#endif
 
+
+// ----------------------------- DOF ----------------------------
 	#ifdef DOF
+	if(!isRiding) {
 		// float currentDist = unpackCoC(texture(colortex14, texcoord).r);
 		float isHand = texture(colortex3, texcoord).b;
 		float depth = linearizeDepthFast(texture(depthtex1, texcoord).r);
@@ -87,5 +91,7 @@ void main() {
 
 		CoC = clamp(CoC, -DOF_MaxRadius, DOF_MaxRadius);
 		CoC = CoC / DOF_MaxRadius * 0.5 + 0.5;
+
+	}
 	#endif
 }

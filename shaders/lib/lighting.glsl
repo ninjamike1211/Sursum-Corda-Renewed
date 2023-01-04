@@ -645,7 +645,7 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
         #endif
             lightColor *= vec3(15.0, 7.2, 2.9);
 
-        if(!isHand || dist > 0.07) {
+        if(!isHand/*  || dist > 0.07 */) {
             #ifdef HandLight_Shadows
                 // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
                 float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
@@ -686,7 +686,7 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
         #endif
             lightColor *= vec3(15.0, 7.2, 2.9);
 
-        if(!isHand || dist > 0.07) {
+        if(!isHand/*  || dist > 0.07 */) {
             #ifdef HandLight_Shadows
                 // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
                 float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);

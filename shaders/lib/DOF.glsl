@@ -107,6 +107,7 @@
     uniform int   frameCounter;
     uniform int   worldTime;
     uniform bool  cameraMoved;
+    uniform bool  isRiding;
 
     #include "/lib/defines.glsl"
     #include "/lib/kernels.glsl"
@@ -130,6 +131,7 @@
 
     // ----------------------------- DOF ----------------------------
         #ifdef DOF
+        if(!isRiding) {
             
             float depth = linearizeDepthFast(texture(depthtex1, texcoord).r);
             float CoC = (texture2D(colortex9, texcoord).r * 2.0 - 1.0) * DOF_MaxRadius;
@@ -177,7 +179,7 @@
 
                 colorOut.rgb /= samplesUsed;
             // }
-
+        }
         #endif
     }
 

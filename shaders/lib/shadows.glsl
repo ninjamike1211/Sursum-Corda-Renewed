@@ -211,7 +211,11 @@ void volumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 texcoo
         #ifdef VolFog_SmoothShadows
             shadowAmount += softShadows(shadowPos, VolFog_SmoothShadowBlur, VolFog_SmoothShadowSamples, randomAngle, shadowtex0, shadowtex1, shadowcolor0);
         #else
-            shadowAmount += shadowVisibility(shadowPos);
+            #ifdef VolFog_Colored
+                shadowAmount += shadowVisibility(shadowPos);
+            #else
+                shadowAmount += step(shadowPos.z, texture2D(shadowtex0, shadowPos.xy).r);
+            #endif
         #endif
     }
     shadowAmount /= VolFog_Steps;
@@ -367,6 +371,8 @@ void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 
         float randomAngle = randomVal * TAU;
     #endif
 
+    // float rayLengthMult = length(sceneEnd - sceneOrigin) / min(length(sceneEnd - sceneOrigin), 1.0);
+
     vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
     rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
     vec3 scenePos = sceneOrigin;
@@ -378,12 +384,16 @@ void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 
 
         vec3 shadowPos = calcShadowPosScene(scenePos);
 
-        shadowAmount += shadowVisibility(shadowPos);
+        #ifdef VolWater_Colored
+            shadowAmount += shadowVisibility(shadowPos);
+        #else
+            shadowAmount += vec3(0.1, 0.15, 0.3) * step(shadowPos.z, texture2D(shadowtex1, shadowPos.xy).r);
+        #endif
     }
 
     shadowAmount /= VolWater_Steps;
 
-    vec3 fog = shadowAmount * vec3(0.2, 0.5, 0.5) + vec3(0.03, 0.04, 0.05);
+    vec3 fog = light * 0.25 * (shadowAmount * vec3(0.2, 0.5, 0.5) + vec3(0.05, 0.09, 0.12));
 
     sceneColor = mix(fog, sceneColor, exp(-0.1 * length(sceneEnd - sceneOrigin)));
 }

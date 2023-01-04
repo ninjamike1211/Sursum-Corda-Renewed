@@ -31,11 +31,11 @@ void main() {
     shadowColor = texture(tex, texcoordFinal) * glColor;
     if (shadowColor.a < alphaTestRef) discard;
 
-    if(entity == 10010) {
-        shadowColor.a = 0.0;
+    // if(entity == 10010) {
+    //     shadowColor.a = 0.0;
 
-        float caustics = (pow(waterHeightFunc(worldPosVertex.xz), 5.0) * 0.9 + 0.1) * 2.0;
+    //     float caustics = (pow(waterHeightFunc(worldPosVertex.xz), 5.0) * 0.8 + 0.2) * 1.8;
 
-        shadowColor.rgb = glColor.rgb * caustics * 2.0;
-    }
+    //     shadowColor.rgb = glColor.rgb * caustics * 2.0;
+    // }
 }

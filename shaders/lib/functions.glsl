@@ -9,6 +9,14 @@ vec2 cossin(vec2 angle) {
 	return vec2(cos(angle.x), sin(angle.y));
 }
 
+float min2(vec2 val) {
+	return min(val.x, val.y);
+}
+
+float min3(vec3 val) {
+	return min(min(val.x, val.y), val.z);
+}
+
 float luminance(vec3 v) {
     return dot(v, vec3(0.2126f, 0.7152f, 0.0722f));
 }

@@ -124,6 +124,10 @@ void main() {
             vec3 reflectColor;
             if(rayHit) {
                 reflectColor = texture(colortex0, rayPos.xy).rgb;
+
+                float reflectionFade = min2(smoothstep(1.0, 0.97, abs(rayPos.xy * 2.0 - 1.0)));
+                if(reflectionFade < 1.0)
+                    reflectColor = mix(skyColor, reflectColor, reflectionFade);
             }
             else {
                 reflectColor = skyColor;
