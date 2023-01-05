@@ -361,6 +361,8 @@ void waterVolumetricFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec2 t
 //     // albedo = shadowValue;
 // }
 
+uniform vec3 waterColorSmooth;
+
 void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 sceneColor, vec2 texcoord) {
     
     #ifdef ShadowNoiseAnimated
@@ -393,7 +395,12 @@ void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 
 
     shadowAmount /= VolWater_Steps;
 
-    vec3 fog = light * 0.25 * (shadowAmount * vec3(0.2, 0.5, 0.5) + vec3(0.05, 0.09, 0.12));
+    // vec3 fog = light * 0.25 * (shadowAmount * vec3(0.2, 0.5, 0.5) + vec3(0.05, 0.09, 0.12));
+    // vec3 fog = mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.5);
+    // fog = 0.25 * light * (shadowAmount * 0.9 + fog * 0.1);
+
+    vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
+    // fog = mix(fog, shadowAmount, shadowAmount);
 
     sceneColor = mix(fog, sceneColor, exp(-0.1 * length(sceneEnd - sceneOrigin)));
 }

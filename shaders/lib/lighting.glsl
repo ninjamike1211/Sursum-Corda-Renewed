@@ -77,6 +77,10 @@ void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) 
     albedo.rgb = mix(0.7*fogColor, albedo.rgb, fogFactor);
 }
 
+float waterFogFactor(vec3 viewOrigin, vec3 viewPos) {
+    return exp(-0.1 * length(viewPos - viewOrigin));
+}
+
 void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {
     vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
     vec3 scatteringCoef = 0.3 * vec3(0.04);
@@ -85,6 +89,10 @@ void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColo
     vec3 scattering = SunMoonColor * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
 
     albedo.rgb = albedo.rgb * transmittance + scattering;
+
+    // vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
+
+    // sceneColor.rgb = mix(fog, sceneColor.rgb, exp(-0.1 * length(viewPos - viewOrigin)));
 }
 
 vec3 adjustLightMap(vec2 lmcoord, vec3 SunMoonColor) {

@@ -139,6 +139,12 @@ void main() {
 
 
     // -------------------- Apply Reflection --------------------
+
+        if(isEyeInWater == 1)
+            fresnel *= waterFogFactor(vec3(0.0), viewPos);
+        // else if(isEyeInWater == 1)
+        //     float fogFactor = netherFogFactor(vec3(0.0), viewPos);
+
         if(abs(waterDepth - depth) < 0.01)
             colorOut.rgb = mix(colorOut.rgb, reflectColor * smoothstep(0.45, 0.8, specMap.r), fresnel);
         else

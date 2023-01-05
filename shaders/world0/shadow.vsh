@@ -42,13 +42,13 @@ out vec3 worldPosVertex;
 flat out int entity;
 
 #include "/lib/defines.glsl"
+#include "/lib/functions.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/sample.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
-#include "/lib/functions.glsl"
 #include "/lib/waving.glsl"
 
 void main() {

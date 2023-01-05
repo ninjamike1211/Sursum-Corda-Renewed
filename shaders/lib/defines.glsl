@@ -85,7 +85,7 @@ const int shadowcolor0Format = RGBA16F;
 	#define VolWater						// Volumetric fog in water, looks good but large performance impact
 	#define VolWater_Steps 		16			// Number of samples in fog [4 6 8 12 16 20 24 28 32 48 64]
 	#define VolWater_LightSteps 8			// Number of samples in light [2 4 6 8 10 12 16 20 24 28 32]
-	// #define VolWater_Colored
+	#define VolWater_Colored
 	// #define VolWater_SmoothShadows		// Uses smooth shadows for fog, large performance impact
 	#define VolWater_SmoothShadowSamples 4 	// Number of samples used for smooth shadows in volumetric water [1 2 4 6 8 10 12 14 16 20 24 32]
 	#define VolWater_SmoothShadowBlur 0.003 // Amount of blur applied ot shadows in volumetric water [0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.010 0.015 0.020]

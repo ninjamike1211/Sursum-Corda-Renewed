@@ -1,3 +1,5 @@
+#extension GL_ARB_conservative_depth : enable
+
 uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -47,6 +49,8 @@ layout(location = 4) out vec4 specMapOut;
 layout(location = 5) out vec4 waterDepth;
 layout(location = 6) out vec4 velocityOut;
 layout(location = 7) out vec4 pomOut;
+
+layout (depth_greater) out float gl_FragDepth;
 
 #define baseFragment
 
