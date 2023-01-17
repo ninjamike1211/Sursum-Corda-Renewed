@@ -198,7 +198,7 @@ void main() {
 				vec3 tbnDy = dFdy(tbnPos);
 				vec3 sceneDy = dFdy(scenePos);
 
-				vec2 texWorldSize = vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy));
+				vec2 texWorldSize = abs(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)));
 
 			// --------------- POM Distance Fade ---------------
 				float pomFade = clamp(length(viewPos) - POM_Distance, 0.0, POM_FadeWidth) / POM_FadeWidth;
@@ -515,4 +515,14 @@ void main() {
 	// pomOut.g = 0.0;
 	// albedoOut.rgb = vec3(pomOut.b);
 	// pomOut.b = 0.0;
+
+	// vec2 texcoordDx = dFdx(texcoord) / (textureBounds.zw-textureBounds.xy);
+	// vec3 tbnDx = dFdx(tbnPos);
+	// vec3 sceneDx = dFdx(scenePos);
+
+	// vec2 texcoordDy = dFdy(texcoord) / (textureBounds.zw-textureBounds.xy);
+	// vec3 tbnDy = dFdy(tbnPos);
+	// vec3 sceneDy = dFdy(scenePos);
+
+	// albedoOut = vec4(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)), 0.0, 1.0);
 }

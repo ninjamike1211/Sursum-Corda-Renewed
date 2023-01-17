@@ -634,7 +634,7 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
         vec3 lightDir = -normalize(viewPos - lightPos);
         float dist = length(viewPos - lightPos);
         
-        vec3 lightColor = vec3(2.0 * float(heldBlockLightValue) / (15.0 * dist * dist));
+        vec3 lightColor = vec3(1.5 * float(heldBlockLightValue) / (15.0 * dist * dist));
 
         #ifdef HandLight_Colors
             if(heldItemId == 10001)
@@ -675,7 +675,7 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
         vec3 lightDir = -normalize(viewPos - lightPos);
         float dist = length(viewPos - lightPos);
         
-        vec3 lightColor = vec3(2.0 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+        vec3 lightColor = vec3(1.5 * float(heldBlockLightValue2) / (15.0 * dist * dist));
 
         #ifdef HandLight_Colors
             if(heldItemId2 == 10001)

@@ -154,7 +154,7 @@ void main() {
         tangent = round(tangent);
     }
     
-    vec3 bitangent = cross(tangent, glNormal);
+    vec3 bitangent = sign(at_tangent.w) * cross(tangent, glNormal);
 
     tbn = mat3(	tangent, bitangent, glNormal);
 

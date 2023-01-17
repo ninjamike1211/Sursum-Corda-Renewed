@@ -120,11 +120,12 @@ void main() {
 	float transparentDepth 	= texture(depthtex0, texcoord).r;
 	float depth 			= texture(depthtex1, texcoord).r;
 
-	vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth);
-	vec3 viewPos 			= calcViewPos(viewVector, depth);
-	vec3 scenePos 			= (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-	vec3 waterViewPos 		= calcViewPos(viewVector, waterDepth);
-	vec3 waterScenePos 		= (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
+	vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth);
+	vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
+	vec3 viewPos 			 = calcViewPos(viewVector, depth);
+	vec3 scenePos 			 = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+	vec3 waterViewPos 		 = calcViewPos(viewVector, waterDepth);
+	vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
 
 	vec3 normalTex 	= NormalDecode(normalRaw.x);
 	vec3 normalGeom = NormalDecode(normalRaw.y);
@@ -310,7 +311,8 @@ void main() {
 				#endif
 
 				#ifdef VolWater
-					waterVolumetricFog(transparentColor, waterViewPos, transparentViewPos, texcoord, skyDirect, lightDir);
+					// waterVolumetricFog(transparentColor, waterViewPos, transparentViewPos, texcoord, skyDirect, lightDir);
+					waterVolumetricFog(waterScenePos, transparentScenePos, skyDirect, transparentColor.rgb, texcoord);
 				#else
 					waterFog(transparentColor, waterViewPos, transparentViewPos, skyDirect);
 				#endif
@@ -345,7 +347,7 @@ void main() {
 			else {
 				#ifdef VolWater
 					// waterVolumetricFog(transparentColor, vec3(0.0), transparentViewPos, texcoord, skyDirect, lightDir);
-					waterVolumetricFog(vec3(0.0), transparentViewPos, skyDirect, transparentColor.rgb, texcoord);
+					waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, transparentColor.rgb, texcoord);
 				#else
 					waterFog(transparentColor, vec3(0.0), transparentViewPos, skyDirect);
 				#endif
