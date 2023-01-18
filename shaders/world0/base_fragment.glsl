@@ -425,28 +425,44 @@ void main() {
 
 // -------------------- Directional Lightmap --------------------
 	#ifdef DirectionalLightmap
+	if(gl_FragCoord.x > 0.5*viewWidth) {
 		vec3 dFdSceneposX = dFdx(scenePos);
 		vec3 dFdSceneposY = dFdy(scenePos);
 		vec2 dFdTorch = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
 		vec2 dFdSky = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
 
-		vec3 torchLightDir = dFdSceneposX * dFdTorch.x + dFdSceneposY * dFdTorch.y;
+
 		if(length(dFdTorch) > 1e-6) {
-			lightmapOut.r *= clamp(dot(normalize(torchLightDir), normalVal) + 0.8, 0.0, 1.0) * 0.8 + 0.2;
+			vec3 torchLightDir = normalize(dFdSceneposX * dFdTorch.x + dFdSceneposY * dFdTorch.y);
+			
+			float NdotL  = dot(torchLightDir, normalVal);
+			float NGdotL = dot(torchLightDir, glNormal);
+			
+			lightmapOut.r += 0.5 * (NdotL - NGdotL) * lightmapOut.r;
 		}
 		else {
-			lightmapOut.r *= clamp(dot(tbn * vec3(0.0, 0.0, 1.0), normalVal), 0.0, 1.0);
+			float NdotL = 0.9 - dot(glNormal, normalVal);
+			lightmapOut.r -= 0.5 * NdotL * lightmapOut.r;
 		}
 
-		vec3 skyLightDir = dFdSceneposX * dFdSky.x + dFdSceneposY * dFdSky.y;
+
 		if(length(dFdSky) > 1e-6) {
-			lightmapOut.g *= clamp(dot(normalize(skyLightDir), normalVal) + 0.8, 0.0, 1.0) * 0.8 + 0.2;
+			vec3 skyLightDir = normalize(dFdSceneposX * dFdSky.x + dFdSceneposY * dFdSky.y);
+			
+			float NdotL  = dot(skyLightDir, normalVal);
+			float NGdotL = dot(skyLightDir, glNormal);
+			
+			lightmapOut.g += 0.5 * (NdotL - NGdotL) * lightmapOut.g;
 		}
 		else {
-			lightmapOut.g *= clamp(dot(vec3(0.0, 1.0, 0.0), normalVal) + 0.8, 0.0, 1.0) * 0.4 + 0.6;
+			float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
+			float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
+			
+			lightmapOut.g += 0.5 * (NdotL - NGdotL) * lightmapOut.g;
 		}
 
 		lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
+	}
 	#endif
 
 	albedoOut = vec4(albedo.rgb, 1.0);
