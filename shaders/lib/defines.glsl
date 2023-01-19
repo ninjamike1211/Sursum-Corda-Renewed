@@ -152,6 +152,7 @@ const int shadowcolor0Format = RGBA16F;
 
 // Directional and Hand lighting
 	#define DirectionalLightmap
+	#define DirectionalLightmap_Strength 0.5	// Strength of directional lightmap [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 	#define HandLight
 	#define HandLight_Colors

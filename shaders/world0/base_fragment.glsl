@@ -425,7 +425,7 @@ void main() {
 
 // -------------------- Directional Lightmap --------------------
 	#ifdef DirectionalLightmap
-	if(gl_FragCoord.x > 0.5*viewWidth) {
+	// if(gl_FragCoord.x > 0.5*viewWidth) {
 		vec3 dFdSceneposX = dFdx(scenePos);
 		vec3 dFdSceneposY = dFdy(scenePos);
 		vec2 dFdTorch = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
@@ -438,11 +438,11 @@ void main() {
 			float NdotL  = dot(torchLightDir, normalVal);
 			float NGdotL = dot(torchLightDir, glNormal);
 			
-			lightmapOut.r += 0.5 * (NdotL - NGdotL) * lightmapOut.r;
+			lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
 		}
 		else {
 			float NdotL = 0.9 - dot(glNormal, normalVal);
-			lightmapOut.r -= 0.5 * NdotL * lightmapOut.r;
+			lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
 		}
 
 
@@ -452,17 +452,17 @@ void main() {
 			float NdotL  = dot(skyLightDir, normalVal);
 			float NGdotL = dot(skyLightDir, glNormal);
 			
-			lightmapOut.g += 0.5 * (NdotL - NGdotL) * lightmapOut.g;
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
 		}
 		else {
 			float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
 			float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
 			
-			lightmapOut.g += 0.5 * (NdotL - NGdotL) * lightmapOut.g;
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
 		}
 
 		lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
-	}
+	// }
 	#endif
 
 	albedoOut = vec4(albedo.rgb, 1.0);
