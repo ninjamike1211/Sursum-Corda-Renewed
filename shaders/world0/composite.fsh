@@ -1,7 +1,7 @@
 #version 400 compatibility
 
 uniform sampler2D  colortex0;
-uniform usampler2D colortex1;
+uniform usampler2D colortex2;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
 uniform sampler2D  colortex6;
@@ -112,7 +112,7 @@ void main() {
 
 // --------------------- Read texture values --------------------
 	vec4 transparentColor 	= texture(colortex0, texcoord);
-	uvec3 material 			= texture(colortex1, texcoord).rgb;
+	uvec3 material 			= texture(colortex2, texcoord).rgb;
 	float waterDepth 		= texture(colortex5, texcoord).r;
 	velocityOut 			= texture(colortex6, texcoord);
 	vec4 opaqueColor 		= texture(colortex7, texcoord);

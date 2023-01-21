@@ -7,7 +7,8 @@
 const int colortex0Format = RGBA16F;
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex0MipmapEnabled = true;
-const int colortex1Format  = RGB32UI;
+const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const int colortex2Format  = RGB32UI;
 const int colortex3Format  = RGB8;
 const int colortex3Format  = RGB10_A2;
 const int colortex5Format  = R32F;

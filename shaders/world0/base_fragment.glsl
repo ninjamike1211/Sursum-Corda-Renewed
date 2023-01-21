@@ -42,8 +42,8 @@ uniform bool  cameraMoved;
 
 /* RENDERTARGETS: 0,1,2,3,5,6,8 */
 layout(location = 0) out vec4  colorOut;
-layout(location = 1) out uvec3 materialOut;
-layout(location = 2) out vec4  albedoOut;
+layout(location = 1) out vec4  albedoOut;
+layout(location = 2) out uvec3 materialOut;
 layout(location = 3) out vec4  lightmapOut;
 layout(location = 4) out vec4  waterDepth;
 layout(location = 5) out vec4  velocityOut;
@@ -547,4 +547,8 @@ void main() {
 	// vec3 sceneDy = dFdy(scenePos);
 
 	// albedoOut = vec4(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)), 0.0, 1.0);
+
+	#ifdef text
+		albedoOut = vec4(1.0, 0.0, 1.0, 1.0);
+	#endif
 }

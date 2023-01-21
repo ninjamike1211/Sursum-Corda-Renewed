@@ -14,8 +14,8 @@ uniform float alphaTestRef;
 
 
 /* RENDERTARGETS: 1,2,3,6 */
-layout(location = 0) out uvec3 materialOut;
-layout(location = 1) out vec4  albedoOut;
+layout(location = 0) out vec4  albedoOut;
+layout(location = 1) out uvec3 materialOut;
 layout(location = 2) out vec4  lightmapOut;
 layout(location = 3) out vec4  velocityOut;
 

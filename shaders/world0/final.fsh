@@ -28,29 +28,29 @@ uniform bool  cameraMoved;
 
 in vec2 texcoord;
 
-uniform sampler2D colortex0;
-uniform usampler2D colortex1;
-uniform sampler2D colortex2;
-uniform sampler2D colortex3;
-uniform sampler2D colortex4;
-uniform sampler2D colortex5;
-uniform sampler2D colortex6;
-uniform sampler2D colortex7;
-uniform sampler2D colortex8;
-uniform sampler2D colortex9;
-uniform sampler2D colortex10;
-uniform sampler2D colortex11;
-uniform sampler2D colortex12;
-uniform sampler2D colortex13;
-uniform sampler2D colortex14;
-uniform sampler2D colortex15;
-uniform sampler2D depthtex0;
-uniform sampler2D depthtex1;
-uniform sampler2D depthtex2;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform sampler2D shadowcolor1;
+uniform sampler2D  colortex0;
+uniform sampler2D  colortex1;
+uniform usampler2D colortex2;
+uniform sampler2D  colortex3;
+uniform sampler2D  colortex4;
+uniform sampler2D  colortex5;
+uniform sampler2D  colortex6;
+uniform sampler2D  colortex7;
+uniform sampler2D  colortex8;
+uniform sampler2D  colortex9;
+uniform sampler2D  colortex10;
+uniform sampler2D  colortex11;
+uniform sampler2D  colortex12;
+uniform sampler2D  colortex13;
+uniform sampler2D  colortex14;
+uniform sampler2D  colortex15;
+uniform sampler2D  depthtex0;
+uniform sampler2D  depthtex1;
+uniform sampler2D  depthtex2;
+uniform sampler2D  shadowtex0;
+uniform sampler2D  shadowtex1;
+uniform sampler2D  shadowcolor0;
+uniform sampler2D  shadowcolor1;
 
 /* RENDERTARGETS: 0 */
 void main() {
@@ -104,11 +104,11 @@ void main() {
         #elif viewBuffer == -7
             gl_FragColor = texture(shadowcolor1, texcoord);
         #elif viewBuffer == 100
-            gl_FragColor = vec4(NormalDecode(texture(colortex1, texcoord).r) * 0.5 + 0.5, 1.0);
+            gl_FragColor = vec4(NormalDecode(texture(colortex2, texcoord).r) * 0.5 + 0.5, 1.0);
         #elif viewBuffer == 101
-            gl_FragColor = vec4(NormalDecode(texture(colortex1, texcoord).g) * 0.5 + 0.5, 1.0);
+            gl_FragColor = vec4(NormalDecode(texture(colortex2, texcoord).g) * 0.5 + 0.5, 1.0);
         #elif viewBuffer == 102
-            gl_FragColor = SpecularDecode(texture(colortex1, texcoord).b);
+            gl_FragColor = SpecularDecode(texture(colortex2, texcoord).b);
         #elif viewBuffer == 103
             gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r)), 1.0);
         #elif viewBuffer == 104

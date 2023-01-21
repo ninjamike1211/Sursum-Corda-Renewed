@@ -1,8 +1,8 @@
 #version 420 compatibility
 
 uniform sampler2D  colortex0;
-uniform usampler2D colortex1;
-uniform sampler2D  colortex2;
+uniform sampler2D  colortex1;
+uniform usampler2D colortex2;
 uniform sampler2D  colortex3;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
@@ -66,7 +66,7 @@ layout(location = 0) out vec4 colorOut;
 
 void main() {
           colorOut = texture(colortex0, texcoord);
-    uvec2 material = texture(colortex1, texcoord).rb;
+    uvec2 material = texture(colortex2, texcoord).rb;
 
     vec4 specMap = SpecularDecode(material.y);
 
@@ -76,7 +76,7 @@ void main() {
     
     // ---------------- Reading values and setup ----------------
         // Read buffers
-        vec4 albedo      = texture(colortex2, texcoord);
+        vec4 albedo      = texture(colortex1, texcoord);
         vec2 lmcoord     = texture(colortex3, texcoord).rg;
         float waterDepth = texture(colortex5, texcoord).r;
         float depth      = texture(depthtex0, texcoord).r;

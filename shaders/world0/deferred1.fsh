@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-uniform usampler2D colortex1;
+uniform usampler2D colortex2;
 uniform sampler2D  depthtex2;
 uniform sampler2D  depthtex1;
 uniform sampler2D  noisetex;
@@ -54,7 +54,7 @@ void main() {
 // ---------------------------- SSAO ----------------------------
     #ifdef SSAO
         float depth = texture(depthtex2, texcoord).r;
-        uint normalRaw = texture(colortex1, texcoord).g;
+        uint normalRaw = texture(colortex2, texcoord).g;
 
         vec3 viewPos = calcViewPos(viewVector, depth);
         vec3 normalGeometry = NormalDecode(normalRaw);

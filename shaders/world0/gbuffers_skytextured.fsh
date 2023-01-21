@@ -7,7 +7,7 @@ uniform sampler2D tex;
 in vec2 texcoord;
 in vec4 glcolor;
 
-/* RENDERTARGETS: 2,1 */
+/* RENDERTARGETS: 1,2 */
 layout(location = 0) out vec4  albedo;
 layout(location = 1) out uvec3 specMapOut;
 

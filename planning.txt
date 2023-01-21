@@ -1,6 +1,6 @@
 RGBA16F     colortex0:  rgba: main color
-RGB32UI     colortex1:  r: texture normals, g: geometry normals, b: specular map
-RGB8        colortex2:  rgb: albedo
+RGB8        colortex1:  rgb: albedo
+RGB32UI     colortex2:  r: texture normals, g: geometry normals, b: specular map
 RGB10_A2    colortex3:  rg: lmcoord, b: 1=hand
 RGBA8       colortex4:  rgba: specular
 R32F        colortex5:  r: water depth
