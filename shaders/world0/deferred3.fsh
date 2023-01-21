@@ -85,13 +85,13 @@ void main() {
 // ---------------------- Opaque Rendering ----------------------
     if(depth < 1.0) {
         // Reading texture value and calculate position
-        uvec2 normalRaw = texture(colortex1, texcoord).rg;
+        uvec3 material = texture(colortex1, texcoord).rgb;
         vec3 lmcoordRaw = texture(colortex3, texcoord).rgb;
-        vec4 specMap    = texture(colortex4, texcoord);
         vec3 pomResults = texture(colortex8, texcoord).rgb;
 
-        vec3 normal 	    = NormalDecode(normalRaw.x);
-	    vec3 normalGeometry = NormalDecode(normalRaw.y);
+        vec3 normal 	    = NormalDecode(material.x);
+	    vec3 normalGeometry = NormalDecode(material.y);
+        vec4 specMap        = SpecularDecode(material.z);
         vec3 viewPos        = calcViewPos(viewVector, depth);
         vec3 worldPos       = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
         vec2 lmcoord        = lmcoordRaw.rg;

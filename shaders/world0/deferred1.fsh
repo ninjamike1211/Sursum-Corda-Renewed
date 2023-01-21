@@ -54,10 +54,10 @@ void main() {
 // ---------------------------- SSAO ----------------------------
     #ifdef SSAO
         float depth = texture(depthtex2, texcoord).r;
-        uvec2 normalRaw = texture(colortex1, texcoord).rg;
+        uint normalRaw = texture(colortex1, texcoord).g;
 
         vec3 viewPos = calcViewPos(viewVector, depth);
-        vec3 normalGeometry = NormalDecode(normalRaw.y);
+        vec3 normalGeometry = NormalDecode(normalRaw);
 
         SSAOOut = vec4(mix(calcSSAO(normalToView(normalGeometry), viewPos, texcoord, depthtex2, noisetex), vec3(1.0), 0.0), 1.0);
     #else

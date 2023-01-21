@@ -2,12 +2,14 @@
 
 uniform sampler2D tex;
 
+#include "/lib/material.glsl"
+
 in vec2 texcoord;
 in vec4 glcolor;
 
-/* RENDERTARGETS: 2,4 */
-layout(location = 0) out vec4 albedo;
-layout(location = 1) out vec4 specMapOut;
+/* RENDERTARGETS: 2,1 */
+layout(location = 0) out vec4  albedo;
+layout(location = 1) out uvec3 specMapOut;
 
 void main() {
 
@@ -15,5 +17,5 @@ void main() {
 
 	albedo.rgb = vec3(albedo.r);
 
-	specMapOut = vec4(0.0, 0.0, 0.0, 0.5);
+	specMapOut = uvec3(0, 0, SpecularEncode(vec4(0.0, 0.0, 0.0, 0.5)));
 }

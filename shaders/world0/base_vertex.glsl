@@ -146,7 +146,12 @@ void main() {
 
 
 // ---------------------- Normals and TBN -----------------------
-        glNormal = normalize((gbufferModelViewInverse * vec4(gl_NormalMatrix * gl_Normal,      0.0)).xyz);
+    vec3  normal = normalize(gl_NormalMatrix * gl_Normal);
+    float viewDotN = dot(normalize(viewPos), normal);
+    if(viewDotN > 0.0)
+        normal *= -1.0;
+
+        glNormal = normalize((gbufferModelViewInverse * vec4(normal,                           0.0)).xyz);
     vec3 tangent = normalize((gbufferModelViewInverse * vec4(gl_NormalMatrix * at_tangent.xyz, 0.0)).xyz);
     
     if(entity == 10020) {

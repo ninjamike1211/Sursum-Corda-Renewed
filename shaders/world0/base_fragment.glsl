@@ -40,15 +40,14 @@ uniform int   heldItemId2;
 uniform int   heldBlockLightValue2;
 uniform bool  cameraMoved;
 
-/* RENDERTARGETS: 0,1,2,3,4,5,6,8 */
-layout(location = 0) out vec4 colorOut;
-layout(location = 1) out uvec2 normalOut;
-layout(location = 2) out vec4 albedoOut;
-layout(location = 3) out vec4 lightmapOut;
-layout(location = 4) out vec4 specMapOut;
-layout(location = 5) out vec4 waterDepth;
-layout(location = 6) out vec4 velocityOut;
-layout(location = 7) out vec4 pomOut;
+/* RENDERTARGETS: 0,1,2,3,5,6,8 */
+layout(location = 0) out vec4  colorOut;
+layout(location = 1) out uvec3 materialOut;
+layout(location = 2) out vec4  albedoOut;
+layout(location = 3) out vec4  lightmapOut;
+layout(location = 4) out vec4  waterDepth;
+layout(location = 5) out vec4  velocityOut;
+layout(location = 6) out vec4  pomOut;
 
 layout (depth_greater) out float gl_FragDepth;
 
@@ -150,11 +149,13 @@ void main() {
 	if(entity == 10020) {
 
 		vec3 worldPos  = scenePos + cameraPosition;
+		vec4 specMap;
 
-		applyEndPortal(worldPos, albedoOut.rgb, specMapOut);
+		applyEndPortal(worldPos, albedoOut.rgb, specMap);
 
-		normalOut.x = NormalEncode(glNormal);
-		normalOut.y = normalOut.x;
+		materialOut.r = NormalEncode(glNormal);
+		materialOut.g = materialOut.x;
+		materialOut.b = SpecularEncode(specMap);
 
 		lightmapOut = vec4(lmcoord, 0.0, 1.0);
 
@@ -465,7 +466,8 @@ void main() {
 	// }
 	#endif
 
-	albedoOut = vec4(albedo.rgb, 1.0);
+	// albedoOut = vec4(albedo.rgb, 1.0);
+	albedoOut = albedo;
 
 
 // -------------------- Transparent Rendering -------------------
@@ -507,8 +509,12 @@ void main() {
 
 
 // -------------------- Final Texture Writes --------------------
-	normalOut = uvec2(NormalEncode(normalVal), NormalEncode(geomNormal));
-	specMapOut = specMap;
+	materialOut.r = NormalEncode(normalVal);
+	materialOut.g = NormalEncode(geomNormal);
+	materialOut.b = SpecularEncode(specMap);
+	// materialOut.a = 4294967295;
+	// specMapOut = vec4(specMap.rgb, 1.0);
+	// specMapOut = specMap;
 
 
 // ------------ Debug Stuff (disable when not using) ------------

@@ -1,18 +1,18 @@
 #version 400 compatibility
 
-uniform sampler2D colortex0;
+uniform sampler2D  colortex0;
 uniform usampler2D colortex1;
-uniform sampler2D colortex4;
-uniform sampler2D colortex5;
-uniform sampler2D colortex6;
-uniform sampler2D colortex7;
-uniform sampler2D colortex9;
-uniform sampler2D colortex10;
-uniform sampler2D depthtex0;
-uniform sampler2D depthtex1;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
+uniform sampler2D  colortex4;
+uniform sampler2D  colortex5;
+uniform sampler2D  colortex6;
+uniform sampler2D  colortex7;
+uniform sampler2D  colortex9;
+uniform sampler2D  colortex10;
+uniform sampler2D  depthtex0;
+uniform sampler2D  depthtex1;
+uniform sampler2D  shadowtex0;
+uniform sampler2D  shadowtex1;
+uniform sampler2D  shadowcolor0;
 
 uniform vec3 lightDir;
 uniform vec3 sunDir;
@@ -112,8 +112,7 @@ void main() {
 
 // --------------------- Read texture values --------------------
 	vec4 transparentColor 	= texture(colortex0, texcoord);
-	uvec2 normalRaw 		= texture(colortex1, texcoord).rg;
-	vec4 specMap 			= texture(colortex4, texcoord);
+	uvec3 material 			= texture(colortex1, texcoord).rgb;
 	float waterDepth 		= texture(colortex5, texcoord).r;
 	velocityOut 			= texture(colortex6, texcoord);
 	vec4 opaqueColor 		= texture(colortex7, texcoord);
@@ -127,8 +126,9 @@ void main() {
 	vec3 waterViewPos 		 = calcViewPos(viewVector, waterDepth);
 	vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
 
-	vec3 normalTex 	= NormalDecode(normalRaw.x);
-	vec3 normalGeom = NormalDecode(normalRaw.y);
+	vec3 normalTex 	= NormalDecode(material.x);
+	vec3 normalGeom = NormalDecode(material.y);
+	vec4 specMap   	= SpecularDecode(material.z);
 
 	specMapOut = specMap;
 

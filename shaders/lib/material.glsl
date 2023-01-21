@@ -25,6 +25,14 @@ vec3 NormalDecode(uint encodedNormal) {
 	return normalize(normal);
 }
 
+uint SpecularEncode(vec4 specMap) {
+	return packUnorm4x8(specMap);
+}
+
+vec4 SpecularDecode(uint encodedSpecMap) {
+	return unpackUnorm4x8(encodedSpecMap);
+}
+
 float extractSubsurface(vec4 specMap) {
     return specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
 }
