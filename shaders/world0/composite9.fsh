@@ -29,6 +29,8 @@ flat in float exposure;
     flat in vec4  flareSprite01;
     flat in vec4  flareSprite23;
     flat in vec4  flareSprite45;
+
+    flat in vec3  skyDirect;
 #endif
 
 /* RENDERTARGETS: 0,14 */
@@ -103,18 +105,23 @@ void main() {
         vec2 spriteCoord4 = flareRotMat * ((texcoord - flareSprite45.xy) * vec2(aspectRatio, 1.0) * 31.0) / (flareFade * 0.5 + 0.5) * 0.5 + 0.5;
         vec2 spriteCoord5 = flareRotMat * ((texcoord - flareSprite45.zw) * vec2(aspectRatio, 1.0) * 0.8 / (length(flareSunCenterVec)+0.04)) * 0.5 + 0.5;
 
+        vec3 flare = vec3(0.0);
+
         if(clamp(spriteCoord0, 0.0, 1.0) == spriteCoord0)
-            colorOut.rgb += vec3(0.07, 0.1, 0.2) * texture(colortex13, spriteCoord0 * vec2(0.3333333, 1.0)).b * flareFade /* * smoothstep(1.2, 0.6, length(spriteCoord0 * 2.0 - 1.0)) */;
+            flare += vec3(0.07, 0.1, 0.2) * texture(colortex13, spriteCoord0 * vec2(0.3333333, 1.0)).b /* * smoothstep(1.2, 0.6, length(spriteCoord0 * 2.0 - 1.0)) */;
         if(clamp(spriteCoord1, 0.0, 1.0) == spriteCoord1)
-            colorOut.rgb += vec3(0.2, 0.1, 0.05) * texture(colortex13, spriteCoord1 * vec2(0.3333333, 1.0)).r * flareFade /* * smoothstep(1.2, 0.5, length(spriteCoord1 * 2.0 - 1.0)) */;
+            flare += vec3(0.2, 0.1, 0.05) * texture(colortex13, spriteCoord1 * vec2(0.3333333, 1.0)).r /* * smoothstep(1.2, 0.5, length(spriteCoord1 * 2.0 - 1.0)) */;
         if(clamp(spriteCoord2, 0.0, 1.0) == spriteCoord2)
-            colorOut.rgb += vec3(0.05, 0.2, 0.03) * texture(colortex13, spriteCoord2 * vec2(0.3333333, 1.0)).b * flareFade;
+            flare += vec3(0.05, 0.2, 0.03) * texture(colortex13, spriteCoord2 * vec2(0.3333333, 1.0)).b;
         if(clamp(spriteCoord3, 0.0, 1.0) == spriteCoord3)
-            colorOut.rgb += vec3(0.375, 0.075, 0.195) * texture(colortex13, spriteCoord3 * vec2(0.3333333, 1.0)).g * flareFade /* * smoothstep(1.0, 0.1, length(spriteCoord3 * 2.0 - 1.0)) */;
+            flare += vec3(0.375, 0.075, 0.195) * texture(colortex13, spriteCoord3 * vec2(0.3333333, 1.0)).g /* * smoothstep(1.0, 0.1, length(spriteCoord3 * 2.0 - 1.0)) */;
         if(clamp(spriteCoord4, 0.0, 1.0) == spriteCoord4)
-            colorOut.rgb += vec3(0.03, 0.07, 0.15) * texture(colortex13, spriteCoord4 * vec2(0.3333333, 1.0)).b * flareFade;
+            flare += vec3(0.03, 0.07, 0.15) * texture(colortex13, spriteCoord4 * vec2(0.3333333, 1.0)).b;
         if(clamp(spriteCoord5, 0.0, 1.0) == spriteCoord5)
-            colorOut.rgb += 0.1 * texture(colortex13, spriteCoord5 * vec2(0.3333333, 1.0) + vec2(0.3333333, 0.0)).rgb * flareFade;
+            flare += 0.1 * texture(colortex13, spriteCoord5 * vec2(0.3333333, 1.0) + vec2(0.3333333, 0.0)).rgb;
+
+        flare *= flareFade * skyDirect * 0.25;
+        colorOut.rgb += flare;
 
         // vec2 sunBlurCoord = flareRotMat * flareRotMat * ((texcoord - sunScreenPos.xy) * vec2(aspectRatio, 1.0) * 8.0) / (flareFade * 0.5 + 0.5) * 0.5 + 0.5;
         // if(clamp(sunBlurCoord, 0.0, 1.0) == sunBlurCoord)

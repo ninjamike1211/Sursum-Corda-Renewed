@@ -70,6 +70,8 @@ vec3 neighbourhoodClipping(sampler2D currTex, vec3 prevColor) {
 void applyTAA(inout vec4 colorOut, out vec4 historyColor, vec2 texcoord, sampler2D colorBuffer, sampler2D historyBuffer, sampler2D velocityBuffer) {
     vec2 velocity = texture2D(velocityBuffer, texcoord).xy;
     historyColor = texture2D(historyBuffer, texcoord - velocity);
+    // historyColor.rgb = colorOut.rgb;
+    // colorOut.rgb = texture2D(historyBuffer, texcoord - velocity).rgb;
 
     if(any(isnan(historyColor)))
         historyColor = vec4(0.0);

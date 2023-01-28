@@ -77,8 +77,8 @@ void main() {
 
     // Read depth and albedo values
     float depth = texture(depthtex0, texcoord).r;
-    vec4 albedo = texture(colortex1, texcoord);
-    albedo.rgb = sRGBToLinear(albedo).rgb;
+    vec3 albedo = texture(colortex1, texcoord).rgb;
+    albedo = sRGBToLinear3(albedo);
     colorOut.a = 1.0;
 
 
@@ -154,26 +154,26 @@ void main() {
     // -------------------------- Lighting --------------------------
         vec3 playerDir = (gbufferModelViewInverse * vec4(normalize(viewVector), 0.0)).xyz;
 
-        colorOut.rgb = cookTorrancePBRLighting(albedo.rgb, playerDir, normal, specMap, skyDirect * shadowResult, lightDir);
-        colorOut.rgb += calcAmbient(albedo.rgb, lmcoord, skyAmbient, specMap) * SSAOOut.r;
+        colorOut.rgb = cookTorrancePBRLighting(albedo, playerDir, normal, specMap, skyDirect * shadowResult, lightDir);
+        colorOut.rgb += calcAmbient(albedo, lmcoord, skyAmbient, specMap) * SSAOOut.r;
 
 
     // --------------------- Dynamic Hand Light ---------------------
         #ifdef HandLight
             vec3 viewNormal = (gbufferModelView * vec4(normal, 0.0)).xyz;
 
-            DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, isHand > 0.5);
+            DynamicHandLight(colorOut.rgb, viewPos, albedo, viewNormal, specMap, isHand > 0.5);
         #endif
 
 
     // ------------------- Sub-surface Scattering -------------------
         #ifdef SSS
             float subsurface = extractSubsurface(specMap);
-			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
+			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult);
         #endif
         
     }
     else {
-        colorOut = albedo;
+        colorOut.rgb = albedo;
     }
 }

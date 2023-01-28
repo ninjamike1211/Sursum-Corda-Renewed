@@ -79,11 +79,12 @@ flat out int  entity;
 void main() {
 
 // -------------------- Basic Geometry Values -------------------
-    #ifdef weather
-        glColor = vec4(gl_Color.rgb, 0.5);
-    #else
-        glColor = vec4(gl_Color.rgb, 1.0);
-    #endif
+    // #ifdef weather
+    //     glColor = vec4(gl_Color.rgb, 0.5);
+    // #else
+    //     glColor = vec4(gl_Color.rgb, 1.0);
+    // #endif
+    glColor = gl_Color;
 
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
@@ -172,8 +173,13 @@ void main() {
 
         #if defined hand
             oldClipPos = gl_ProjectionMatrix * vec4(viewPos - at_velocity, 1.0);
+
+        #elif defined noVelocity
+            vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
+            oldClipPos = gbufferPreviousProjection * oldViewPos;
+        
         #else
-            if(cameraMoved && any(lessThanEqual(at_velocity, vec3(EPS)))) {
+            if(any(lessThanEqual(at_velocity, vec3(EPS)))) {
                 vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
                 oldClipPos = gbufferPreviousProjection * oldViewPos;
             }

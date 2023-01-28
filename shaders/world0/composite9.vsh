@@ -21,11 +21,17 @@ uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
+uniform float rainStrength;
+uniform float sunHeight;
+uniform float shadowHeight;
+uniform int   moonPhase;
+
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/sample.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/sky2.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -46,6 +52,8 @@ flat out float exposure;
     flat out vec4  flareSprite01;
     flat out vec4  flareSprite23;
     flat out vec4  flareSprite45;
+
+    flat out vec3  skyDirect;
 #endif
 
 
@@ -85,7 +93,7 @@ void main() {
         vec4 centerRay = gbufferProjectionInverse * vec4(0.0, 0.0, 1.0, 1.0);
         vec3 centerVec = centerRay.xyz / centerRay.w;
         
-        if(dot(sunPosition, centerVec) > 0.0) {
+        if(dot(sunPosition, centerVec) > 0.0 && (worldTime > 22700 || worldTime < 13300)) {
             sunScreenPos = projectAndDivide(gbufferProjection, sunPosition).xy * 0.5 + 0.5;
             flareSunCenterVec = vec2(0.5) - sunScreenPos;
 
@@ -112,6 +120,8 @@ void main() {
             flareSprite01 = vec4(sunScreenPos + 0.35 * flareSunCenterVec, sunScreenPos.xy + 0.57 * flareSunCenterVec);
             flareSprite23 = vec4(sunScreenPos + 0.59 * flareSunCenterVec, sunScreenPos.xy + 0.62 * flareSunCenterVec);
             flareSprite45 = vec4(sunScreenPos + 0.81 * flareSunCenterVec, sunScreenPos.xy + 0.81 * flareSunCenterVec);
+        
+            skyDirect = sunLightSample();
         }
         else {
             flareFade = 0.0;

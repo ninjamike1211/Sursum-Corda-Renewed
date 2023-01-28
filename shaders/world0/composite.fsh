@@ -82,10 +82,10 @@ flat in vec3 skyDirect;
 
 const int noiseTextureResolution = 512;
 
-/* RENDERTARGETS: 0,4,6 */
-layout(location = 0) out vec4 colorOut;
-layout(location = 1) out vec4 specMapOut;
-layout(location = 2) out vec4 velocityOut;
+/* RENDERTARGETS: 0,2,6 */
+layout(location = 0) out vec4  colorOut;
+layout(location = 1) out uvec3 materialOut;
+layout(location = 2) out vec4  velocityOut;
 
 
 #if defined TAA || defined MotionBlur
@@ -130,7 +130,7 @@ void main() {
 	vec3 normalGeom = NormalDecode(material.y);
 	vec4 specMap   	= SpecularDecode(material.z);
 
-	specMapOut = specMap;
+	materialOut = material;
 
 
 // ---------------------- Water Refraction ----------------------
@@ -221,7 +221,9 @@ void main() {
 		// Sun disk
 		float sunDisk = smoothstep(-0.034, 0.05, eyeDir.y) * smoothstep(0.9995, 0.9998, dot(normalize(viewPos), sunDirView));
 		sky *= mix(1.0, 400.0, sunDisk);
-		specMapOut.a = sunDisk * 254.0/255.0;
+
+		specMap.a = sunDisk * 254.0/255.0;
+		materialOut.b = SpecularEncode(specMap);
 
 		// Apply moon, hide moon when below horizon
 		opaqueColor.rgb = sky + smoothstep(-0.030, 0.05, eyeDir.y) * opaqueColor.rgb * 10.0 /* * step(0.05, opaqueColor.r) */;

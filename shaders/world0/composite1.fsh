@@ -76,7 +76,7 @@ void main() {
     
     // ---------------- Reading values and setup ----------------
         // Read buffers
-        vec4 albedo      = texture(colortex1, texcoord);
+        vec3 albedo      = texture(colortex1, texcoord).rgb;
         vec2 lmcoord     = texture(colortex3, texcoord).rg;
         float waterDepth = texture(colortex5, texcoord).r;
         float depth      = texture(depthtex0, texcoord).r;
@@ -88,7 +88,7 @@ void main() {
         vec3 rayDir     = reflect(normalize(viewPos), normalView);
         vec3 eyePos     = mat3(gbufferModelViewInverse) * viewPos;
 
-        vec3 fresnel    = calcFresnel(max(dot(normalView, normalize(-viewPos)), 0.0), specMap, albedo.rgb);
+        vec3 fresnel    = calcFresnel(max(dot(normalView, normalize(-viewPos)), 0.0), specMap, albedo);
 
 
     // ------------- Fallback Sky color and Clouds --------------

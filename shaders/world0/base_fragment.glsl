@@ -40,7 +40,7 @@ uniform int   heldItemId2;
 uniform int   heldBlockLightValue2;
 uniform bool  cameraMoved;
 
-/* RENDERTARGETS: 0,1,2,3,5,6,8 */
+/* RENDERTARGETS: 0,1,2,3,5,6,8,4 */
 layout(location = 0) out vec4  colorOut;
 layout(location = 1) out vec4  albedoOut;
 layout(location = 2) out uvec3 materialOut;
@@ -48,6 +48,12 @@ layout(location = 3) out vec4  lightmapOut;
 layout(location = 4) out vec4  waterDepth;
 layout(location = 5) out vec4  velocityOut;
 layout(location = 6) out vec4  pomOut;
+
+
+#define debugOut
+#ifdef debugOut
+	layout(location = 7) out vec4  testOut;
+#endif
 
 layout (depth_greater) out float gl_FragDepth;
 
@@ -465,6 +471,8 @@ void main() {
 		lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
 	// }
 	#endif
+
+	// lightmapOut.rg *= textureLod(normals, texcoordFinal, lod).b;
 
 	// albedoOut = vec4(albedo.rgb, 1.0);
 	albedoOut = albedo;

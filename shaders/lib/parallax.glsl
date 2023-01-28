@@ -132,48 +132,95 @@ vec3 parallaxSmoothSlopeNormal(vec2 texcoord, vec4 texcoordRange, float lod) {
 	return normalize(cross(bottomRight - topLeft, bottomLeft - topRight));
 }
 
-vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 viewVector, inout float currentLayerDepth, float layerThickness, vec4 texcoordRange, float lod) {
-	vec2 nearestEdge = floor(texcoord * atlasSize + (sign(-viewVector) * 0.5 + 0.5)) / atlasSize;
-	vec2 viewVecNorm = normalize(viewVector);
+// Calculates the edge of the POM of the current texcoord, and returns the tangent space xy normal
+vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float currentLayerDepth, float layerThickness, vec4 texcoordRange, float lod) {
+	
+	vec2  texSize = texcoordRange.zw - texcoordRange.xy;
+	float lodFactor = exp2(-floor(lod));
+	vec2  atlasSizeLod = atlasSize * lodFactor;
+	vec2  texelSizeLod = 1.0 / atlasSizeLod;
 
-	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
+	vec2 traceVecNorm = normalize(traceVector);
 
+	vec2 currentTexel = (floor(texcoord * atlasSizeLod) + 0.5) * texelSizeLod;
+
+	
+	// Calculates the texcoord for the corner (x and y edges) nearest to the current texcoord along the path of the trace vector
+	vec2 nearestEdge = floor(texcoord * atlasSizeLod + (sign(-traceVector) * 0.5 + 0.5)) / atlasSizeLod;
+
+	// Perform up to 2 DDA raytraces to find correct edge
 	int i = 0;
-	while(i < 3) {
+	while(i < 2) {
+		
+		// Calculate the distance to each edge along the path of the trace vector
+		vec2 dists = vec2(length(traceVector / traceVector.x * (nearestEdge.x - texcoord.x)), length(traceVector / traceVector.y * (nearestEdge.y - texcoord.y)));
 
-		vec2 dists = vec2(length(viewVector / viewVector.x * (nearestEdge.x - texcoord.x)), length(viewVector / viewVector.y * (nearestEdge.y - texcoord.y)));
-
+		// Hit the edge of a texel on the x axis
 		if(dists.x < dists.y) {
-			texcoord -= dists.x * viewVecNorm;
-			vec2 texcoordOffset = -vec2(0.01 / atlasSize.x * viewVecNorm.x, 0.0);
-			texcoord -= floor((texcoord + texcoordOffset - texcoordRange.xy) / singleTexSize) * singleTexSize;
-			currentLayerDepth -= dists.x / length(viewVector) * layerThickness;
-			float heightMapDepth = 1.0 - textureLod(normals, texcoord + texcoordOffset, lod).a;
+			// move texcoord to edge along trace vector
+			texcoord -= dists.x * traceVecNorm;
+			currentLayerDepth -= dists.x / length(traceVector) * layerThickness;
 
-			if(currentLayerDepth - heightMapDepth > 0.9 * layerThickness) {
-				nearestEdge.x -= sign(viewVector.x) / atlasSize.x;
+			currentTexel.x -= sign(traceVecNorm.x) * texelSizeLod.x;
+			currentTexel.x -= floor((currentTexel.x - texcoordRange.x) / texSize.x) * texSize.x;
+			float heightMapDepth = 1.0 - textureLod(normals, currentTexel, lod).a;
+
+			if(currentLayerDepth - heightMapDepth < 0.9 * layerThickness) {
+				texcoord += 0.02 * traceVecNorm * texelSizeLod;
+				texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
+				return vec2(sign(-traceVector.x), 0.0);
 			}
 			else {
-				texcoord -= texcoordOffset;
-				// texcoord -= floor((texcoord - texcoordRange.xy) / singleTexSize) * singleTexSize;
-				return vec2(sign(-viewVector.x), 0.0);
+				nearestEdge.x -= sign(traceVector.x) * texelSizeLod.x;
 			}
+
+			// texcoord -= dists.x * traceVecNorm;
+			// vec2 texcoordOffset = -vec2(0.01 / atlasSize.x * traceVecNorm.x, 0.0);
+			// texcoord -= floor((texcoord + texcoordOffset - texcoordRange.xy) / texSize) * texSize;
+			// currentLayerDepth -= dists.x / length(traceVector) * layerThickness;
+			// float heightMapDepth = 1.0 - textureLod(normals, texcoord + texcoordOffset, lod).a;
+
+			// if(currentLayerDepth - heightMapDepth > 0.9 * layerThickness) {
+			// 	nearestEdge.x -= sign(traceVector.x) / atlasSize.x;
+			// }
+			// else {
+			// 	texcoord -= texcoordOffset;
+			// 	return vec2(sign(-traceVector.x), 0.0);
+			// }
 		}
-		else {
-			texcoord -= dists.y * viewVecNorm;
-			vec2 texcoordOffset = -vec2(0.0, 0.01 / atlasSize.y * viewVecNorm.y);
-			texcoord -= floor((texcoord + texcoordOffset - texcoordRange.xy) / singleTexSize) * singleTexSize;
-			currentLayerDepth -= dists.y / length(viewVector) * layerThickness;
-			float heightMapDepth = 1.0 - textureLod(normals, texcoord + texcoordOffset, lod).a;
 
-			if(currentLayerDepth - heightMapDepth > 0.9 * layerThickness) {
-				nearestEdge.y -= sign(viewVector.y) / atlasSize.y;
+		// Hit the edge of a texel on the y axis
+		else {
+			// move texcoord to edge along trace vector
+			texcoord -= dists.y * traceVecNorm;
+			currentLayerDepth -= dists.y / length(traceVector) * layerThickness;
+
+			currentTexel.y -= sign(traceVecNorm.y) * texelSizeLod.y;
+			currentTexel.y -= floor((currentTexel.y - texcoordRange.y) / texSize.y) * texSize.y;
+			float heightMapDepth = 1.0 - textureLod(normals, currentTexel, lod).a;
+
+			if(currentLayerDepth - heightMapDepth < 0.9 * layerThickness) {
+				texcoord += 0.02 * traceVecNorm * texelSizeLod;
+				texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
+				return vec2(0.0, sign(-traceVector.y));
 			}
 			else {
-				texcoord -= texcoordOffset;
-				// texcoord -= floor((texcoord - texcoordRange.xy) / singleTexSize) * singleTexSize;
-				return vec2(0.0, sign(-viewVector.y));
+				nearestEdge.y -= sign(traceVector.y) * texelSizeLod.y;
 			}
+
+			// texcoord -= dists.y * traceVecNorm;
+			// vec2 texcoordOffset = -vec2(0.0, 0.01 / atlasSize.y * traceVecNorm.y);
+			// texcoord -= floor((texcoord + texcoordOffset - texcoordRange.xy) / texSize) * texSize;
+			// currentLayerDepth -= dists.y / length(traceVector) * layerThickness;
+			// float heightMapDepth = 1.0 - textureLod(normals, texcoord + texcoordOffset, lod).a;
+
+			// if(currentLayerDepth - heightMapDepth > 0.9 * layerThickness) {
+			// 	nearestEdge.y -= sign(traceVector.y) / atlasSize.y;
+			// }
+			// else {
+			// 	texcoord -= texcoordOffset;
+			// 	return vec2(0.0, sign(-traceVector.y));
+			// }
 		}
 	
 		i++;
@@ -184,14 +231,14 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 viewVector, inout float curre
 // Parallax Occlusion Mapping, outputs new texcoord with inout parameter and returns texture-alligned depth into texture after POM
 float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, out vec3 shadowTexcoord, out bool onEdge, out vec2 norm) {
 
-	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
+	vec2 texSize = texcoordRange.zw - texcoordRange.xy;
 
 	vec3 texDir = normalize(pos) * tbn;
 
 	// Calculate texture space vectors and deltas used in loop
 	float layerDepth    = 1.0 / layerCount;
-	vec2  viewVector    = (-texDir.xy / texDir.z) / texWorldSize * 0.25 * POM_Depth * singleTexSize * fadeAmount;
-	vec2  deltaTexcoord = viewVector / layerCount;
+	vec2  traceVector    = (-texDir.xy / texDir.z) / texWorldSize * 0.25 * POM_Depth * texSize * fadeAmount;
+	vec2  deltaTexcoord = traceVector / layerCount;
 
 	// Set up depth varialbes and read initial height map value
 	float currentLayerDepth = 0.0;
@@ -207,7 +254,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 
 		// shift texture coordinates along direction of view vector
 		texcoord += deltaTexcoord;
-		texcoord -= floor((texcoord - texcoordRange.xy) / singleTexSize) * singleTexSize;
+		texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
 
 		// get depthmap value at current texture coordinates
 		currentLayerDepth += layerDepth;
@@ -227,7 +274,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 		float weight      = afterDepth / (afterDepth - beforeDepth);
 
 		texcoord  = mix(texcoord, prevTexcoord, weight);
-		texcoord -= floor((texcoord - texcoordRange.xy) / singleTexSize) * singleTexSize;
+		texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
 
 		float depth = mix(currentDepthMapValue, lastDepthMapValue, weight);
 
@@ -236,11 +283,15 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 		// Return texture alligned depth difference after POM
 		return depth * 0.25 * POM_Depth * fadeAmount;
 	#else
-		onEdge = currentLayerDepth - currentDepthMapValue > 0.95 * layerDepth;
+		onEdge = currentLayerDepth - currentDepthMapValue >= layerDepth;
 
 		#ifdef POM_SlopeNormals
 		if(onEdge)
-			norm = parallaxSlopeNormal(texcoord, viewVector, currentLayerDepth, layerDepth, texcoordRange, lod) * float(onEdge);
+			norm = parallaxSlopeNormal(texcoord, traceVector, currentLayerDepth, layerDepth, texcoordRange, lod) * float(onEdge);
+		#endif
+
+		#ifdef debugOut
+			testOut = vec4((texcoord - texcoordRange.xy) / texSize, 0.0, 1.0);
 		#endif
 
 		pomOut.b = float(onEdge);
@@ -252,17 +303,17 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 
 float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, vec2 norm) {
 
-	vec2 singleTexSize = texcoordRange.zw - texcoordRange.xy;
+	vec2 texSize = texcoordRange.zw - texcoordRange.xy;
 
 	vec3 texLightDir = normalize(lightDir) * tbn;
 
 	// Calculate texture space vectors and deltas used in loop
 	float layerDepth = 1.0 / layerCount;
-	vec2 viewVector = (texLightDir.xy / texLightDir.z) / texWorldSize * 0.25 * POM_Depth * singleTexSize * fadeAmount;
-	vec2 deltaTexcoord = viewVector / layerCount;
+	vec2 traceVector = (texLightDir.xy / texLightDir.z) / texWorldSize * 0.25 * POM_Depth * texSize * fadeAmount;
+	vec2 deltaTexcoord = traceVector / layerCount;
 
 	#ifdef POM_SlopeNormals
-	if(dot(normalize(viewVector.xy), norm) < 0.0)
+	if(dot(normalize(traceVector.xy), norm) < 0.0)
 		return 0.0;
 	#endif
 
@@ -288,7 +339,7 @@ float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec4 texcoordRange, vec2 te
 		currentLayerDepth -= layerDepth;
 
 		// wrap texture coordinates if they extend out of range
-		texcoord -= floor((texcoord - texcoordRange.xy) / singleTexSize) * singleTexSize;
+		texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
 
 		// get depthmap value at current texture coordinates
 		lastDepthMapValue = currentDepthMapValue;
@@ -350,9 +401,6 @@ float parallaxDepthOffset(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoord
 
 // calculates POM and calculates and returns new screen space depth, to be stored in gl_FragDepth
 float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, out float shadow, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float fadeAmount, out bool onEdge, out vec2 norm) {
-	// #ifdef debugOut
-	// 	velocityOut = vec4(interpolateHeight(texcoord, texcoordRange, lod), 0.0, 0.0, 1.0);
-	// #endif
 	
 	// Calculates POM and stores texture alligned depth from POM
 	vec3 shadowTexcoord = vec3(-1.0);

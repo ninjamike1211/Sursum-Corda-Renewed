@@ -1,8 +1,8 @@
-RGBA16F     colortex0:  rgba: main color
+RGBA16F     colortex0:  rgba: main hdr color
 RGB8        colortex1:  rgb: albedo
 RGB32UI     colortex2:  r: texture normals, g: geometry normals, b: specular map
 RGB10_A2    colortex3:  rg: lmcoord, b: 1=hand
-RGBA8       colortex4:  rgba: specular
+RGBA8       colortex4:  
 R32F        colortex5:  r: water depth
 RG16_SNORM  colortex6:  rg: velocity
 RGB16F      colortex7:  rgb: deferred output
@@ -32,5 +32,3 @@ To do list:
     Fix broken POM on some non-standard blocks
     Fix some line weirdness, especially with depth writing
     Add water refraction
-
-    NVidia: borken entities/blockentities, etc

@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-#define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104 105]
+#define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104 105 106]
 #define viewBufferSweep 0.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 uniform mat4  gbufferModelView;
@@ -110,10 +110,12 @@ void main() {
         #elif viewBuffer == 102
             gl_FragColor = SpecularDecode(texture(colortex2, texcoord).b);
         #elif viewBuffer == 103
-            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r)), 1.0);
+            gl_FragColor = vec4(SpecularDecode(texture(colortex2, texcoord).b).a);
         #elif viewBuffer == 104
-            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r)), 1.0);
+            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r)), 1.0);
         #elif viewBuffer == 105
+            gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r)), 1.0);
+        #elif viewBuffer == 106
             gl_FragColor = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r)), 1.0);
         #endif
     #if viewBuffer != 0

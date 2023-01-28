@@ -93,6 +93,8 @@ const int shadowcolor0Format = RGBA16F;
 
 
 // Ambient Occlusion
+	const float ambientOcclusionLevel = 0.0f;
+
 	#define SSAO				// Screen space ambient occlusion, adds shadows between blocks and entites, medium performance impact
 	#define SSAO_Radius 	0.5 // Radius of SSAO. Higher values causes ao to be more spread out. Lower values will concentrate shadows more in corners. [0.125 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 3.0 4.0 5.0]
 	#define SSAO_Strength 	1.0 // Strength of ambient shadows. 0 means no shadows. Higher numbers mean darker shadows. [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
