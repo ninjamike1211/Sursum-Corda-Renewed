@@ -62,7 +62,7 @@ uniform vec3 fogColor;
 #include "/lib/clouds.glsl"
 #include "/lib/raytrace.glsl"
 
-// #define waterRefraction
+#define waterRefraction
 
 
 // ------------------------ File Contents -----------------------
@@ -134,19 +134,27 @@ void main() {
 
 
 // ---------------------- Water Refraction ----------------------
-	// Water Refraction NEEDS TO BE FIXED, ASSUMES VIEW SPACE NORMALS WHEN THERE AREN'T
 	#ifdef waterRefraction
 		if(waterDepth != 0.0) {
 			vec3 hitPos = vec3(-1.0);
-			vec3 refractDir = refract(normalize(viewPos), normalToView(normalTex - normalGeom), isEyeInWater == 1 ? 1.333 : 0.75);
-			float jitter = 10.0;
+			vec3 viewDir = normalize(viewPos);
+			vec3 refractDir;
+
+			if(isEyeInWater == 0)
+				refractDir = refract(viewDir, normalToView(normalGeom - normalTex), 0.9);
+			// else if(isEyeInWater == 1)
+			// 	refractDir = refract(viewDir, normalToView(normalTex), 1.1);
+			// vec3 refractDir = refract(normalize(viewPos), normalToView(normalGeom), 0.75);
+			// refractDir = mat3(gbufferModelView) * refractDir;
+
+			float jitter = 0.0;
 
 			// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
-			if(raytrace(viewPos, refractDir, 64, jitter, hitPos)) {
+			if(raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, hitPos, depthtex1)) {
 				opaqueColor = texture(colortex7, hitPos.xy);
 			}
 			else {
-			    opaqueColor = vec4(0.0);
+			    // opaqueColor = vec4(0.0);
 			}
 		}
 	#endif

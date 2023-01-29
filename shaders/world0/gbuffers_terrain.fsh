@@ -4,4 +4,4 @@
 #define usePOM
 #define terrain
 
-#include "base_fragment.glsl"
+#include "/lib/gbuffers_fragment.glsl"

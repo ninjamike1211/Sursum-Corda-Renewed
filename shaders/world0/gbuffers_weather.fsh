@@ -4,4 +4,4 @@
 // #define usePBRTextures
 #define textured
 
-#include "base_fragment.glsl"
+#include "/lib/gbuffers_fragment.glsl"

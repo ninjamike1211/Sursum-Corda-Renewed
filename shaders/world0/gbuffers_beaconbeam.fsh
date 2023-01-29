@@ -3,4 +3,4 @@
 // #define afterDeferred
 #define BeaconBeam
 
-#include "base_fragment.glsl"
+#include "/lib/gbuffers_fragment.glsl"

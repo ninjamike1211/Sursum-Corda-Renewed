@@ -1,0 +1,24 @@
+uniform vec3  eyePosition;          world space position of player head, similar to cameraPosition
+uniform float thunderStrength;      (0-1), like rainStrength but for detecting thunderstorms (doesn't detect lightning itself but the thunder weather condition)
+uniform float currentPlayerHealth;  (0-1) current health of player 1 means full and 0 means dead, always 0 for creative/spectator, not affected by "extra" health (eg golden apple) 
+uniform float maxPlayerHealth;      maximum health of player, 20 by default, always 0 for creative/spectator, not affected by "extra" health (eg golden apple)
+uniform float currentPlayerHunger;  (0-1) current hunger of player, 1 means full and 0 means empty, always 0 for creative/spectator
+uniform float maxPlayerHunger;      maximum hunger value of player, default is 20, not impacted by gamemode
+uniform float currentPlayerAir;     (0-1) current air of player, 0 means drowning, 1 means full air, always 0 for creative/spectator
+uniform float maxPlayerAir;         maximum air capacity of player, default is 300, always 0 for creative/spectator
+uniform float ambientLight;         the minimum ambient light level for the current dimension, 0 for overworld, ~0.2 for nether
+uniform bool  hasCeiling;           true if the current dimension has a bedrock ceiling
+uniform bool  hasSkyLight;          true if the current dimension has sky lighting (although for some reason false in the overworld)
+uniform int   heightLimit;          height limit of world, 256 for older versions and 320 for newer versions
+uniform bool  firstPersonCamera;    true if the camera is in first person mode
+uniform bool  isSpectator;          true if the player is in spectator mode
+
+uniform int   bedrockLevel;         unimplemented in 1.18, currently always 0
+
+const float entityShadowDistanceMul = 0.5;
+
+unknown shaders.properties option which only renders shadows for player and riden entities
+entity_translucent shader for translucent entities
+
+iris.feature.required, iris.feature.optional
+SEPARATE_HARDWARE_SAMPLERS PER_BUFFER_BLENDING COMPUTE_SHADERS ENTITY_TRANSLUCENT
