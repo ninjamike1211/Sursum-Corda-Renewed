@@ -125,10 +125,8 @@ void main() {
 	vec3 scenePos 			 = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 	vec3 waterViewPos 		 = calcViewPos(viewVector, waterDepth);
 	vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
-
-	vec3 normalTex 	= NormalDecode(material.x);
-	vec3 normalGeom = NormalDecode(material.y);
-	vec4 specMap   	= SpecularDecode(material.z);
+	
+	vec4 specMap = SpecularDecode(material.z);
 
 	materialOut = material;
 
@@ -139,6 +137,9 @@ void main() {
 			vec3 hitPos = vec3(-1.0);
 			vec3 viewDir = normalize(viewPos);
 			vec3 refractDir;
+
+			vec3 normalTex 	= NormalDecode(material.x);
+			vec3 normalGeom = NormalDecode(material.y);
 
 			if(isEyeInWater == 0)
 				refractDir = refract(viewDir, normalToView(normalGeom - normalTex), 0.9);

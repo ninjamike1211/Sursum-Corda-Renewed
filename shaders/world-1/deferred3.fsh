@@ -1,7 +1,7 @@
 #version 400 compatibility
 
-uniform usampler2D colortex1;
-uniform sampler2D  colortex2;
+uniform sampler2D  colortex1;
+uniform usampler2D colortex2;
 uniform sampler2D  colortex3;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex8;
@@ -70,25 +70,25 @@ void main() {
 
     // Read depth and albedo values
     float depth = texture(depthtex0, texcoord).r;
-    vec4 albedo = texture(colortex2, texcoord);
-    albedo.rgb = sRGBToLinear(albedo).rgb;
+    vec3 albedo = texture(colortex1, texcoord).rgb;
+    albedo = sRGBToLinear3(albedo);
     colorOut.a = 1.0;
 
 
 // ---------------------- Opaque Rendering ----------------------
     if(depth < 1.0) {
         // Reading texture value and calculate position
-        uvec2 normalRaw  = texture(colortex1, texcoord).rg;
-        vec3  lmcoordRaw = texture(colortex3, texcoord).rgb;
-        vec4  specMap    = texture(colortex4, texcoord);
-        vec3  pomResults = texture(colortex8, texcoord).rgb;
+        uvec3 material = texture(colortex2, texcoord).rgb;
+        vec3 lmcoordRaw = texture(colortex3, texcoord).rgb;
+        vec3 pomResults = texture(colortex8, texcoord).rgb;
 
-        vec3  normal 	     = NormalDecode(normalRaw.x);
-	    vec3  normalGeometry = NormalDecode(normalRaw.y);
-        vec3  viewPos        = calcViewPos(viewVector, depth);
-        vec2  lmcoord        = lmcoordRaw.rg;
-        float isHand         = lmcoordRaw.b;
-        float emissiveness   = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
+        vec3 normal 	    = NormalDecode(material.x);
+	    vec3 normalGeometry = NormalDecode(material.y);
+        vec4 specMap        = SpecularDecode(material.z);
+        vec3 viewPos        = calcViewPos(viewVector, depth);
+        vec2 lmcoord        = lmcoordRaw.rg;
+        float isHand        = lmcoordRaw.b;
+        float emissiveness  = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
 
 
     // ---------------------------- SSAO ----------------------------
@@ -130,7 +130,7 @@ void main() {
 
     }
     else {
-        colorOut = albedo;
+        colorOut.rgb = albedo;
     }
 }
 

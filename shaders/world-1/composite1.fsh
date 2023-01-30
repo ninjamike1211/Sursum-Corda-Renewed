@@ -1,8 +1,8 @@
 #version 420 compatibility
 
 uniform sampler2D  colortex0;
-uniform usampler2D colortex1;
-uniform sampler2D  colortex2;
+uniform sampler2D  colortex1;
+uniform usampler2D colortex2;
 uniform sampler2D  colortex3;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
@@ -65,22 +65,23 @@ layout(location = 0) out vec4 colorOut;
 
 void main() {
     colorOut = texture(colortex0, texcoord);
-    vec4 specMap = texture(colortex4, texcoord);
+    uvec2 material = texture(colortex2, texcoord).rb;
+    
+    vec4 specMap = SpecularDecode(material.y);
 
 
 // ------------------------- Reflections ------------------------
     if(specMap.r > 0.45) {
     
     // ---------------- Reading values and setup ----------------
-        // Read buffers
-        uint normalRaw   = texture(colortex1, texcoord).x;
-        vec4 albedo      = texture(colortex2, texcoord);
+         // Read buffers
+        vec3 albedo      = texture(colortex1, texcoord).rgb;
         vec2 lmcoord     = texture(colortex3, texcoord).rg;
         float waterDepth = texture(colortex5, texcoord).r;
         float depth      = texture(depthtex0, texcoord).r;
 
         // Calculate basic values
-        vec3 normal     = NormalDecode(normalRaw);
+        vec3 normal     = NormalDecode(material.x);
         vec3 normalView = normalToView(normal);
         vec3 viewPos    = calcViewPos(viewVector, depth);
         vec3 rayDir     = reflect(normalize(viewPos), normalView);

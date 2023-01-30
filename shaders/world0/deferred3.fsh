@@ -93,7 +93,6 @@ void main() {
 	    vec3 normalGeometry = NormalDecode(material.y);
         vec4 specMap        = SpecularDecode(material.z);
         vec3 viewPos        = calcViewPos(viewVector, depth);
-        vec3 worldPos       = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
         vec2 lmcoord        = lmcoordRaw.rg;
         float isHand        = lmcoordRaw.b;
         float emissiveness  = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;

@@ -35,6 +35,13 @@ flat out vec3 skyAmbient;
 flat out vec3 skyDirect;
 flat out int  entity;
 
+#ifdef inNether
+    uniform vec3 fogColor;
+
+    flat out vec3 lightDir;
+    flat out vec3 lightDirView;
+#endif
+
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -89,8 +96,18 @@ void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
 
-    skyDirect = sunLightSample();
-    skyAmbient = skyLightSample(colortex10);
+    #ifdef inNether
+        skyDirect = netherDirectLight;
+        skyAmbient = netherAmbientLight;
+
+        lightDir = normalize(vec3(0.5, 1.0, 0.5) + 0.2 * vec3(
+            SimplexPerlin2D(frameTimeCounter * vec2(2.0, 3.0)), 0.0, SimplexPerlin2D(frameTimeCounter * vec2(2.5, 1.5))
+        ));
+        lightDirView = (gl_ModelViewMatrix * vec4(lightDir, 0.0)).xyz;
+    #else
+        skyDirect = sunLightSample();
+        skyAmbient = skyLightSample(colortex10);
+    #endif
 
     vec2 halfSize = abs(texcoord - mc_midTexCoord);
 	textureBounds = vec4(mc_midTexCoord.xy - halfSize, mc_midTexCoord.xy + halfSize);

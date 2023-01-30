@@ -82,11 +82,12 @@ flat out int  entity;
 void main() {
 
 // -------------------- Basic Geometry Values -------------------
-    #ifdef weather
-        glColor = vec4(gl_Color.rgb, 0.5);
-    #else
-        glColor = vec4(gl_Color.rgb, 1.0);
-    #endif
+    // #ifdef weather
+    //     glColor = vec4(gl_Color.rgb, 0.5);
+    // #else
+    //     glColor = vec4(gl_Color.rgb, 1.0);
+    // #endif
+    glColor = gl_Color;
 
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
@@ -154,7 +155,12 @@ void main() {
 
 
 // ---------------------- Normals and TBN -----------------------
-        glNormal = normalize((gbufferModelViewInverse * vec4(gl_NormalMatrix * gl_Normal,      0.0)).xyz);
+    vec3  normal = normalize(gl_NormalMatrix * gl_Normal);
+    float viewDotN = dot(normalize(viewPos), normal);
+    if(viewDotN > 0.0)
+        normal *= -1.0;
+
+        glNormal = normalize((gbufferModelViewInverse * vec4(normal,                           0.0)).xyz);
     vec3 tangent = normalize((gbufferModelViewInverse * vec4(gl_NormalMatrix * at_tangent.xyz, 0.0)).xyz);
     
     if(entity == 10020) {
@@ -162,7 +168,7 @@ void main() {
         tangent = round(tangent);
     }
     
-    vec3 bitangent = cross(tangent, glNormal);
+    vec3 bitangent = sign(at_tangent.w) * cross(tangent, glNormal);
 
     tbn = mat3(	tangent, bitangent, glNormal);
 
@@ -175,8 +181,13 @@ void main() {
 
         #if defined hand
             oldClipPos = gl_ProjectionMatrix * vec4(viewPos - at_velocity, 1.0);
+
+        #elif defined noVelocity
+            vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
+            oldClipPos = gbufferPreviousProjection * oldViewPos;
+        
         #else
-            if(cameraMoved && any(lessThanEqual(at_velocity, vec3(EPS)))) {
+            if(any(lessThanEqual(at_velocity, vec3(EPS)))) {
                 vec4 oldViewPos = gbufferPreviousModelView * (vec4(scenePos, 0.0) + vec4(cameraPosition - previousCameraPosition, 0.0));
                 oldClipPos = gbufferPreviousProjection * oldViewPos;
             }

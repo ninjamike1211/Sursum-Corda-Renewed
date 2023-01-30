@@ -5,19 +5,12 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 uniform sampler2D colortex12;
 uniform sampler2D depthtex1;
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
 
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
 uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
 uniform vec4  entityColor;
-uniform vec3  lightDir;
-uniform vec3  lightDirView;
 uniform vec3  cameraPosition;
 uniform vec3  fogColor;
 uniform ivec2 atlasSize;
@@ -40,7 +33,22 @@ uniform int   heldItemId2;
 uniform int   heldBlockLightValue2;
 uniform bool  cameraMoved;
 
-/* RENDERTARGETS: 0,1,2,3,5,6,8,4 */
+
+#ifndef inNether
+	uniform sampler2D shadowtex0;
+	uniform sampler2D shadowtex1;
+	uniform sampler2D shadowcolor0;
+	uniform mat4  shadowModelView;
+	uniform mat4  shadowProjection;
+
+	uniform vec3 lightDir;
+	uniform vec3 lightDirView;
+#else
+	flat in vec3 lightDir;
+	flat in vec3 lightDirView;
+#endif
+
+/* RENDERTARGETS: 0,1,2,3,5,6,8 */
 layout(location = 0) out vec4  colorOut;
 layout(location = 1) out vec4  albedoOut;
 layout(location = 2) out uvec3 materialOut;
@@ -50,9 +58,9 @@ layout(location = 5) out vec4  velocityOut;
 layout(location = 6) out vec4  pomOut;
 
 
-#define debugOut
+// #define debugOut
 #ifdef debugOut
-	layout(location = 7) out vec4  testOut;
+	layout(location = 7) out vec4 testOut;
 #endif
 
 layout (depth_greater) out float gl_FragDepth;
@@ -67,7 +75,11 @@ layout (depth_greater) out float gl_FragDepth;
 #include "/lib/sample.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
-#include "/lib/shadows.glsl"
+
+#ifndef inNether
+	#include "/lib/shadows.glsl"
+#endif
+
 #include "/lib/lighting.glsl"
 #include "/lib/parallax.glsl"
 #include "/lib/water.glsl"
@@ -175,7 +187,7 @@ void main() {
 	float lod = textureQueryLod(tex, texcoord).x;
 
 	vec2 texcoordFinal = texcoord;
-	pomOut.rga = vec3(0.0, 1.0, 1.0);
+	pomOut = vec4(0.0, 1.0, 0.0, 1.0);
 	vec3 geomNormal = glNormal;
 
 	#ifdef POM_PDO
@@ -317,7 +329,7 @@ void main() {
 		specMap.a = 254.0/255.0;
 	#endif
 
-
+	#ifndef inNether
 // --------------------------- Water ----------------------------
 	// #ifdef water
 	// 	// Fixes depth not writing for transparents under very specific circumstances
@@ -383,12 +395,13 @@ void main() {
 		specMap = vec4(1.0, 0.02, 0.0, 0.0);
 
 	}
-	// #endif
+	#endif
 
 	vec3 viewNormal = (gbufferModelView * vec4(normalVal, 0.0)).xyz;
 
 
 // ------------------- Rain and Puddle Effects ------------------
+	#ifndef inNether
 	#if defined terrain || defined block || defined entities || defined hand
 		float isWet = wetness * smoothstep(29.0/32.0, 31.0/32.0, lmcoord.g) * smoothstep(-0.75, -0.25, normalVal.y);
 		
@@ -427,6 +440,7 @@ void main() {
 		else
 			specMap.r = max(specMap.r, mix(specMap.r, 0.7, isWet));
 
+	#endif
 	#endif
 
 
@@ -484,15 +498,20 @@ void main() {
 
 	// -------------------- Shadows --------------------
 		float NGdotL = dot(geomNormal, lightDir);
-		float blockerDist;
-		vec3 offset = normalToView(lightDir) * pomOut.r;
-		vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
-		
-		float shadowMult = 1.0;
-		#ifdef Shadow_LeakFix
-            // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-			shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
-        #endif
+
+		#ifndef inNether
+			float blockerDist;
+			vec3 offset = normalToView(lightDir) * pomOut.r;
+			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
+			
+			float shadowMult = 1.0;
+			#ifdef Shadow_LeakFix
+				// shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
+				shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
+			#endif
+		#else
+			float shadowResult = pomOut.g;
+		#endif
 
 	// -------------------- Lighting -------------------
 		vec3 viewDir = normalize(-viewPos);
@@ -509,7 +528,7 @@ void main() {
 		colorOut.a = albedo.a;
 
 	// ---------------------- SSS ----------------------
-		#ifdef SSS
+		#if defined SSS && !defined inNether
 			float subsurface = extractSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
 		#endif

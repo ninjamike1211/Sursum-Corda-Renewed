@@ -294,8 +294,6 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 			testOut = vec4((texcoord - texcoordRange.xy) / texSize, 0.0, 1.0);
 		#endif
 
-		pomOut.b = float(onEdge);
-
 		shadowTexcoord = vec3(texcoord, currentLayerDepth) /* - vec3(deltaTexcoord, layerDepth) */;
 		return currentLayerDepth * 0.25 * POM_Depth * fadeAmount;
 	#endif

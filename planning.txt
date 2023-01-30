@@ -27,8 +27,9 @@ To do list:
     Fix water volumetric fog
     Improve bloom handling
     Add support for darkness/blindness/nausia effects
-    Fix block breaking texture
     Fix POM skipping on heightmap edges on texture edges
     Fix broken POM on some non-standard blocks
     Fix some line weirdness, especially with depth writing
-    Add water refraction
+    Fix water underwater refraction
+    Improve TAA (possibly with depth/normal accumulation)
+    Fix Nether lighting/specular breaking under entities that are lit by blocklight
