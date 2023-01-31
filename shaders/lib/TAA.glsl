@@ -1,6 +1,13 @@
 #ifndef TAAGLSL
 #define TAAGLSL
 
+/*
+uniform float viewWidth;
+uniform float viewHeight;
+uniform int   frameCounter;
+*/
+
+
 const vec2 TAAOffsets[16] = vec2[] (
     vec2(0.500000, 0.333333),
     vec2(0.250000, 0.666667),

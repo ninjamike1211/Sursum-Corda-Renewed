@@ -1,7 +1,8 @@
 #version 400 compatibility
 
+#define inEnd
 #define hand
 #define mcEntity
 #define taaEntityVelocity
 
-#include "base_vertex.glsl"
+#include "/lib/gbuffers_vertex.glsl"

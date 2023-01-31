@@ -1,6 +1,7 @@
 #version 400 compatibility
 
+#define inEnd
 #define usePBRTextures
 #define block
 
-#include "base_fragment.glsl"
+#include "/lib/gbuffers_fragment.glsl"

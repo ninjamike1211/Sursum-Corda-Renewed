@@ -1,7 +1,7 @@
 #version 400 compatibility
 
+#define inEnd
 #define afterDeferred
-// #define usePBRTextures
 #define textured
 
-#include "base_fragment.glsl"
+#include "/lib/gbuffers_fragment.glsl"

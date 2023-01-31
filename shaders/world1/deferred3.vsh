@@ -36,7 +36,6 @@ out vec2 texcoord;
 out vec3 viewVector;
 flat out vec3 skyAmbient;
 flat out vec3 skyDirect;
-flat out vec3 lightDir;
 
 void main() {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
@@ -47,8 +46,6 @@ void main() {
     
     skyDirect  = endDirectLight;
     skyAmbient = endAmbientLight;
-
-    lightDir = (gbufferModelViewInverse * vec4(lightDirView, 0.0)).xyz;
 }
 
 

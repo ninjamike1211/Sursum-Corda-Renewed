@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-// #define taaEntityVelocity
+#define inEnd
 #define BeaconBeam
 
-#include "base_vertex.glsl"
+#include "/lib/gbuffers_vertex.glsl"

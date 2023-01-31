@@ -1,6 +1,6 @@
 #version 400 compatibility
 
-// #define taaEntityVelocity
+#define inEnd
 #define entities
 
-#include "base_vertex.glsl"
+#include "/lib/gbuffers_vertex.glsl"

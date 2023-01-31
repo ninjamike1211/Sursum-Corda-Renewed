@@ -401,7 +401,7 @@ void main() {
 
 
 // ------------------- Rain and Puddle Effects ------------------
-	#ifndef inNether
+	#if !defined inNether && !defined inEnd
 	#if defined terrain || defined block || defined entities || defined hand
 		float isWet = wetness * smoothstep(29.0/32.0, 31.0/32.0, lmcoord.g) * smoothstep(-0.75, -0.25, normalVal.y);
 		

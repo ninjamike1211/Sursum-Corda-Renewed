@@ -104,6 +104,9 @@ void main() {
             SimplexPerlin2D(frameTimeCounter * vec2(2.0, 3.0)), 0.0, SimplexPerlin2D(frameTimeCounter * vec2(2.5, 1.5))
         ));
         lightDirView = (gl_ModelViewMatrix * vec4(lightDir, 0.0)).xyz;
+    #elif defined inEnd
+        skyDirect = endDirectLight;
+        skyAmbient = endAmbientLight;
     #else
         skyDirect = sunLightSample();
         skyAmbient = skyLightSample(colortex10);
