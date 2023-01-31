@@ -505,7 +505,7 @@ void main() {
 			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
 			
 			float shadowMult = 1.0;
-			#ifdef Shadow_LeakFix
+			#if defined Shadow_LeakFix && !defined inEnd
 				// shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
 				shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
 			#endif
