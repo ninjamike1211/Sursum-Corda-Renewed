@@ -48,7 +48,7 @@ uniform bool  cameraMoved;
 	flat in vec3 lightDirView;
 #endif
 
-/* RENDERTARGETS: 0,1,2,3,5,6,8 */
+/* RENDERTARGETS: 0,1,2,3,5,6,8,4 */
 layout(location = 0) out vec4  colorOut;
 layout(location = 1) out vec4  albedoOut;
 layout(location = 2) out uvec3 materialOut;
@@ -58,7 +58,7 @@ layout(location = 5) out vec4  velocityOut;
 layout(location = 6) out vec4  pomOut;
 
 
-// #define debugOut
+#define debugOut
 #ifdef debugOut
 	layout(location = 7) out vec4 testOut;
 #endif
@@ -224,13 +224,13 @@ void main() {
 
 			// --------- Parallax Mapping and shadows ----------
 				if(pomFade < 1.0) {
-					vec3 shadowTexcoord = vec3(-1.0);
+					vec3 tangentPos = vec3(-1.0);
 
-					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, POM_Layers, 1.0-pomFade, shadowTexcoord, onEdge, slopeNormal);
+					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, POM_Layers, 1.0-pomFade, tangentPos, onEdge, slopeNormal);
 					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
-						pomOut.g = parallaxShadows(shadowTexcoord, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
+						pomOut.g = parallaxShadows(tangentPos, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
 
 				// ---------- Parallax Pixel Depth Offset ----------
@@ -454,7 +454,13 @@ void main() {
 
 
 		if(length(dFdTorch) > 1e-6) {
+			// dFdTorch *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
 			vec3 torchLightDir = normalize(dFdSceneposX * dFdTorch.x + dFdSceneposY * dFdTorch.y);
+			
+			
+			// vec3 torcViewDir = screenToView(texcoord + dFdTorch, gl_FragCoord.z) - viewPos;
+			// vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
+			// testOut = vec4(torchLightDir, 1.0);
 			
 			float NdotL  = dot(torchLightDir, normalVal);
 			float NGdotL = dot(torchLightDir, glNormal);
