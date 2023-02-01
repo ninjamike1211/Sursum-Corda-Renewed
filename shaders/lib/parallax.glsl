@@ -133,7 +133,7 @@ vec3 parallaxSmoothSlopeNormal(vec2 texcoord, vec4 texcoordRange, float lod) {
 }
 
 // Calculates the edge of the POM of the current texcoord, and returns the tangent space xy normal
-vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float currentLayerDepth, float layerThickness, vec4 texcoordRange, float lod) {
+vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float currentLayerDepth, out vec3 tangentPos, float layerThickness, vec4 texcoordRange, float lod) {
 	
 	vec2  texSize = texcoordRange.zw - texcoordRange.xy;
 	float lodFactor = exp2(-floor(lod));
@@ -170,6 +170,8 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float curr
 			if(currentLayerDepth - heightMapDepth < 0.95 * layerThickness) {
 				// texcoord += 0.02 * traceVecNorm * texelSizeLod;
 				// texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
+				
+				tangentPos = vec3(texcoord, currentLayerDepth);
 				texcoord = prevTexel;
 				return vec2(sign(-traceVector.x), 0.0);
 			}
@@ -192,6 +194,8 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float curr
 			if(currentLayerDepth - heightMapDepth < 0.95 * layerThickness) {
 				// texcoord += 0.02 * traceVecNorm * texelSizeLod;
 				// texcoord -= floor((texcoord - texcoordRange.xy) / texSize) * texSize;
+				
+				tangentPos = vec3(texcoord, currentLayerDepth);
 				texcoord = prevTexel;
 				return vec2(0.0, sign(-traceVector.y));
 			}
@@ -266,7 +270,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 
 		#ifdef POM_SlopeNormals
 		if(onEdge)
-			norm = parallaxSlopeNormal(texcoord, traceVector, currentLayerDepth, layerDepth, texcoordRange, lod) * float(onEdge);
+			norm = parallaxSlopeNormal(texcoord, traceVector, currentLayerDepth, tangentPos, layerDepth, texcoordRange, lod) * float(onEdge);
 		#endif
 
 		// #ifdef debugOut

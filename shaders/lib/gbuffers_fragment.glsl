@@ -230,6 +230,7 @@ void main() {
 					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
+					if(dot(lightDir, glNormal) > 0.0)
 						pomOut.g = parallaxShadows(tangentPos, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
 
