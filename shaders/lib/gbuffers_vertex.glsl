@@ -51,6 +51,9 @@ flat out int  entity;
 #include "/lib/sky2.glsl"
 #include "/lib/waving.glsl"
 
+#ifdef POM_TexSizeFix
+    out vec2 localTexcoord;
+#endif
 
 // ------------------------ File Contents -----------------------
     // Gbuffers primary vertex shader
@@ -114,6 +117,10 @@ void main() {
 
     vec2 halfSize = abs(texcoord - mc_midTexCoord);
 	textureBounds = vec4(mc_midTexCoord.xy - halfSize, mc_midTexCoord.xy + halfSize);
+
+    #ifdef POM_TexSizeFix
+        localTexcoord = (texcoord - textureBounds.xy) / (textureBounds.zw - textureBounds.xy);
+    #endif
 
     #ifdef mcEntity
         entity = int(mc_Entity.x + 0.5);

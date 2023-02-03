@@ -128,6 +128,7 @@ const int shadowcolor0Format = RGBA16F;
 
 // Parallax Mapping
 	#define POM
+	#define POM_TexSizeFix				// Accounts for textures that are different sizes and aspect ratios to a full block, slightly more expensive with some uncommon visual artifacts
 	// #define POM_Variable_Layer		// Uses a variable number of layers when calculating POM based on view direction
 	#define POM_SlopeNormals			// Overwrites normals on the edges of POM with direction the edge faces instead of the texture normal
 	#define POM_Shadow					// POM self shadowing, fairly expensive.

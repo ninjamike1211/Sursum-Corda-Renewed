@@ -111,6 +111,10 @@ flat in vec3 skyAmbient;
 flat in vec3 skyDirect;
 flat in int  entity;
 
+#ifdef POM_TexSizeFix
+	in vec2 localTexcoord;
+#endif
+
 #if defined TAA || defined MotionBlur
 	in vec4 oldClipPos;
 	in vec4 newClipPos;
@@ -209,15 +213,17 @@ void main() {
 				bool onEdge = false;
 
 			// ---------- Texture Size in World Space ----------
-				vec2 texcoordDx = dFdx(texcoord) / (textureBounds.zw-textureBounds.xy);
-				vec3 tbnDx = dFdx(tbnPos);
-				vec3 sceneDx = dFdx(scenePos);
+				#ifdef POM_TexSizeFix
+					vec2 texcoordDx = dFdx(localTexcoord);
+					vec3 tbnDx = dFdx(tbnPos);
 
-				vec2 texcoordDy = dFdy(texcoord) / (textureBounds.zw-textureBounds.xy);
-				vec3 tbnDy = dFdy(tbnPos);
-				vec3 sceneDy = dFdy(scenePos);
+					vec2 texcoordDy = dFdy(localTexcoord);
+					vec3 tbnDy = dFdy(tbnPos);
 
-				vec2 texWorldSize = abs(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)));
+					vec2 texWorldSize = min(abs(tbnDx.xy / texcoordDx), abs(tbnDy.xy / texcoordDy));
+				#else
+					vec2 texWorldSize = vec2(1.0);
+				#endif
 
 			// --------------- POM Distance Fade ---------------
 				float pomFade = clamp(length(viewPos) - POM_Distance, 0.0, POM_FadeWidth) / POM_FadeWidth;
@@ -226,12 +232,12 @@ void main() {
 				if(pomFade < 1.0) {
 					vec3 tangentPos = vec3(-1.0);
 
-					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, vec2(1.0), lod, POM_Layers, 1.0-pomFade, tangentPos, onEdge, slopeNormal);
+					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, texWorldSize, lod, POM_Layers, 1.0-pomFade, tangentPos, onEdge, slopeNormal);
 					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
 					if(dot(lightDir, glNormal) > 0.0)
-						pomOut.g = parallaxShadows(tangentPos, tbn, textureBounds, vec2(1.0), lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
+						pomOut.g = parallaxShadows(tangentPos, tbn, textureBounds, texWorldSize, lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
 
 				// ---------- Parallax Pixel Depth Offset ----------
