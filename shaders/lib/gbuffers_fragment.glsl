@@ -220,7 +220,26 @@ void main() {
 					vec2 texcoordDy = dFdy(localTexcoord);
 					vec3 tbnDy = dFdy(tbnPos);
 
-					vec2 texWorldSize = min(abs(tbnDx.xy / texcoordDx), abs(tbnDy.xy / texcoordDy));
+					// vec2 texWorldSize = min(abs(tbnDx.xy / texcoordDx), abs(tbnDy.xy / texcoordDy));
+					// vec2 texWorld
+					vec2 texWorldSize;
+
+					if(abs(texcoordDx.x) > EPS)
+						texWorldSize.x = abs(tbnDx.x / texcoordDx.x);
+					else if(abs(texcoordDy.x) > EPS)
+						texWorldSize.x = abs(tbnDy.x / texcoordDy.x);
+					else
+						texWorldSize.x = 1.0;
+
+					if(abs(texcoordDx.y) > EPS)
+						texWorldSize.y = abs(tbnDx.y / texcoordDx.y);
+					else if(abs(texcoordDy.y) > EPS)
+						texWorldSize.y = abs(tbnDy.y / texcoordDy.y);
+					else
+						texWorldSize.y = 1.0;
+
+
+					testOut = vec4(texWorldSize, 0.0, 1.0);
 				#else
 					vec2 texWorldSize = vec2(1.0);
 				#endif
@@ -337,14 +356,8 @@ void main() {
 	#endif
 
 	#ifndef inNether
-// --------------------------- Water ----------------------------
-	// #ifdef water
-	// 	// Fixes depth not writing for transparents under very specific circumstances
-	// 	#if !defined Water_Flat && defined Water_POM && defined POM_PDO && !defined POM
-	// 		gl_FragDepth = gl_FragCoord.z;
-	// 	#endif
-	// #endif
 
+// --------------------------- Water ----------------------------
 	if(entity == 10010) {
 
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
@@ -456,18 +469,34 @@ void main() {
 	// if(gl_FragCoord.x > 0.5*viewWidth) {
 		vec3 dFdSceneposX = dFdx(scenePos);
 		vec3 dFdSceneposY = dFdy(scenePos);
+		
+		vec2 depthDxy = vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
 		vec2 dFdTorch = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
+		// vec2 dFdTorch = vec2(0.0, 1.0);
 		vec2 dFdSky = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
 
 
 		if(length(dFdTorch) > 1e-6) {
 			// dFdTorch *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
 			vec3 torchLightDir = normalize(dFdSceneposX * dFdTorch.x + dFdSceneposY * dFdTorch.y);
+			// float sampleDirDepth = gl_FragCoord.z + dFdTorch.x * depthDxy.x + dFdTorch.y * depthDxy.y; // Sample Depth of the sample direction position
+
+			// vec3 sampleDirScreen = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) + dFdTorch, sampleDirDepth);
+			// vec3 sampleDirNdcPos = sampleDirScreen * 2.0 - 1.0;
+			// vec3 sampleDirViewpos = projectAndDivide(gbufferProjectionInverse, sampleDirNdcPos);
+
+			// // vec3 sampleDirPosView = screenToView(gl_FragCoord.xy + dFdTorch, sampleDirDepth);
+
+			// vec3 sampleDirPosScene = (gbufferModelViewInverse * vec4(sampleDirViewpos, 1.0)).xyz;
+
+			// vec3 torchLightDir = normalize(sampleDirPosScene - scenePos);
+			// // vec3 torchLightDir = sampleDirPosScene;
 			
 			
-			// vec3 torcViewDir = screenToView(texcoord + dFdTorch, gl_FragCoord.z) - viewPos;
-			// vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
-			// testOut = vec4(torchLightDir, 1.0);
+			// // vec3 torcViewDir = screenToView(texcoord + dFdTorch, gl_FragCoord.z) - viewPos;
+			// // vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
+			// // testOut = vec4(torchLightDir, 1.0);
+			// // testOut = vec4(sampleDirPosScene, 1.0);
 			
 			float NdotL  = dot(torchLightDir, normalVal);
 			float NGdotL = dot(torchLightDir, glNormal);

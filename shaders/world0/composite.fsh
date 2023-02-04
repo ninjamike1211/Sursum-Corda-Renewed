@@ -111,40 +111,35 @@ layout(location = 2) out vec4  velocityOut;
 void main() {
 
 // --------------------- Read texture values --------------------
-	vec4 transparentColor 	= texture(colortex0, texcoord);
-	uvec3 material 			= texture(colortex2, texcoord).rgb;
-	float waterDepth 		= texture(colortex5, texcoord).r;
-	velocityOut 			= texture(colortex6, texcoord);
-	vec4 opaqueColor 		= texture(colortex7, texcoord);
+	float waterDepth        = texture(colortex5, texcoord).r;
 	float transparentDepth 	= texture(depthtex0, texcoord).r;
-	float depth 			= texture(depthtex1, texcoord).r;
+	uvec3 material          = texture(colortex2, texcoord).rgb;
+	vec3  waterViewPos      = calcViewPos(viewVector, waterDepth);
 
-	vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth);
-	vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
-	vec3 viewPos 			 = calcViewPos(viewVector, depth);
-	vec3 scenePos 			 = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-	vec3 waterViewPos 		 = calcViewPos(viewVector, waterDepth);
-	vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
-	
-	vec4 specMap = SpecularDecode(material.z);
-
-	materialOut = material;
-
+	vec4  transparentColor 	= texture(colortex0, texcoord);
+	      velocityOut 		= texture(colortex6, texcoord);
 
 // ---------------------- Water Refraction ----------------------
 	#ifdef waterRefraction
+		float depth;
+		vec4  opaqueColor;
+		vec2 texcoordRefract = texcoord;
+
 		if(waterDepth != 0.0) {
 			vec3 hitPos = vec3(-1.0);
-			vec3 viewDir = normalize(viewPos);
 			vec3 refractDir;
 
 			vec3 normalTex 	= NormalDecode(material.x);
 			vec3 normalGeom = NormalDecode(material.y);
 
-			if(isEyeInWater == 0)
+			vec3 viewDir = normalize(waterViewPos);
+
+
+			// if(isEyeInWater == 0)
 				refractDir = refract(viewDir, normalToView(normalGeom - normalTex), 0.9);
+				// refractDir = refract(viewDir, normalToView(normalTex), 0.9);
 			// else if(isEyeInWater == 1)
-			// 	refractDir = refract(viewDir, normalToView(normalTex), 1.1);
+				// refractDir = refract(viewDir, normalToView(normalTex), 1.);
 			// vec3 refractDir = refract(normalize(viewPos), normalToView(normalGeom), 0.75);
 			// refractDir = mat3(gbufferModelView) * refractDir;
 
@@ -152,14 +147,30 @@ void main() {
 
 			// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
 			if(raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, hitPos, depthtex1)) {
-				opaqueColor = texture(colortex7, hitPos.xy);
-			}
-			else {
-			    // opaqueColor = vec4(0.0);
+				texcoordRefract = hitPos.xy;
 			}
 		}
+
+		depth       = texture(depthtex1, texcoordRefract).r;
+		opaqueColor = texture(colortex7, texcoordRefract);
+
+	#else
+		float depth       = texture(depthtex1, texcoord).r;
+		vec4  opaqueColor = texture(colortex7, texcoord);
 	#endif
 
+
+// --------------------- Calculate positions --------------------
+
+	vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth);
+	vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
+	vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
+	
+	     materialOut = material;
+	vec4 specMap     = SpecularDecode(material.z);
+
+	vec3  viewPos     = calcViewPos(viewVector, depth);
+	vec3  scenePos    = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
 // ----------------------- Opaque Objects -----------------------
 	if(depth < 1.0) {

@@ -33,3 +33,14 @@ To do list:
     Fix water underwater refraction
     Improve TAA (possibly with depth/normal accumulation)
     Fix Nether lighting/specular breaking under entities that are lit by blocklight
+
+New Ideas / Future Features:
+    rough reflections
+    use temporal variables to create a more complex weather system
+
+Voxelization ideas:
+    Proper POM edge handling (discard on edge, transition between POM of different blocks)
+    Proper POM texture size handling
+    Smarter waving objects:
+        vines that wave based on if they're floating or attached to a wall
+        waving nether vines (top vine block doesn't wave)
