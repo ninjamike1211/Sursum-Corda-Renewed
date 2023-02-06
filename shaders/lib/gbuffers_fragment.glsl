@@ -237,9 +237,6 @@ void main() {
 						texWorldSize.y = abs(tbnDy.y / texcoordDy.y);
 					else
 						texWorldSize.y = 1.0;
-
-
-					testOut = vec4(texWorldSize, 0.0, 1.0);
 				#else
 					vec2 texWorldSize = vec2(1.0);
 				#endif
@@ -470,33 +467,43 @@ void main() {
 		vec3 dFdSceneposX = dFdx(scenePos);
 		vec3 dFdSceneposY = dFdy(scenePos);
 		
-		vec2 depthDxy = vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
-		vec2 dFdTorch = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
-		// vec2 dFdTorch = vec2(0.0, 1.0);
-		vec2 dFdSky = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
+		vec2 dDepth = vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
+		vec2 dTbnPosDx = dFdx(tbnPos.xy);
+		vec2 dTbnPosDy = dFdy(tbnPos.xy);
+		vec2 dBlockLight = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
+		vec2 dSkyLight = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
 
 
-		if(length(dFdTorch) > 1e-6) {
-			// dFdTorch *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
-			vec3 torchLightDir = normalize(dFdSceneposX * dFdTorch.x + dFdSceneposY * dFdTorch.y);
-			// float sampleDirDepth = gl_FragCoord.z + dFdTorch.x * depthDxy.x + dFdTorch.y * depthDxy.y; // Sample Depth of the sample direction position
+		if(length(dBlockLight) > 1e-6) {
+			dBlockLight = vec2(0.0, 0.1);
 
-			// vec3 sampleDirScreen = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) + dFdTorch, sampleDirDepth);
-			// vec3 sampleDirNdcPos = sampleDirScreen * 2.0 - 1.0;
-			// vec3 sampleDirViewpos = projectAndDivide(gbufferProjectionInverse, sampleDirNdcPos);
+			// dBlockLight *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
+			vec3 torchLightDir = normalize(dFdSceneposX * dBlockLight.x + dFdSceneposY * dBlockLight.y);
 
-			// // vec3 sampleDirPosView = screenToView(gl_FragCoord.xy + dFdTorch, sampleDirDepth);
 
-			// vec3 sampleDirPosScene = (gbufferModelViewInverse * vec4(sampleDirViewpos, 1.0)).xyz;
+			// float sampleDirDepth = gl_FragCoord.z + dBlockLight.x * dDepth.x + dBlockLight.y * dDepth.y; // Sample Depth of the sample direction position
+			// vec3 sampleDirScreen = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) + dBlockLight, sampleDirDepth);
+
+			// // vec3 sampleDirNdcPos = sampleDirScreen * 2.0 - 1.0;
+			// // vec3 sampleDirViewpos = projectAndDivide(gbufferProjectionInverse, sampleDirNdcPos);
+
+			// vec3 sampleDirViewpos = screenToView(sampleDirScreen.xy, sampleDirScreen.z);
+			// vec3 sampleDirPosScene = (gbufferModelViewInverse * vec4(sampleDirViewpos, 0.0)).xyz;
 
 			// vec3 torchLightDir = normalize(sampleDirPosScene - scenePos);
-			// // vec3 torchLightDir = sampleDirPosScene;
+
+
+			// vec2 scenePosDiffX = dTbnPosDx * dBlockLight.x;
+			// vec2 scenePosDiffY = dTbnPosDy * dBlockLight.y;
+
+			// vec3 torchLightDir = normalize(tbn * vec3(scenePosDiffX + scenePosDiffY, 0.0));
+
 			
-			
-			// // vec3 torcViewDir = screenToView(texcoord + dFdTorch, gl_FragCoord.z) - viewPos;
-			// // vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
-			// // testOut = vec4(torchLightDir, 1.0);
-			// // testOut = vec4(sampleDirPosScene, 1.0);
+			// vec3 torcViewDir = screenToView(texcoord + dBlockLight, gl_FragCoord.z) - viewPos;
+			// vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
+			testOut = vec4(torchLightDir, 1.0);
+			// testOut = vec4(sampleDirPosScene - scenePos, 1.0);
+			// testOut = vec4(1000 * abs(dDepth), 0.0, 1.0);
 			
 			float NdotL  = dot(torchLightDir, normalVal);
 			float NGdotL = dot(torchLightDir, glNormal);
@@ -509,8 +516,8 @@ void main() {
 		}
 
 
-		if(length(dFdSky) > 1e-6) {
-			vec3 skyLightDir = normalize(dFdSceneposX * dFdSky.x + dFdSceneposY * dFdSky.y);
+		if(length(dSkyLight) > 1e-6) {
+			vec3 skyLightDir = normalize(dFdSceneposX * dSkyLight.x + dFdSceneposY * dSkyLight.y);
 			
 			float NdotL  = dot(skyLightDir, normalVal);
 			float NGdotL = dot(skyLightDir, glNormal);
