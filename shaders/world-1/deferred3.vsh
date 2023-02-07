@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 uniform sampler2D colortex10;
 
@@ -57,7 +57,7 @@ void main() {
 
 
 
-// #version 400 compatibility
+// #version 420 compatibility
 
 // uniform mat4 gbufferProjectionInverse;
 // // uniform mat4 gbufferModelViewInverse;

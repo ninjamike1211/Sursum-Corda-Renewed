@@ -1,3 +1,3 @@
-#version 400 compatibility
+#version 420 compatibility
 
 #include "/lib/final.glsl"

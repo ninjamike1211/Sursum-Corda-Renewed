@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 #include "/lib/deferred_fragment.glsl"
 

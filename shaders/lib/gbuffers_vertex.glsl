@@ -1,3 +1,5 @@
+#include "/lib/defines.glsl"
+
 uniform sampler2D colortex10;
 uniform sampler2D colortex12;
 uniform mat4  gbufferModelView;
@@ -18,51 +20,9 @@ uniform int   frameCounter;
 uniform int   moonPhase;
 uniform bool  cameraMoved;
 
-in vec4 at_tangent;
-in vec3 at_midBlock;
-in vec2 mc_midTexCoord;
-
-out vec2 texcoord;
-out vec4 glColor;
-out vec2 lmcoord;
-out vec3 viewPos;
-out vec3 scenePos;
-out vec3 tbnPos;
-flat out mat3 tbn;
-flat out vec4 textureBounds;
-flat out vec3 glNormal;
-flat out vec3 skyAmbient;
-flat out vec3 skyDirect;
-flat out int  entity;
-
 #ifdef inNether
     uniform vec3 fogColor;
-
-    flat out vec3 lightDir;
-    flat out vec3 lightDirView;
 #endif
-
-#include "/lib/defines.glsl"
-#include "/lib/kernels.glsl"
-#include "/lib/noise.glsl"
-#include "/lib/TAA.glsl"
-#include "/lib/spaceConvert.glsl"
-#include "/lib/functions.glsl"
-#include "/lib/sky2.glsl"
-#include "/lib/waving.glsl"
-
-#ifdef POM_TexSizeFix
-    out vec2 localTexcoord;
-#endif
-
-// ------------------------ File Contents -----------------------
-    // Gbuffers primary vertex shader
-    // Calculates basic geometry values
-    // Applies fixes/overrides for specific geometry
-    // Position calculations, including waving geometry
-    // Normals and TBN calculations
-    // Motion vector calculations for TAA or Motion Blur
-
 
 #if defined TAA || defined MotionBlur
     uniform vec3 previousCameraPosition;
@@ -70,9 +30,6 @@ flat out int  entity;
     uniform mat4 gbufferPreviousProjection;
 
     in vec3 at_velocity;
-
-    out vec4 oldClipPos;
-    out vec4 newClipPos;
 #endif
 
 #ifdef mcEntity
@@ -84,6 +41,92 @@ flat out int  entity;
 #ifdef entities
     uniform int entityId;
 #endif
+
+in vec4 at_tangent;
+in vec3 at_midBlock;
+in vec2 mc_midTexCoord;
+
+out VertexData {
+    vec2 texcoord;
+    vec4 glColor;
+    vec2 lmcoord;
+    vec3 viewPos;
+    vec3 scenePos;
+    vec3 tbnPos;
+    flat mat3 tbn;
+    flat vec4 textureBounds;
+    flat vec3 glNormal;
+    flat vec3 skyAmbient;
+    flat vec3 skyDirect;
+    flat int  entity;
+
+    #ifdef inNether
+        flat vec3 lightDir;
+        flat vec3 lightDirView;
+    #endif
+
+    // #ifdef POM_TexSizeFix
+        vec2 localTexcoord;
+    // #endif
+
+    #if defined TAA || defined MotionBlur
+        vec4 oldClipPos;
+        vec4 newClipPos;
+    #endif
+
+};
+
+// layout(location = 10) out vec2 texcoord;
+// layout(location = 11) out vec4 glColor;
+// layout(location = 12) out vec2 lmcoord;
+// layout(location = 13) out vec3 viewPos;
+// layout(location = 14) out vec3 scenePos;
+// layout(location = 15) out vec3 tbnPos;
+// layout(location = 16) flat out mat3 tbn;
+// layout(location = 19) flat out vec4 textureBounds;
+// layout(location = 20) flat out vec3 glNormal;
+// layout(location = 21) flat out vec3 skyAmbient;
+// layout(location = 22) flat out vec3 skyDirect;
+// layout(location = 23) flat out int  entity;
+
+// #ifdef inNether
+//     uniform vec3 fogColor;
+
+//     layout(location = 24) flat out vec3 lightDir;
+//     layout(location = 25) flat out vec3 lightDirView;
+// #endif
+
+// #ifdef POM_TexSizeFix
+//     layout(location = 26) out vec2 localTexcoord;
+// #endif
+
+// #if defined TAA || defined MotionBlur
+//     uniform vec3 previousCameraPosition;
+//     uniform mat4 gbufferPreviousModelView;
+//     uniform mat4 gbufferPreviousProjection;
+
+//     in vec3 at_velocity;
+
+//     layout(location = 27) out vec4 oldClipPos;
+//     layout(location = 28) out vec4 newClipPos;
+// #endif
+
+#include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
+#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
+#include "/lib/functions.glsl"
+#include "/lib/sky2.glsl"
+#include "/lib/waving.glsl"
+
+// ------------------------ File Contents -----------------------
+    // Gbuffers primary vertex shader
+    // Calculates basic geometry values
+    // Applies fixes/overrides for specific geometry
+    // Position calculations, including waving geometry
+    // Normals and TBN calculations
+    // Motion vector calculations for TAA or Motion Blur
+
 
 
 void main() {
@@ -118,9 +161,9 @@ void main() {
     vec2 halfSize = abs(texcoord - mc_midTexCoord);
 	textureBounds = vec4(mc_midTexCoord.xy - halfSize, mc_midTexCoord.xy + halfSize);
 
-    #ifdef POM_TexSizeFix
+    // #ifdef POM_TexSizeFix
         localTexcoord = (texcoord - textureBounds.xy) / (textureBounds.zw - textureBounds.xy);
-    #endif
+    // #endif
 
     #ifdef mcEntity
         entity = int(mc_Entity.x + 0.5);

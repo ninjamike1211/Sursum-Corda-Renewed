@@ -2,4 +2,4 @@
 
 #define inEnd
 
-#include "/lib/gbuffers_vertex.glsl"
+#include "/lib/gbuffers_geometry.glsl"

@@ -22,7 +22,7 @@
 //     // specMapOut = uvec3(0, 0, SpecularEncode(vec4(0.0, 0.0, 0.0, 0.5)));
 // }
 
-#version 400 compatibility
+#version 420 compatibility
 #extension GL_ARB_explicit_attrib_location : enable
 
 #include "/lib/material.glsl"

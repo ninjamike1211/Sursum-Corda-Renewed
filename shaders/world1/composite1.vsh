@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
@@ -45,7 +45,7 @@ void main() {
 
 
 
-// #version 400 compatibility
+// #version 420 compatibility
 
 // #define ExposureSpeed 1000
 

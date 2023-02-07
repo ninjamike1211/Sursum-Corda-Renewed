@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 const float sunPathRotation = -20;
 
@@ -38,7 +38,7 @@ void main() {
 
 
 
-// #version 400 compatibility
+// #version 420 compatibility
 
 // const float sunPathRotation = -20;
 

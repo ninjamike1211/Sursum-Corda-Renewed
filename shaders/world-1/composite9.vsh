@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 #define ExposureSpeed 1.0
 
@@ -72,7 +72,7 @@ void main() {
 
 
 
-// #version 400 compatibility
+// #version 420 compatibility
 
 // #define ExposureSpeed 1.0
 

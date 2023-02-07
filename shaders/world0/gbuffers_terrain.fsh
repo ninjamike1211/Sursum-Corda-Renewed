@@ -1,5 +1,6 @@
-#version 400 compatibility
+#version 420 compatibility
 
+#define useGeomStage
 #define usePBRTextures
 #define usePOM
 #define terrain

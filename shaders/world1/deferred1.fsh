@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 420 compatibility
 
 uniform usampler2D colortex2;
 uniform sampler2D  depthtex2;
