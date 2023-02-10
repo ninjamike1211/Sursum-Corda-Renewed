@@ -32,13 +32,13 @@ void main() {
     shadowColor = texture(tex, texcoordFinal) * glColor;
     if (shadowColor.a < alphaTestRef) discard;
 
-    shadowColor.rgb = sRGBToLinear3(shadowColor.rgb);
+    shadowColor.rgb = shadowColor.rgb;
 
     if(entity == 10010) {
         shadowColor.a = 0.0;
 
         float caustics = (pow(waterHeightFunc(worldPosVertex.xz), 5.0) * 0.8 + 0.2) * 1.8;
 
-        shadowColor.rgb = sRGBToLinear3(glColor.rgb) * caustics * 1.0;
+        shadowColor.rgb = glColor.rgb * caustics * 1.0;
     }
 }

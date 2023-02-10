@@ -87,33 +87,6 @@ in VertexData {
 };
 
 
-// #else
-// 	layout(location = 24) flat in vec3 lightDir;
-// 	layout(location = 25) flat in vec3 lightDirView;
-// #endif
-
-// layout(location = 10) in vec2 texcoord;
-// layout(location = 11) in vec4 glColor;
-// layout(location = 12) in vec2 lmcoord;
-// layout(location = 13) in vec3 viewPos;
-// layout(location = 14) in vec3 scenePos;
-// layout(location = 15) in vec3 tbnPos;
-// layout(location = 16) flat in mat3 tbn;
-// layout(location = 19) flat in vec4 textureBounds;
-// layout(location = 20) flat in vec3 glNormal;
-// layout(location = 21) flat in vec3 skyAmbient;
-// layout(location = 22) flat in vec3 skyDirect;
-// layout(location = 23) flat in int  entity;
-
-// #ifdef POM_TexSizeFix
-//     layout(location = 26) in vec2 localTexcoord;
-// #endif
-
-// #if defined TAA || defined MotionBlur
-//     layout(location = 27) in vec4 oldClipPos;
-//     layout(location = 28) in vec4 newClipPos;
-// #endif
-
 /* RENDERTARGETS: 0,1,2,3,5,6,8,4 */
 layout(location = 0) out vec4  colorOut;
 layout(location = 1) out vec4  albedoOut;
@@ -170,6 +143,9 @@ layout (depth_greater) out float gl_FragDepth;
 #endif
 
 #ifdef POM_SlopeNormals
+#endif
+
+#ifdef DirectionalLightmap
 #endif
 */
 
@@ -263,8 +239,6 @@ void main() {
 					vec2 texcoordDy = dFdy(localTexcoord);
 					vec3 tbnDy = dFdy(tbnPos);
 
-					// vec2 texWorldSize = min(abs(tbnDx.xy / texcoordDx), abs(tbnDy.xy / texcoordDy));
-					// vec2 texWorld
 					vec2 texWorldSize;
 
 					if(abs(texcoordDx.x) > EPS)
@@ -548,7 +522,7 @@ void main() {
 		// 	// testOut = vec4(sampleDirPosScene - scenePos, 1.0);
 		// 	// testOut = vec4(1000 * abs(dDepth), 0.0, 1.0);
 
-		testOut = vec4(abs(lightmapBlockDir), 0.0);
+		// testOut = vec4(abs(lightmapBlockDir), 0.0);
 
 		if(length(lightmapBlockDir) > 0.0) {
 			
