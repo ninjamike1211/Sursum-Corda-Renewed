@@ -510,7 +510,7 @@ void main() {
 
 	// ---------------------- SSS ----------------------
 		#ifdef SSS
-			float subsurface = extractSubsurface(specMap);
+			float subsurface = getSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
 		#endif
 	#endif

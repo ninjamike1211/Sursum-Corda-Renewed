@@ -3,6 +3,7 @@
 
 /*
 // #include "/lib/defines.glsl"
+// #include "/lib/material.glsl"
 // #include "/lib/noise.glsl"
 // #include "/lib/functions.glsl"
 // #include "/lib/spaceConvert.glsl"
@@ -14,11 +15,18 @@
 // uniform float     frameTimeCounter;
 // uniform float     fogDensityMult;
 // uniform vec3      fogColor;
-// uniform float     heldBlockLightValue;
-// uniform float     heldBlockLightValue2;
-// uniform int       heldItemId;
-// uniform int       heldItemId2;
 // uniform int       worldTime;
+
+// #ifdef handLight
+//     uniform float heldBlockLightValue;
+//     uniform float heldBlockLightValue2;
+//     uniform int   heldItemId;
+//     uniform int   heldItemId2;
+// #endif
+
+// #ifdef LightningLight
+//     uniform vec4 lightningBoltPosition;
+// #endif
 */
 
 const vec3 metalsF0[8] = vec3[8](
@@ -93,24 +101,6 @@ void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColo
     // vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
 
     // sceneColor.rgb = mix(fog, sceneColor.rgb, exp(-0.1 * length(viewPos - viewOrigin)));
-}
-
-vec3 adjustLightMap(vec2 lmcoord, vec3 SunMoonColor) {
-    // vec3 skyAmbient = SunMoonColor * mix(vec3(0.07), vec3(4.0), lmcoord.y);
-    lmcoord = pow((lmcoord - 1.0/32.0) * 32.0/31.0, vec2(2.0));
-    vec3 skyAmbient = mix(vec3(0.06), 4 * SunMoonColor, lmcoord.y);
-    vec3 torchAmbient = mix(vec3(0.0), 1.5*vec3(15.0, 7.2, 2.9), lmcoord.x) /* * (1.2 - skyAmbient) */;
-
-    #ifdef inNether
-        torchAmbient = mix(vec3(0.5, 0.1, 0.05), vec3(8.0, 2.2, 0.6), lmcoord.x);
-    #endif
-
-    return skyAmbient + torchAmbient;
-}
-
-vec3 calcAmbient(vec3 albedo, vec2 lmcoord, vec3 skyAmbient, vec4 specMap) {
-    float emissiveness = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
-    return albedo * (adjustLightMap(lmcoord, skyAmbient) * 0.2 + 10.0 * emissiveness);
 }
 
 // void diffuseLighting(inout vec4 albedo, vec3 shadowVal, vec2 lmcoord, int time, float rainStrength) {
@@ -236,11 +226,47 @@ vec3 calcFresnel(float cosTheta, vec4 specMap, vec3 albedo) {
     }
 }
 
+vec3 adjustLightMap(vec2 lmcoord, vec3 SunMoonColor) {
+    // vec3 skyAmbient = SunMoonColor * mix(vec3(0.07), vec3(4.0), lmcoord.y);
+    // lmcoord = pow((lmcoord - 1.0/32.0) * 32.0/31.0, vec2(2.0));
+    lmcoord = pow(lmcoord, vec2(2.0));
+    vec3 skyAmbient = mix(vec3(0.06), 4 * SunMoonColor, lmcoord.y);
+    vec3 torchAmbient = mix(vec3(0.0), 1.5*vec3(15.0, 7.2, 2.9), lmcoord.x) /* * (1.2 - skyAmbient) */;
+
+    #ifdef inNether
+        torchAmbient = mix(vec3(0.5, 0.1, 0.05), vec3(8.0, 2.2, 0.6), lmcoord.x);
+    #endif
+
+    return skyAmbient + torchAmbient;
+}
+
+vec3 calcAmbient(vec3 albedo, vec2 lmcoord, vec3 skyAmbient, vec4 specMap) {
+    vec3 light = adjustLightMap(lmcoord, skyAmbient);
+    
+    float emissiveness = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
+    bool isHardcodedMetal = isMetallic(specMap) == 1;
+
+    #ifdef AmbientMetalHardcodeAlbedo
+        if(isHardcodedMetal) {
+            vec3 F0, F82;
+            int index = int(specMap.g * 255.0 + 0.5) - 230;
+            hardcodeMetalValue(index, F0, F82);
+
+            albedo = mix(0.2 * F0, 0.1 * F82, clamp(10.0 * getRoughness(specMap), 0.0, 1.0));
+        }
+    #else
+        albedo *= (isHardcodedMetal ? AmbientMetalAlbedoMult : 1.0);
+    #endif
+
+    
+    return albedo * light * 0.2 + 10.0 * emissiveness;
+}
+
 vec3 cookTorrancePBRLighting(vec3 albedo, vec3 viewDir, vec3 normal, vec4 specMap, vec3 light, vec3 lightDir) {
     vec3 halfwayDir = normalize(viewDir + lightDir);
 
     float metalness = step(229.5/255.0, specMap.g);
-    float roughness = max(pow(1.0 - specMap.r, 2.0), 0.02);
+    float roughness = getRoughness(specMap);
 
     vec3 fresnel = calcFresnel(max(dot(halfwayDir, viewDir), 0.0), specMap, albedo);
     float geometry = GeometrySmith(normal, viewDir, lightDir, roughness);
@@ -709,6 +735,28 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
         }
     }
 }
+#endif
+
+#ifdef LightningLight
+#ifdef lightingRendering
+void DynamicLightningLight(inout vec3 color, in vec3 scenePos, in vec3 albedo, in vec3 normal, in vec4 specMap) {
+    
+    if(lightningBoltPosition.w > 0.5) {
+
+        vec3 lightDir = normalize(lightningBoltPosition.xyz - (scenePos));
+        float dist = length(lightningBoltPosition.xyz - (scenePos));
+
+        vec3 lightColor = vec3(10000.0) / (15.0 * dist * dist);
+        
+        #ifdef LightningLight_Shadows
+            float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
+            lightColor *= ssShadows((gbufferModelView * vec4(scenePos, 1.0)).xyz, (gbufferModelView * lightningBoltPosition).xyz, jitter, depthtex1);
+        #endif
+
+        color += cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specMap, lightColor, lightDir);
+    }
+}
+#endif
 #endif
 
 #ifdef baseFragment

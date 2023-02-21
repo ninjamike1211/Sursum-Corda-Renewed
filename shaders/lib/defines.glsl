@@ -155,12 +155,18 @@ const int shadowcolor0Format = RGBA16F;
 
 
 // Directional and Hand lighting
+	#define AmbientMetalAlbedoMult 0.15			// Multiplier for albedo applied to metallics through ambient lighting (higher values show albedo texture but look less metalic) [0.0 0.05 0.10 0.15 0.20 0.25 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00]
+	// #define AmbientMetalHardcodeAlbedo		// Uses hardcoded metal values for ambient lighting instead of albedo texture, can make metals look more metallic and realistic, but completely removes albedo texture from lighting
+
 	#define DirectionalLightmap
 	#define DirectionalLightmap_Strength 0.5	// Strength of directional lightmap [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 	#define HandLight
 	#define HandLight_Colors
 	#define HandLight_Shadows
+
+	#define LightningLight
+	// #define LightningLight_Shadows
 
 
 // Motion Blur

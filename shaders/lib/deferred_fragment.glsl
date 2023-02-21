@@ -1,3 +1,5 @@
+#include "/lib/defines.glsl"
+
 uniform sampler2D  colortex1;
 uniform usampler2D colortex2;
 uniform sampler2D  colortex3;
@@ -32,6 +34,10 @@ uniform bool  cameraMoved;
 uniform float eyeAltitude;
 uniform float fogDensityMult;
 
+#ifdef LightningLight
+    uniform vec4 lightningBoltPosition;
+#endif
+
 const int noiseTextureResolution = 512;
 
 #ifndef inNether
@@ -45,7 +51,8 @@ const int noiseTextureResolution = 512;
     flat in vec3 lightDir;
 #endif
 
-#include "/lib/defines.glsl"
+#define lightingRendering
+
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -95,7 +102,7 @@ void main() {
         uvec3 material = texture(colortex2, texcoord).rgb;
         vec3 lmcoordRaw = texture(colortex3, texcoord).rgb;
         vec3 pomResults = texture(colortex8, texcoord).rgb;
-
+	    
         vec3 normal 	    = NormalDecode(material.x);
 	    vec3 normalGeometry = NormalDecode(material.y);
         vec4 specMap        = SpecularDecode(material.z);
@@ -103,6 +110,10 @@ void main() {
         vec2 lmcoord        = lmcoordRaw.rg;
         float isHand        = lmcoordRaw.b;
         float emissiveness  = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
+
+        #ifdef LightningLight
+            vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+        #endif
 
 
     // ---------------------------- SSAO ----------------------------
@@ -162,23 +173,50 @@ void main() {
         #endif
 
     // -------------------------- Lighting --------------------------
-        vec3 playerDir = (gbufferModelViewInverse * vec4(normalize(viewVector), 0.0)).xyz;
+        vec3 sceneDir = (gbufferModelViewInverse * vec4(normalize(viewVector), 0.0)).xyz;
+        // vec3 sceneDir = normalize(scenePos);
 
-        colorOut.rgb = cookTorrancePBRLighting(albedo, playerDir, normal, specMap, skyDirect * shadowResult, lightDir);
+        colorOut.rgb = cookTorrancePBRLighting(albedo, sceneDir, normal, specMap, skyDirect * shadowResult, lightDir);
+        
         colorOut.rgb += calcAmbient(albedo, lmcoord, skyAmbient, specMap) * SSAOOut.r;
+
+        // ----------------- Lightmap PBR lighting ------------------
+            // vec4 lightmapDirRaw = texture(colortex4, texcoord);
+            // vec3 blockLightDir  = unpackNormalVec2(lightmapDirRaw.xy);
+            // vec3 skyLightDir    = unpackNormalVec2(lightmapDirRaw.zw);
+
+            // blockLightDir = normalize(mix(blockLightDir, normalGeometry, 0.5));
+            // skyLightDir   = normalize(mix(skyLightDir,   normalGeometry, 0.5));
+
+            // lmcoord = pow(lmcoord, vec2(2.0));
+
+            // vec3 torchAmbient = 0.2 * mix(vec3(0.0), 1.5*vec3(15.0, 7.2, 2.9), lmcoord.x) /* * (1.2 - skyAmbient) */;
+            // vec3 skyAmbient   = 0.2 * mix(vec3(0.06), 4 * skyAmbient, lmcoord.y);
+
+            // colorOut.rgb += cookTorrancePBRLighting(albedo, sceneDir, normal, specMap, torchAmbient, blockLightDir);
+            // colorOut.rgb += cookTorrancePBRLighting(albedo, sceneDir, normal, specMap, skyAmbient, skyLightDir);
+        
+            // float NdotLLightmap  = dot(skyLightDir, normal);
+            // float NGdotLLightmap = dot(skyLightDir, normalGeometry);
+            
+            // lmcoord.g += DirectionalLightmap_Strength * (NdotLLightmap - NGdotLLightmap) * lmcoord.g;
 
 
     // --------------------- Dynamic Hand Light ---------------------
+        vec3 viewNormal = (gbufferModelView * vec4(normal, 0.0)).xyz;
+    
         #ifdef HandLight
-            vec3 viewNormal = (gbufferModelView * vec4(normal, 0.0)).xyz;
-
             DynamicHandLight(colorOut.rgb, viewPos, albedo, viewNormal, specMap, isHand > 0.5);
+        #endif
+
+        #ifdef LightningLight
+            DynamicLightningLight(colorOut.rgb, scenePos, albedo, normal, specMap);
         #endif
 
 
     // ------------------- Sub-surface Scattering -------------------
         #if defined SSS && !defined inNether
-            float subsurface = extractSubsurface(specMap);
+            float subsurface = getSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult);
         #endif
         

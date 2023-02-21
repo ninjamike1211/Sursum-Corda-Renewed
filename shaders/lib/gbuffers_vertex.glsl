@@ -140,7 +140,7 @@ void main() {
     glColor = gl_Color;
 
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    lmcoord = (gl_MultiTexCoord1 / 256.0).xy;
 
     #ifdef inNether
         skyDirect = netherDirectLight;

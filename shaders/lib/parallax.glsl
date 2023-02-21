@@ -9,7 +9,8 @@
 
 #if POM_Filter == 0
 	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, float lod) {
-		return 1.0 - textureLod(normals, texcoord, lod).a;
+		float sampleHeight = textureLod(normals, texcoord, lod).a;
+		return (sampleHeight > 0.0) ? (1.0 - sampleHeight) : (0.0);
 	}
 #elif POM_Filter == 1
 	// Interpolates height map (bilinear filtering), used for a smooth POM

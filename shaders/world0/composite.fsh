@@ -169,8 +169,8 @@ void main() {
 	     materialOut = material;
 	vec4 specMap     = SpecularDecode(material.z);
 
-	vec3  viewPos     = calcViewPos(viewVector, depth);
-	vec3  scenePos    = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+	vec3 viewPos  = calcViewPos(viewVector, depth);
+	vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
 // ----------------------- Opaque Objects -----------------------
 	if(depth < 1.0) {

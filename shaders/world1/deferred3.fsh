@@ -171,7 +171,7 @@
 
 //     // ------------------- Sub-surface Scattering -------------------
 //         #ifdef SSS
-//             float subsurface = extractSubsurface(specMap);
+//             float subsurface = getSubsurface(specMap);
 // 			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult);
 //         #endif
         

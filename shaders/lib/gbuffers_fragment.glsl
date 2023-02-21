@@ -35,6 +35,10 @@ uniform int   heldItemId2;
 uniform int   heldBlockLightValue2;
 uniform bool  cameraMoved;
 
+#ifdef LightningLight
+    uniform vec4 lightningBoltPosition;
+#endif
+
 
 #ifndef inNether
 	uniform sampler2D shadowtex0;
@@ -105,6 +109,7 @@ layout(location = 6) out vec4  pomOut;
 layout (depth_greater) out float gl_FragDepth;
 
 #define baseFragment
+#define lightingRendering
 
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
@@ -216,6 +221,8 @@ void main() {
 	#ifdef POM_PDO
 		gl_FragDepth = gl_FragCoord.z;
 	#endif
+
+	// testOut = vec4(texture(normals, texcoord).aaa, 1.0);
 
 	#ifdef usePBRTextures
 		
@@ -480,86 +487,95 @@ void main() {
 
 
 // -------------------- Directional Lightmap --------------------
-	#if defined DirectionalLightmap && defined useGeomStage
+	#ifdef DirectionalLightmap
 
-		// vec3 dFdSceneposX = dFdx(scenePos);
-		// vec3 dFdSceneposY = dFdy(scenePos);
-		
-		// vec2 dDepth = vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
-		// vec2 dTbnPosDx = dFdx(tbnPos.xy);
-		// vec2 dTbnPosDy = dFdy(tbnPos.xy);
-		// vec2 dBlockLight = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
-		// vec2 dSkyLight = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
+		#ifdef useGeomStage
+			vec3 blockLightDir = lightmapBlockDir;
+			vec3 skyLightDir   = lightmapSkyDir;
+		#else
 
-
-		// if(length(dBlockLight) > 1e-6) {
-
-		// 	// dBlockLight *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
-		// 	vec3 torchLightDir = normalize(dFdSceneposX * dBlockLight.x + dFdSceneposY * dBlockLight.y);
-
-
-		// 	// float sampleDirDepth = gl_FragCoord.z + dBlockLight.x * dDepth.x + dBlockLight.y * dDepth.y; // Sample Depth of the sample direction position
-		// 	// vec3 sampleDirScreen = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) + dBlockLight, sampleDirDepth);
-
-		// 	// // vec3 sampleDirNdcPos = sampleDirScreen * 2.0 - 1.0;
-		// 	// // vec3 sampleDirViewpos = projectAndDivide(gbufferProjectionInverse, sampleDirNdcPos);
-
-		// 	// vec3 sampleDirViewpos = screenToView(sampleDirScreen.xy, sampleDirScreen.z);
-		// 	// vec3 sampleDirPosScene = (gbufferModelViewInverse * vec4(sampleDirViewpos, 0.0)).xyz;
-
-		// 	// vec3 torchLightDir = normalize(sampleDirPosScene - scenePos);
-
-
-		// 	// vec2 scenePosDiffX = dTbnPosDx * dBlockLight.x;
-		// 	// vec2 scenePosDiffY = dTbnPosDy * dBlockLight.y;
-
-		// 	// vec3 torchLightDir = normalize(tbn * vec3(scenePosDiffX + scenePosDiffY, 0.0));
-
+			vec3 dFdSceneposX = dFdx(scenePos);
+			vec3 dFdSceneposY = dFdy(scenePos);
 			
-		// 	// vec3 torcViewDir = screenToView(texcoord + dBlockLight, gl_FragCoord.z) - viewPos;
-		// 	// vec3 torchLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
-		// 	// testOut = vec4(torchLightDir, 1.0);
-		// 	// testOut = vec4(sampleDirPosScene - scenePos, 1.0);
-		// 	// testOut = vec4(1000 * abs(dDepth), 0.0, 1.0);
+			// vec2 dDepth = vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
+			// vec2 dTbnPosDx = dFdx(tbnPos.xy);
+			// vec2 dTbnPosDy = dFdy(tbnPos.xy);
+			vec2 dBlockLight = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
+			vec2 dSkyLight = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
+
+
+			// if(length(dBlockLight) > 1e-6) {
+
+			// 	// dBlockLight *= vec2(dFdx(gl_FragCoord.z), dFdy(gl_FragCoord.z));
+			vec3 blockLightDir = (length(dBlockLight) > 1e-6) ? normalize(dFdSceneposX * dBlockLight.x + dFdSceneposY * dBlockLight.y) : glNormal;
+			vec3 skyLightDir   = (length( dSkyLight ) > 1e-6) ? normalize(dFdSceneposX *  dSkyLight.x  + dFdSceneposY *  dSkyLight.y ) : vec3(0.0, 1.0, 0.0);
+
+
+			// 	// float sampleDirDepth = gl_FragCoord.z + dBlockLight.x * dDepth.x + dBlockLight.y * dDepth.y; // Sample Depth of the sample direction position
+			// 	// vec3 sampleDirScreen = vec3(gl_FragCoord.xy / vec2(viewWidth, viewHeight) + dBlockLight, sampleDirDepth);
+
+			// 	// // vec3 sampleDirNdcPos = sampleDirScreen * 2.0 - 1.0;
+			// 	// // vec3 sampleDirViewpos = projectAndDivide(gbufferProjectionInverse, sampleDirNdcPos);
+
+			// 	// vec3 sampleDirViewpos = screenToView(sampleDirScreen.xy, sampleDirScreen.z);
+			// 	// vec3 sampleDirPosScene = (gbufferModelViewInverse * vec4(sampleDirViewpos, 0.0)).xyz;
+
+			// 	// vec3 blockLightDir = normalize(sampleDirPosScene - scenePos);
+
+
+			// 	// vec2 scenePosDiffX = dTbnPosDx * dBlockLight.x;
+			// 	// vec2 scenePosDiffY = dTbnPosDy * dBlockLight.y;
+
+			// 	// vec3 blockLightDir = normalize(tbn * vec3(scenePosDiffX + scenePosDiffY, 0.0));
+
+				
+			// 	// vec3 torcViewDir = screenToView(texcoord + dBlockLight, gl_FragCoord.z) - viewPos;
+			// 	// vec3 blockLightDir = mat3(gbufferModelViewInverse) * torcViewDir;
+			// 	// testOut = vec4(blockLightDir, 1.0);
+			// 	// testOut = vec4(sampleDirPosScene - scenePos, 1.0);
+			// 	// testOut = vec4(1000 * abs(dDepth), 0.0, 1.0);
+
+		#endif
+
+		// ----------------- Lightmap PBR lighting ------------------
+			// testOut = vec4(packNormalVec2(blockLightDir), packNormalVec2(skyLightDir));
+
+
 
 		// testOut = vec4(abs(lightmapBlockDir), 0.0);
 
-		if(length(lightmapBlockDir) > 0.0) {
+		// if(length(blockLightDir) > 0.0) {
 			
-			float NdotL  = dot(lightmapBlockDir, normalVal);
-			float NGdotL = dot(lightmapBlockDir, glNormal);
+		// 	float NdotL  = dot(blockLightDir, normalVal);
+		// 	float NGdotL = dot(blockLightDir, glNormal);
 			
-			lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
-		}
-		else {
-			float NdotL = 0.9 - dot(glNormal, normalVal);
-			lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
-		}
+		// 	lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
+		// }
+		// else {
+		// 	float NdotL = 0.9 - dot(glNormal, normalVal);
+		// 	lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
+		// }
 
 
-		// if(length(dSkyLight) > 1e-6) {
-		if(length(lightmapSkyDir) > 0.0) {
-			// vec3 skyLightDir = normalize(dFdSceneposX * dSkyLight.x + dFdSceneposY * dSkyLight.y);
+		// // if(length(dSkyLight) > 1e-6) {
+		// if(length(skyLightDir) > 0.0) {
 			
-			float NdotL  = dot(lightmapSkyDir, normalVal);
-			float NGdotL = dot(lightmapSkyDir, glNormal);
+		// 	float NdotL  = dot(skyLightDir, normalVal);
+		// 	float NGdotL = dot(skyLightDir, glNormal);
 			
-			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
-		}
-		else {
-			float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
-			float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
+		// 	lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		// }
+		// else {
+		// 	float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
+		// 	float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
 			
-			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
-		}
+		// 	lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		// }
 
-		lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
+		// lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
 		
 	#endif
 
-	// lightmapOut.rg *= textureLod(normals, texcoordFinal, lod).b;
-
-	// albedoOut = vec4(albedo.rgb, 1.0);
 	albedoOut = albedo;
 
 
@@ -600,7 +616,7 @@ void main() {
 
 	// ---------------------- SSS ----------------------
 		#if defined SSS && !defined inNether
-			float subsurface = extractSubsurface(specMap);
+			float subsurface = getSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
 		#endif
 	#endif
@@ -610,9 +626,6 @@ void main() {
 	materialOut.r = NormalEncode(normalVal);
 	materialOut.g = NormalEncode(geomNormal);
 	materialOut.b = SpecularEncode(specMap);
-	// materialOut.a = 4294967295;
-	// specMapOut = vec4(specMap.rgb, 1.0);
-	// specMapOut = specMap;
 
 
 // ------------ Debug Stuff (disable when not using) ------------
@@ -646,7 +659,4 @@ void main() {
 
 	// albedoOut = vec4(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)), 0.0, 1.0);
 
-	#ifdef text
-		albedoOut = vec4(1.0, 0.0, 1.0, 1.0);
-	#endif
 }
