@@ -123,16 +123,15 @@ void main() {
 	#ifdef waterRefraction
 		float depth;
 		vec4  opaqueColor;
-		vec2 texcoordRefract = texcoord;
+		vec2  texcoordRefract = texcoord;
+		vec3  viewDir = normalize(waterViewPos);
+		vec3  refractDir = viewDir;
 
 		if(waterDepth != 0.0) {
 			vec3 hitPos = vec3(-1.0);
-			vec3 refractDir;
 
 			vec3 normalTex 	= NormalDecode(material.x);
 			vec3 normalGeom = NormalDecode(material.y);
-
-			vec3 viewDir = normalize(waterViewPos);
 
 
 			// if(isEyeInWater == 0)
@@ -145,10 +144,14 @@ void main() {
 
 			float jitter = 0.0;
 
+			bool hit = raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, hitPos, depthtex1);
+
 			// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
-			if(raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, hitPos, depthtex1)) {
+			if(isEyeInWater == 1 || hit) {
 				texcoordRefract = hitPos.xy;
 			}
+
+			// texcoordRefract = hitPos.xy;
 		}
 
 		depth       = texture(depthtex1, texcoordRefract).r;
@@ -235,11 +238,16 @@ void main() {
 // ------------------------ Sky Rendering -----------------------
 	else {
 		// Read sky value from buffer
-		vec3 eyeDir = mat3(gbufferModelViewInverse) * normalize(viewPos);
+		vec3 eyeDir;
+		if(waterDepth != 0.0)
+			eyeDir = mat3(gbufferModelViewInverse) * normalize(0.05 * viewPos + 100.0 * refractDir);
+		else
+			eyeDir = mat3(gbufferModelViewInverse) * normalize(viewPos);
+		
 		vec3 sky = texture(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
 
 		// Sun disk
-		float sunDisk = smoothstep(-0.034, 0.05, eyeDir.y) * smoothstep(0.9995, 0.9998, dot(normalize(viewPos), sunDirView));
+		float sunDisk = smoothstep(-0.034, 0.05, eyeDir.y) * smoothstep(0.9995, 0.9998, dot(eyeDir, sunDir));
 		sky *= mix(1.0, 400.0, sunDisk);
 
 		specMap.a = sunDisk * 254.0/255.0;

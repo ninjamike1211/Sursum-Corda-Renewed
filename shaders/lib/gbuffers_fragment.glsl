@@ -544,35 +544,32 @@ void main() {
 
 		// testOut = vec4(abs(lightmapBlockDir), 0.0);
 
-		// if(length(blockLightDir) > 0.0) {
+		if(length(blockLightDir) > 0.0) {
 			
-		// 	float NdotL  = dot(blockLightDir, normalVal);
-		// 	float NGdotL = dot(blockLightDir, glNormal);
+			float NdotL  = dot(blockLightDir, normalVal);
+			float NGdotL = dot(blockLightDir, glNormal);
 			
-		// 	lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
-		// }
-		// else {
-		// 	float NdotL = 0.9 - dot(glNormal, normalVal);
-		// 	lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
-		// }
+			lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
+		}
+		else {
+			float NdotL = 0.9 - dot(glNormal, normalVal);
+			lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
+		}
 
 
-		// // if(length(dSkyLight) > 1e-6) {
-		// if(length(skyLightDir) > 0.0) {
+		if(length(skyLightDir) > 0.0) {
 			
-		// 	float NdotL  = dot(skyLightDir, normalVal);
-		// 	float NGdotL = dot(skyLightDir, glNormal);
+			float NdotL  = dot(skyLightDir, normalVal);
+			float NGdotL = dot(skyLightDir, glNormal);
 			
-		// 	lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
-		// }
-		// else {
-		// 	float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
-		// 	float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		}
+		else {
+			float NdotL  = dot(vec3(0.0, 1.0, 0.0), normalVal);
+			float NGdotL = dot(vec3(0.0, 1.0, 0.0), glNormal);
 			
-		// 	lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
-		// }
-
-		// lightmapOut.rg = clamp(lightmapOut.rg, 1.0/32.0, 31.0/32.0);
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		}
 		
 	#endif
 
