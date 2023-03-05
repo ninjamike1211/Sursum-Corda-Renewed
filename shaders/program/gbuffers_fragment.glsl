@@ -154,6 +154,7 @@ layout (depth_greater) out float gl_FragDepth;
 
 #ifdef DirectionalLightmap
 #endif
+
 */
 
 
@@ -341,7 +342,13 @@ void main() {
 		lightmapOut = vec4(lmcoord, 0.0, 1.0);
 	#endif
 
-	// albedo.rgb = vec3(0.4);
+	#if worldColorMode == 1
+		albedo.rgb = vec3(1.0);
+	#elif worldColorMode == 2
+		albedo.rgb = vec3(0.4);
+	#elif worldColorMode == 3
+		albedo.rgb = vec3(0.0);
+	#endif
 
 
 // ---------------------- Fixes/Overrides -----------------------

@@ -55,6 +55,9 @@ const int shadowcolor0Format = RGBA16F;
 	#endif
 
 
+	#define worldColorMode 0 	// Overrides all textures with a color, for debug/artists but also just looks cool [0 1 2 3]
+
+
 // Lighting Constants
 	#define netherAmbientLight 	vec3(0.4, 0.02, 0.01)
 	#define netherDirectLight 	(fogColor * 5.0)

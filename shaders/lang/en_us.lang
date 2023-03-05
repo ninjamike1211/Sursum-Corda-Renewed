@@ -32,3 +32,8 @@ value.viewBuffer.103=emissive map
 value.viewBuffer.104=linear depthtex0
 value.viewBuffer.105=linear depthtex1
 value.viewBuffer.106=linear depthtex2
+
+value.worldColorMode.0=disabled
+value.worldColorMode.1=White World
+value.worldColorMode.2=Gray World
+value.worldColorMode.3=Black World
