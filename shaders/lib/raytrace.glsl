@@ -40,7 +40,7 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, out ve
     rayPos  = viewToScreen(viewPos);
     // Starting position in screen space, it's better to perform space conversions OUTSIDE of the loop to increase performance
     vec3 rayDir  = viewToScreen(viewPos + viewRayDir) - rayPos;
-    rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.99 / (stepCount+jitter));
+    rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.9999 / (stepCount+jitter));
     // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
 
 
@@ -87,6 +87,16 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, out ve
     return intersect;
     // Outputting the boolean
 }
+
+// bool raytrace(inout vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, sampler2D depthtex) {
+    
+//     // Calculate screen space reflection ray direction
+//     vec3 rayDir = viewToScreen(viewPos + viewRayDir) - screenPos;
+//     vec3 rayIncrement = rayDir * 0.9999 / stepCount;
+
+
+
+// }
 
 // Modified version of raytrace for screen space shadows (contact shadows)
 bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter) {

@@ -2,4 +2,4 @@
 
 #define inNether
 
-#include "/lib/gbuffers_geometry.glsl"
+#include "/program/gbuffers_geometry.glsl"

@@ -137,6 +137,22 @@ void main() {
             SSAOOut = vec4(1.0);
         #endif
 
+        #ifdef POM_Shadow
+            // #ifndef SSAO
+                vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
+            // #endif
+            
+            float shadow = 0.0;
+
+            for(int i = 0; i < 9; i++) {
+                vec2 offset = vec2(0.0, (i-4)) * texelSize;
+
+                shadow += gaussian_9[i] * texture(colortex8, texcoord + offset).g;
+            }
+
+            pomResults.g = shadow;
+        #endif
+
 
     // --------------------------- Shadows --------------------------
         float NGdotL = dot(normalGeometry, lightDir);

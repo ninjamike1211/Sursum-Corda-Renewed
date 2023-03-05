@@ -6,4 +6,4 @@
 #define usePOM
 #define afterDeferred
 
-#include "/lib/gbuffers_fragment.glsl"
+#include "/program/gbuffers_fragment.glsl"

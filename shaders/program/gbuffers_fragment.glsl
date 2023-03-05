@@ -35,6 +35,8 @@ uniform int   heldItemId2;
 uniform int   heldBlockLightValue2;
 uniform bool  cameraMoved;
 
+uniform int entityId;
+
 #ifdef LightningLight
     uniform vec4 lightningBoltPosition;
 #endif
@@ -101,7 +103,7 @@ layout(location = 5) out vec4  velocityOut;
 layout(location = 6) out vec4  pomOut;
 
 
-#define debugOut
+// #define debugOut
 #ifdef debugOut
 	layout(location = 7) out vec4 testOut;
 #endif
@@ -338,6 +340,8 @@ void main() {
 	#else
 		lightmapOut = vec4(lmcoord, 0.0, 1.0);
 	#endif
+
+	// albedo.rgb = vec3(0.4);
 
 
 // ---------------------- Fixes/Overrides -----------------------
@@ -655,5 +659,11 @@ void main() {
 	// vec3 sceneDy = dFdy(scenePos);
 
 	// albedoOut = vec4(vec2(length(sceneDx) / length(texcoordDx), length(sceneDy) / length(texcoordDy)), 0.0, 1.0);
+
+	// #ifdef block
+		// if(entity == 11111) {
+		// 	albedoOut.rgb = vec3(1.0);
+		// }
+	// #endif
 
 }

@@ -6,7 +6,7 @@ RGBA8       colortex4:
 R32F        colortex5:  r: water depth
 RG16_SNORM  colortex6:  rg: velocity
 RGB16F      colortex7:  rgb: deferred output
-RG8         colortex8:  r: pom shadow direction offset, g: pom shadow (if self shadowing), b: pom offset into block
+RGB8        colortex8:  r: pom shadow direction offset, g: pom shadow (if self shadowing), b: pom offset into block
 R8          colortex9:  r: SSAO, DOF CoC
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
@@ -21,22 +21,20 @@ Temporal Variables (colortex12)
     (1,0): rg: smooth center depth depthtex0, ba: smooth center depth depthtex2 (without hand)
 
 To do list:
-    Fix/change flowing water
     Either find credits for atmosphere or recreate
-    Fix/tweak volumetric fog
-    Fix water volumetric fog
-    Improve bloom handling
+    Fix/tweak volumetric fog (espeically rain and rain to clear transition)
+    Fix water volumetric fog (especially in caves)
     Add support for darkness/blindness/nausia effects
-    Fix POM skipping on heightmap edges on texture edges
-    Fix broken POM on some non-standard blocks
-    Fix some line weirdness, especially with depth writing
-    Fix water underwater refraction
     Improve TAA (possibly with depth/normal accumulation)
     Fix Nether lighting/specular breaking under entities that are lit by blocklight
+    Fix/change flowing water
+    Improve bloom handling
+    Fix some line weirdness, especially with depth writing
 
 New Ideas / Future Features:
-    rough reflections
+    Add support for varialbe pre-frame sample count for rough reflections
     use temporal variables to create a more complex weather system
+        Possibly also based on world time / world day
 
 Voxelization ideas:
     Proper POM edge handling (discard on edge, transition between POM of different blocks)

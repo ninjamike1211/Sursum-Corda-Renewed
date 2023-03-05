@@ -1,6 +1,6 @@
 #version 420 compatibility
 
-#include "/lib/deferred_fragment.glsl"
+#include "/program/deferred_fragment.glsl"
 
 // uniform sampler2D  colortex1;
 // uniform usampler2D colortex2;

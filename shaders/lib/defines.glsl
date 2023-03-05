@@ -41,6 +41,20 @@ const int shadowcolor0Format = RGBA16F;
 	#define GOLDEN_ANGLE 2.39996322
 
 
+// Dimension defiens
+	#if !defined inNether && !defined inEnd
+		#define inOverworld
+	#endif
+
+	#ifndef inNether
+		#define dimHasShadows
+	#endif
+
+	#ifndef inNether
+		#define dimHasWater
+	#endif
+
+
 // Lighting Constants
 	#define netherAmbientLight 	vec3(0.4, 0.02, 0.01)
 	#define netherDirectLight 	(fogColor * 5.0)
@@ -101,9 +115,16 @@ const int shadowcolor0Format = RGBA16F;
 
 
 // Screen Space Reflections
-	#define SSR					// Screen space reflections, adds reflections to shiney surfaces, including water
-	#define SSR_Steps 		64	// Steps to use in main SSR loop [16 20 24 28 32 40 48 64 72]
-	#define SSR_BinarySteps 4	// Binary refinement steps in SSR loop [1 2 4 6 8 12 16]
+	#define SSR						// Screen space reflections, adds reflections to shiney surfaces, including water
+	#define SSR_RoughReflections	// Makes reflections or rougher surfaces look more blurred, requires TAA to remove noise, low performance impact
+	#define SSR_Steps 		64		// Steps to use in main SSR loop [16 20 24 28 32 40 48 64 72]
+	#define SSR_BinarySteps 4		// Binary refinement steps in SSR loop [1 2 4 6 8 12 16]
+
+	#define SSR_LowThreshold		0.2
+	#define SSR_HighThreshold		0.55
+	#define SSR_LowRoughThreshold	0.05
+	#define SSR_HighRoughThreshold	0.55
+
 
 #define SSS	// Sub-surface scattering
 
@@ -192,7 +213,6 @@ const int shadowcolor0Format = RGBA16F;
 
 
 #define EmissiveStrength 1.0 // Strength of texture emissives [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
-
 
 // Waving objects and wind
 	#define wavingPlants

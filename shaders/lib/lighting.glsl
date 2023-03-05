@@ -27,6 +27,10 @@
 // #ifdef LightningLight
 //     uniform vec4 lightningBoltPosition;
 // #endif
+
+#ifdef inEnd
+    uniform vec3 cameraPosition;
+#endif
 */
 
 const vec3 metalsF0[8] = vec3[8](
@@ -84,6 +88,32 @@ void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) 
 
     albedo.rgb = mix(0.7*fogColor, albedo.rgb, fogFactor);
 }
+
+#ifdef UseEndSkyFog
+
+    float endFogFactor(vec3 origin, vec3 position) {
+        float dist = length(position - origin);
+        return clamp(exp(-dist*0.02), 0.0, 1.0);
+    }
+
+    vec3 endSky(vec3 sceneDir, sampler2D skyTex) {
+        vec3 sky = texture(skyTex, projectSphere(sceneDir) * AS_RENDER_SCALE).rgb;
+
+        // #ifdef cloudsEnable
+        //     applyEndCloudColor(sceneDir, cameraPosition * vec3(50.0, 1.0, 50.0), sky, -endDirectLight);
+        // #endif
+
+        return abs(sky * 2.0);
+    }
+
+    void endFog(inout vec3 albedo, vec3 sceneOrigin, vec3 scenePos, sampler2D skyTex) {
+        vec3  skyColor  = endSky(normalize(scenePos - sceneOrigin), skyTex);
+        float fogFactor = endFogFactor(sceneOrigin, scenePos);
+
+        albedo = mix(skyColor, albedo, fogFactor);
+    }
+
+#endif
 
 float waterFogFactor(vec3 viewOrigin, vec3 viewPos) {
     return exp(-0.1 * length(viewPos - viewOrigin));

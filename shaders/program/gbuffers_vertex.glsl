@@ -165,7 +165,9 @@ void main() {
         localTexcoord = (texcoord - textureBounds.xy) / (textureBounds.zw - textureBounds.xy);
     // #endif
 
-    #ifdef mcEntity
+    #ifdef entities
+        entity = entityId;
+    #elif defined mcEntity
         entity = int(mc_Entity.x + 0.5);
     #else
         entity = blockEntityId;

@@ -3,4 +3,4 @@
 #define inNether
 #define mcEntity
 
-#include "/lib/gbuffers_vertex.glsl"
+#include "/program/gbuffers_vertex.glsl"

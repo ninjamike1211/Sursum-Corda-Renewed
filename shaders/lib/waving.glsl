@@ -91,6 +91,17 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, sampler
 				((1.0 - facingX) * 0.5 + 0.5) * windDirection.y * windOffset
 			);
 		}
+		case 10008: { // Vertical chains and hanging lanterns
+		
+			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.5 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
+
+			return vec3(
+				windDirection.x * windWave,
+				0.0,
+				windDirection.y * windWave
+			);
+
+		}
 	}
 
 	return vec3(0.0);

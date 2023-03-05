@@ -49,7 +49,7 @@ vec4 SpecularDecode(uint encodedSpecMap) {
 }
 
 float getRoughness(vec4 specMap) {
-	return max(pow(1.0 - specMap.r, 2.0), 0.02);
+	return max(pow(1.0 - specMap.r, 2.0), 0.005);
 }
 
 float getSubsurface(vec4 specMap) {

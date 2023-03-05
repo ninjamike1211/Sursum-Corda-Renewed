@@ -4,4 +4,4 @@
 #define usePBRTextures
 #define entities
 
-#include "/lib/gbuffers_fragment.glsl"
+#include "/program/gbuffers_fragment.glsl"

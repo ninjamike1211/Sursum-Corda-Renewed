@@ -79,4 +79,21 @@ vec3 normalToView(vec3 normal) {
 	return (gbufferModelView * vec4(normal, 0.0)).xyz;
 }
 
+// Creates a TBN matrix from a normal and a tangent
+mat3 tbnNormalTangent(vec3 normal, vec3 tangent) {
+    // For DirectX normal mapping you want to switch the order of these 
+    vec3 bitangent = cross(normal, tangent);
+    return mat3(tangent, bitangent, normal);
+}
+
+// Creates a TBN matrix from just a normal
+// The tangent version is needed for normal mapping because
+//   of face rotation
+mat3 tbnNormal(vec3 normal) {
+    // This could be
+    // normalize(vec3(normal.y - normal.z, -normal.x, normal.x))
+    vec3 tangent = normalize(cross(normal, vec3(0, 1, 1)));
+    return tbnNormalTangent(normal, tangent);
+}
+
 #endif
