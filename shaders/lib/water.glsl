@@ -4,8 +4,6 @@
 /*  
  *  Requirements:
  *  include "noise.glsl"
- *  uniform float frameTimeCounter;
- *  uniform vec3 cameraPosition;
  */ 
 
 // #include "defines.glsl"
@@ -55,7 +53,7 @@ vec2 waveFunctionDeriv(vec2 pos, float time, float amplitude, float frequency, f
     return 0.5 * Water_Depth * vec2(partialX, partialZ);
 }
 
-float waterHeightFunc(vec2 horizontalPos) {
+float waterHeightFunc(vec2 horizontalPos, float frameTimeCounter) {
     // float offset =  + waveFunction(horizontalPos, frameTimeCounter, 0.6, 1, PI / 3.0, waveDirs[0])
     //                 + waveFunction(horizontalPos, frameTimeCounter, 0.1, 1, PI / 1.25, waveDirs[1])
     //                 + waveFunction(horizontalPos, frameTimeCounter, 0.1, 2, PI, waveDirs[2])
@@ -84,14 +82,14 @@ float waterHeightFunc(vec2 horizontalPos) {
     return offset * 0.5 + 0.5;
 }
 
-float waterHeight(vec2 horizontalPos) {
+float waterHeight(vec2 horizontalPos, float frameTimeCounter) {
 
-    float offset = waterHeightFunc(horizontalPos);
+    float offset = waterHeightFunc(horizontalPos, frameTimeCounter);
 
     return (offset * Water_Depth + (1-Water_Depth));
 }
 
-vec3 waterNormal(vec3 worldPos) {
+vec3 waterNormal(vec3 worldPos, float frameTimeCounter) {
 
     // vec2 partials = waveFunctionDeriv(horizontalPos, frameTimeCounter, 0.6, 1, PI / 3.0, waveDirs[0]);
     // partials += waveFunctionDeriv(horizontalPos, frameTimeCounter, 0.1, 1, PI / 1.25, waveDirs[1]);
@@ -155,7 +153,7 @@ vec3 waterNormal(vec3 worldPos) {
 // }
 
 
-void waterParallaxMapping(inout vec3 worldPos, vec2 texWorldSize) {
+void waterParallaxMapping(inout vec3 worldPos, vec2 texWorldSize, vec3 cameraPosition, float frameTimeCounter) {
 
     // Variable layer POM
     #ifdef POM_Variable_Layer
@@ -174,7 +172,7 @@ void waterParallaxMapping(inout vec3 worldPos, vec2 texWorldSize) {
 
     // Set up depth varialbes and read initial height map value
     float currentLayerDepth = 0.0;
-    float currentDepthMapValue = 1.0 - waterHeight(worldPos.xz);
+    float currentDepthMapValue = 1.0 - waterHeight(worldPos.xz, frameTimeCounter);
     float lastDepthMapValue = 0.0;
 	
     // loop until the view vector hits the height map
@@ -186,7 +184,7 @@ void waterParallaxMapping(inout vec3 worldPos, vec2 texWorldSize) {
 
 		// get depthmap value at current texture coordinates
         lastDepthMapValue = currentDepthMapValue;
-        float currentDepthMapValue = 1.0 - waterHeight(worldPos.xz);
+        float currentDepthMapValue = 1.0 - waterHeight(worldPos.xz, frameTimeCounter);
 	}
 
     // Linear Interpolation between last 2 layers

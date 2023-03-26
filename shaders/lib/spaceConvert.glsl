@@ -4,24 +4,13 @@
 // #include "/lib/kernels.glsl"
 // #include "/lib/TAA.glsl"
 
-// uniform mat4  gbufferModelView;
-// uniform mat4  gbufferModelViewInverse;
-// uniform mat4  gbufferProjection;
-// uniform mat4  gbufferProjectionInverse;
-// uniform vec3  cameraPosition;
-// uniform float near;
-// uniform float far;
-// uniform float viewWidth;
-// uniform float viewHeight;
-// uniform int   frameCounter;
-// uniform bool  cameraMoved;
 
-float linearizeDepthFast(float depth) {
+float linearizeDepthFast(float depth, float near, float far) {
 	return (near * far) / (depth * (near - far) + far);
 }
 
-float linearizeDepthNorm(float depth) {
-	return (linearizeDepthFast(depth) - near) / (far - near);
+float linearizeDepthNorm(float depth, float near, float far) {
+	return (linearizeDepthFast(depth, near, far) - near) / (far - near);
 }
 
 vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
@@ -29,54 +18,54 @@ vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
 	return homoPos.xyz / homoPos.w;
 }
 
-vec3 calcViewPos(vec3 viewVector, float depth) {
-	float viewZ = -gbufferProjection[3][2] / ((depth * 2.0 - 1.0) + gbufferProjection[2][2]);
+vec3 calcViewPos(vec3 viewVector, float depth, mat4 projectionMatrix) {
+	float viewZ = -projectionMatrix[3][2] / ((depth * 2.0 - 1.0) + projectionMatrix[2][2]);
 	return viewVector * viewZ;
 }
 
-vec3 screenToView(vec2 texcoord, float depth) {
+vec3 screenToView(vec2 texcoord, float depth, int frameCounter, vec2 screenSize, mat4 inverseProjectionMatrix) {
 	vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
 
 	#ifdef TAA
-		ndcPos.xy -= taaOffset();
+		ndcPos.xy -= taaOffset(frameCounter, screenSize);
 	#endif
 
-	return projectAndDivide(gbufferProjectionInverse, ndcPos);
+	return projectAndDivide(inverseProjectionMatrix, ndcPos);
 }
 
-vec3 viewToScreen(vec3 viewPos) {
-	vec3 ndcPos = projectAndDivide(gbufferProjection, viewPos);
+vec3 viewToScreen(vec3 viewPos, int frameCounter, vec2 screenSize, mat4 projectionMatrix) {
+	vec3 ndcPos = projectAndDivide(projectionMatrix, viewPos);
 	
 	#ifdef TAA
-		ndcPos.xy += taaOffset();
+		ndcPos.xy += taaOffset(frameCounter, screenSize);
 	#endif
 
 	return ndcPos * 0.5 + 0.5;
 }
 
-vec3 viewToWorld(vec3 viewPos) {
-	vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+vec3 viewToWorld(vec3 viewPos, vec3 cameraPosition, mat4 inverseModelViewMatrix) {
+	vec3 scenePos = (inverseModelViewMatrix * vec4(viewPos, 1.0)).xyz;
 	return scenePos + cameraPosition;
 }
 
-vec3 worldToView(vec3 worldPos) {
+vec3 worldToView(vec3 worldPos, vec3 cameraPosition, mat4 modelViewMatrix) {
 	vec3 scenePos = worldPos - cameraPosition;
-	return (gbufferModelView * vec4(scenePos, 1.0)).xyz;
+	return (modelViewMatrix * vec4(scenePos, 1.0)).xyz;
 }
 
-vec3 calcViewVector(vec2 texcoord) {
+vec3 calcViewVector(vec2 texcoord, int frameCounter, vec2 screenSize, mat4 inverseProjectionMatrix) {
 	vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, 0.0);
 
 	#ifdef TAA
-		ndcPos.xy -= taaOffset();
+		ndcPos.xy -= taaOffset(frameCounter, screenSize);
 	#endif
 
-	vec3 viewVector = projectAndDivide(gbufferProjectionInverse, ndcPos);
+	vec3 viewVector = projectAndDivide(inverseProjectionMatrix, ndcPos);
 	return viewVector / viewVector.z;
 }
 
-vec3 normalToView(vec3 normal) {
-	return (gbufferModelView * vec4(normal, 0.0)).xyz;
+vec3 normalToView(vec3 normal, mat4 modelViewMatrix) {
+	return (modelViewMatrix * vec4(normal, 0.0)).xyz;
 }
 
 // Creates a TBN matrix from a normal and a tangent

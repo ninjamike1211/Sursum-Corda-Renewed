@@ -154,7 +154,7 @@ void main() {
         skyDirect = endDirectLight;
         skyAmbient = endAmbientLight;
     #else
-        skyDirect = sunLightSample();
+        skyDirect = sunLightSample(sunHeight, shadowHeight, rainStrength, moonPhase);
         skyAmbient = skyLightSample(colortex10);
     #endif
 
@@ -206,10 +206,10 @@ void main() {
     vec4 modelPos = gl_Vertex;
 
     #ifdef wavingPlants
-        if(entity > 10000) {
+        if(entity > 10000 && entity < 11000) {
             vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, colortex12);
+            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength, colortex12);
         }
     #endif
 
@@ -261,7 +261,7 @@ void main() {
         #endif
 
         #if defined TAA
-            gl_Position.xy += taaOffset() * gl_Position.w;
+            gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
         #endif
     #endif
 

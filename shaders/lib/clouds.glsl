@@ -4,9 +4,6 @@
 // #include "/defines.glsl"
 // #include "/noise.glsl"
 
-// uniform float far;
-// uniform vec3  lightDir;
-// uniform vec3  sunDir
 
 void getCloudCoords(vec3 eyeDir, vec3 eyeOrigin, float height, float radius, out vec2 cloudCoords, out float dist, out vec2 angles) {
 	float sphereCenter = height - radius;
@@ -19,7 +16,7 @@ void getCloudCoords(vec3 eyeDir, vec3 eyeOrigin, float height, float radius, out
 	cloudCoords = radius * sin(angles) - eyeOrigin.xz;
 }
 
-void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor) {
+void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir) {
 
 	vec2 cloudCoordsHigh, cloudAnglesHigh;
 	float cloudDistHigh;
@@ -40,8 +37,6 @@ void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lig
 	normal = normalize(normal);
 	normal = rotMatrx * normal;
 	float cloudDotL = dot(normal, lightDir);
-
-	float sunDot = smoothstep(0.965, 0.9999999999, dot(eyeDir, sunDir));
 
 	vec3 cloudColorHigh = lightColor * mix(0.3, 0.35, rainStrength) * (abs(cloudDotL) * 0.5 + 0.5);
 	float cloudAlphaHigh = smoothstep(1.5 - 1.5*rainStrength, 6.0 - 5.0*rainStrength, exp(density)) * smoothstep(far*190, far*(1+50*rainStrength), cloudDistHigh);
@@ -108,7 +103,7 @@ void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lig
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }
 
-void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 fogColor) {
+void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 fogColor, float far, vec3 lightDir) {
 
 	vec2 cloudCoordsHigh;
 	float cloudDistHigh;
@@ -130,8 +125,6 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 	normal = normalize(normal);
 	normal = rotMatrx * normal;
 	cloudDotL = dot(normal, lightDir);
-
-	float sunDot = smoothstep(0.965, 0.9999999999, dot(eyeDir, sunDir));
 
 	vec3 cloudColorHigh = (0.1*vec3(0.4, 0.02, 0.01) + 0.7*fogColor) * (abs(cloudDotL) * 0.5 + 0.5);
 	float cloudAlphaHigh = smoothstep(1.5, 6.0, exp(density)) * smoothstep(200000.0, 400.0, cloudDistHigh);
@@ -166,7 +159,7 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }
 
-void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor) {
+void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir) {
 
 	vec2 cloudCoordsHigh;
 	float cloudDistHigh;
@@ -189,8 +182,6 @@ void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 
 	normal = normalize(normal);
 	normal = rotMatrx * normal;
 	cloudDotL = dot(normal, lightDir);
-
-	float sunDot = smoothstep(0.965, 0.9999999999, dot(eyeDir, sunDir));
 
 	vec3 cloudColorHigh = lightColor * 0.3 * (abs(cloudDotL) * 0.5 + 0.5);
 	float cloudAlphaHigh = smoothstep(1.5, 3.0, exp(density)) * smoothstep(far*190, far, cloudDistHigh);

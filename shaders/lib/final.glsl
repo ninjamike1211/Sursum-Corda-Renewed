@@ -114,11 +114,11 @@ void main() {
         #elif viewBuffer == 103
             gl_FragData[0] = vec4(SpecularDecode(texture(colortex2, texcoord).b).a);
         #elif viewBuffer == 104
-            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r)), 1.0);
+            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r, near, far)), 1.0);
         #elif viewBuffer == 105
-            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r)), 1.0);
+            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r, near, far)), 1.0);
         #elif viewBuffer == 106
-            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r)), 1.0);
+            gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r, near, far)), 1.0);
         #endif
     #if viewBuffer != 0
     }

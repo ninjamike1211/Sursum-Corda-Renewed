@@ -54,7 +54,7 @@ void main() {
     
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-    viewVector = calcViewVector(texcoord);
+    viewVector = calcViewVector(texcoord, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
     // vec4 ray = gbufferProjectionInverse * vec4(texcoord * 2.0 - 1.0, 0.0, 1.0);
 	// viewVector = (ray.xyz / ray.w);
 	// viewVector /= viewVector.z;

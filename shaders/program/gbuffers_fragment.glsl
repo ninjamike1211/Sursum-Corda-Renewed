@@ -200,7 +200,7 @@ void main() {
 		vec3 worldPos  = scenePos + cameraPosition;
 		vec4 specMap;
 
-		applyEndPortal(worldPos, albedoOut.rgb, specMap);
+		applyEndPortal(worldPos, albedoOut.rgb, specMap, frameTimeCounter, viewWidth);
 
 		materialOut.r = NormalEncode(glNormal);
 		materialOut.g = materialOut.x;
@@ -280,7 +280,7 @@ void main() {
 
 					#ifdef POM_Shadow
 					if(dot(lightDir, glNormal) > 0.0)
-						pomOut.g = parallaxShadows(tangentPos, tbn, textureBounds, texWorldSize, lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
+						pomOut.g = parallaxShadows(tangentPos, tbn, lightDir, textureBounds, texWorldSize, lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					#endif
 
 				// ---------- Parallax Pixel Depth Offset ----------
@@ -354,7 +354,7 @@ void main() {
 // ---------------------- Fixes/Overrides -----------------------
 
 	// Apply SSS to grass and similar blocks
-	if(entity > 10000) {
+	if(entity > 10000 && entity < 11000) {
 		if(entity < 10010) {
 			if(specMap.b == 0.0) {
 				specMap.b = 1.0;
@@ -410,7 +410,7 @@ void main() {
 			#ifdef Water_POM
 			if(geomNormal.y > 0.99999) {
 				// vec3 worldPosInitial = worldPos;
-				waterParallaxMapping(worldPos, vec2(1.0));
+				waterParallaxMapping(worldPos, vec2(1.0), cameraPosition, frameTimeCounter);
 
 				// testOut = vec4(worldPos - worldPosInitial, 1.0);
 				
@@ -433,7 +433,7 @@ void main() {
 			#endif
 
 			// if(abs(glNormal.y) > 0.1)
-			normalVal = normalize(tbn * waterNormal(worldPos)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
+			normalVal = normalize(tbn * waterNormal(worldPos, frameTimeCounter)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
 		
 			if(rainStrength > 0.0) {
 				vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter);
@@ -596,8 +596,8 @@ void main() {
 
 		#ifndef inNether
 			float blockerDist;
-			vec3 offset = normalToView(lightDir) * pomOut.r;
-			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
+			vec3 offset = lightDir * pomOut.r;
+			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, geomNormal, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
 			
 			float shadowMult = 1.0;
 			#if defined Shadow_LeakFix && !defined inEnd
@@ -617,7 +617,7 @@ void main() {
 
 	// --------------- Dynamic Hand Light --------------
         #ifdef HandLight
-			DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, lightmapOut.b > 0.5);
+			DynamicHandLight(colorOut.rgb, viewPos, albedo.rgb, viewNormal, specMap, lightmapOut.b > 0.5, frameCounter, vec2(viewWidth, viewHeight), depthtex1, gbufferProjection, heldItemId, heldBlockLightValue, heldItemId2, heldBlockLightValue2);
         #endif
 
 		colorOut.a = albedo.a;
@@ -625,7 +625,7 @@ void main() {
 	// ---------------------- SSS ----------------------
 		#if defined SSS && !defined inNether
 			float subsurface = getSubsurface(specMap);
-			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
+			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult, near, far);
 		#endif
 	#endif
 

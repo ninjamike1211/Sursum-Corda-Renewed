@@ -1,14 +1,12 @@
 #ifndef WAVING
 #define WAVING
 
-// #include "/noise.glsl"
 // #include "/functions.glsl"
 
-// uniform float frameTime;
 // uniform float frameTimeCounter;
 // uniform float rainStrength;
 
-vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, sampler2D varSampler) {
+vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float frameTimeCounter, float rainStrength, sampler2D varSampler) {
 
 	// float prevWindAmplitude = 0.1 * (snoise(vec2(0.05 * (frameTimeCounter - frameTime) + worldPos.x + worldPos.z)) * 0.5 + 0.5);
 
@@ -91,9 +89,23 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, sampler
 				((1.0 - facingX) * 0.5 + 0.5) * windDirection.y * windOffset
 			);
 		}
-		case 10008: { // Vertical chains and hanging lanterns
+		case 10008: { // Vertical chains
 		
-			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.5 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
+			worldPos.xz = floor(worldPos.xz);
+			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
+
+			return vec3(
+				windDirection.x * windWave,
+				0.0,
+				windDirection.y * windWave
+			);
+
+		}
+		case 10009: { // Hanging lanterns
+
+			worldPos.y = max(worldPos.y, floor(worldPos.y - 0.01) + 0.6);
+			worldPos.xz = floor(worldPos.xz);
+			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
 
 			return vec3(
 				windDirection.x * windWave,
@@ -107,7 +119,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, sampler
 	return vec3(0.0);
 }
 
-vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, vec3 normal) {
+vec3 wavingNormal(vec3 worldPos, int entity, vec2 texcoord, vec4 textureBounds, vec3 normal, float frameTimeCounter) {
 	switch(entity) {
 		case 10001: { // Leaves
 			// return vec3(

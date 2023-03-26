@@ -8,29 +8,9 @@
 // #include "/lib/functions.glsl"
 // #include "/lib/spaceConvert.glsl"
 
-// uniform sampler2D depthtex1;
-// uniform float     rainStrength;
-// uniform float     viewWidth;
-// uniform float     viewHeight;
-// uniform float     frameTimeCounter;
-// uniform float     fogDensityMult;
-// uniform vec3      fogColor;
-// uniform int       worldTime;
-
-// #ifdef handLight
-//     uniform float heldBlockLightValue;
-//     uniform float heldBlockLightValue2;
-//     uniform int   heldItemId;
-//     uniform int   heldItemId2;
-// #endif
 
 // #ifdef LightningLight
-//     uniform vec4 lightningBoltPosition;
 // #endif
-
-#ifdef inEnd
-    uniform vec3 cameraPosition;
-#endif
 */
 
 const vec3 metalsF0[8] = vec3[8](
@@ -45,37 +25,59 @@ const vec3 metalsF0[8] = vec3[8](
 );
 
 
-float dayTimeFactor() {
-	float adjustedTime = mod(worldTime + 785.0, 24000.0);
+// float dayTimeFactor(int worldTime) {
+// 	float adjustedTime = mod(worldTime + 785.0, 24000.0);
 
-	if(adjustedTime > 13570.0)
-			return sin((adjustedTime - 3140.0) * PI / 10430.0);
+// 	if(adjustedTime > 13570.0)
+// 			return sin((adjustedTime - 3140.0) * PI / 10430.0);
 
-	return sin(adjustedTime * PI / 13570.0);
-}
+// 	return sin(adjustedTime * PI / 13570.0);
+// }
 
-vec3 skyLightColor() {
-	#ifdef inEnd
-		return vec3(0.075, 0.04, 0.15);
-	#endif
+// vec3 skyLightColor(float rainStrength, int worldTime) {
+// 	#ifdef inEnd
+// 		return vec3(0.075, 0.04, 0.15);
+// 	#endif
 
-	#ifdef inNether
-		return vec3(0.4, 0.02, 0.01);
-	#endif
+// 	#ifdef inNether
+// 		return vec3(0.4, 0.02, 0.01);
+// 	#endif
 
-    float timeFactor = dayTimeFactor();
-    vec3 night = mix(vec3(0.02, 0.02, 0.035), vec3(0.03), rainStrength);
-    vec3 day = mix(mix(vec3(1.0, 0.6, 0.4), vec3(0.9, 0.87, 0.85), clamp(5.0 * (timeFactor - 0.2), 0.0, 1.0)), vec3(0.3), rainStrength);
-    return mix(night, day, clamp(2.0 * (timeFactor + 0.4), 0.0, 1.0));
-}
+//     float timeFactor = dayTimeFactor(worldTime);
+//     vec3 night = mix(vec3(0.02, 0.02, 0.035), vec3(0.03), rainStrength);
+//     vec3 day = mix(mix(vec3(1.0, 0.6, 0.4), vec3(0.9, 0.87, 0.85), clamp(5.0 * (timeFactor - 0.2), 0.0, 1.0)), vec3(0.3), rainStrength);
+//     return mix(night, day, clamp(2.0 * (timeFactor + 0.4), 0.0, 1.0));
+// }
 
-void fog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {
+void fog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 lightColor, float fogDensityMult) {
     vec3 coefs = mix(10.0, 500.0, fogDensityMult) * vec3(2.0, 1.5, 1.0)*vec3(0.0000038, 0.0000105, 0.0000331);
 
     float dist = length(viewPos - viewOrigin);
     vec3 fogFactor = vec3(exp(-dist*coefs.r), exp(-dist*coefs.g), exp(-dist*coefs.b));
 
-    albedo.rgb = mix(2.0 * SunMoonColor, albedo.rgb, fogFactor);
+    albedo.rgb = mix(2.0 * lightColor, albedo.rgb, fogFactor);
+}
+
+float lavaFogFactor(vec3 position) {
+    float dist = length(position) + 0.3;
+    return clamp(exp(-dist*0.2), 0.0, 1.0);
+}
+
+void lavaFog(inout vec3 albedo, vec3 position) {
+    float fogFactor = lavaFogFactor(position);
+
+    albedo = mix(vec3(2.0, 0.2, 0.0), albedo, fogFactor);
+}
+
+float snowFogFactor(vec3 position) {
+    float dist = length(position) + 0.5;
+    return clamp(exp(-dist*0.4), 0.0, 1.0);
+}
+
+void snowFog(inout vec3 albedo, vec3 position) {
+    float fogFactor = snowFogFactor(position);
+
+    albedo = mix(vec3(0.7, 0.8, 1.0), albedo, fogFactor);
 }
 
 float netherFogFactor(vec3 viewOrigin, vec3 viewPos) {
@@ -119,12 +121,12 @@ float waterFogFactor(vec3 viewOrigin, vec3 viewPos) {
     return exp(-0.1 * length(viewPos - viewOrigin));
 }
 
-void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 SunMoonColor) {
+void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 lightColor) {
     vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
     vec3 scatteringCoef = 0.3 * vec3(0.04);
 
     vec3 transmittance = exp(-absorptionCoef * length(viewPos - viewOrigin));
-    vec3 scattering = SunMoonColor * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
+    vec3 scattering = lightColor * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
 
     albedo.rgb = albedo.rgb * transmittance + scattering;
 
@@ -256,11 +258,11 @@ vec3 calcFresnel(float cosTheta, vec4 specMap, vec3 albedo) {
     }
 }
 
-vec3 adjustLightMap(vec2 lmcoord, vec3 SunMoonColor) {
+vec3 adjustLightMap(vec2 lmcoord, vec3 lightColor) {
     // vec3 skyAmbient = SunMoonColor * mix(vec3(0.07), vec3(4.0), lmcoord.y);
     // lmcoord = pow((lmcoord - 1.0/32.0) * 32.0/31.0, vec2(2.0));
     lmcoord = pow(lmcoord, vec2(2.0));
-    vec3 skyAmbient = mix(vec3(0.06), 4 * SunMoonColor, lmcoord.y);
+    vec3 skyAmbient = mix(vec3(0.06), 4 * lightColor, lmcoord.y);
     vec3 torchAmbient = mix(vec3(0.0), 1.5*vec3(15.0, 7.2, 2.9), lmcoord.x) /* * (1.2 - skyAmbient) */;
 
     #ifdef inNether
@@ -309,8 +311,8 @@ vec3 cookTorrancePBRLighting(vec3 albedo, vec3 viewDir, vec3 normal, vec4 specMa
     // return vec3(fresnel);
 }
 
-vec3 calcSSAO(vec3 normal, vec3 viewPos, vec2 texcoord, sampler2D depthTex, sampler2D aoNoiseTex) {
-    vec2 noiseCoord = vec2(mod(texcoord.x * viewWidth, 4.0) / 4.0, mod(texcoord.y * viewHeight, 4.0) / 4.0);
+vec3 calcSSAO(vec3 normal, vec3 viewPos, vec2 texcoord, sampler2D depthTex, sampler2D aoNoiseTex, int frameCounter, vec2 screenSize, mat4 inverseProjectionMatrix) {
+    vec2 noiseCoord = vec2(mod(texcoord.x * screenSize.x, 4.0) / 4.0, mod(texcoord.y * screenSize.y, 4.0) / 4.0);
     vec3 rvec = vec3(texture2D(aoNoiseTex, noiseCoord).xy * 2.0 - 1.0, 0.0);
 	// vec3 rvec = vec3(1.0);
 	vec3 tangent = normalize(rvec - normal * dot(rvec, normal));
@@ -332,7 +334,7 @@ vec3 calcSSAO(vec3 normal, vec3 viewPos, vec2 texcoord, sampler2D depthTex, samp
 		offset.xy = offset.xy * 0.5 + 0.5;
 		
 		// get sample depth:
-		float sampleDepth = screenToView(offset.xy, texture2D(depthTex, offset.xy).r).z; // texture2D(viewTex, offset.xy).z;
+		float sampleDepth = screenToView(offset.xy, texture2D(depthTex, offset.xy).r, frameCounter, screenSize, inverseProjectionMatrix).z; // texture2D(viewTex, offset.xy).z;
 		
 		// range check & accumulate:
 		float rangeCheck = smoothstep(0.0, 1.0, SSAO_Radius / abs(fragPos.z - sampleDepth));
@@ -396,89 +398,89 @@ void binarySearch(inout vec3 rayPos, vec3 rayDir, sampler2D depthtex) {
 //     // No intersection found :( *sad trombone noises*
 // }
 
-float calcSSRNew(vec3 viewPos, vec3 rayDir, float jitter, out vec3 hitPos, mat4 projectionMatrix, sampler2D depthtex, sampler2D normaltex) {
-    vec3 screenPos = viewToScreen(viewPos);
-    vec3 screenDir = normalize(viewToScreen(viewPos + rayDir) - screenPos);
+// float calcSSRNew(vec3 viewPos, vec3 rayDir, float jitter, out vec3 hitPos, mat4 projectionMatrix, sampler2D depthtex, sampler2D normaltex) {
+//     vec3 screenPos = viewToScreen(viewPos);
+//     vec3 screenDir = normalize(viewToScreen(viewPos + rayDir) - screenPos);
 
-    float xDist = screenDir.x > 0 ? 1.0-screenPos.x : screenPos.x;
-    float yDist = screenDir.y > 0 ? 1.0-screenPos.y : screenPos.y;
+//     float xDist = screenDir.x > 0 ? 1.0-screenPos.x : screenPos.x;
+//     float yDist = screenDir.y > 0 ? 1.0-screenPos.y : screenPos.y;
 
-    float xSlope = sqrt(1 + pow(screenDir.y / screenDir.x, 2.0));
-    float ySlope = sqrt(1 + pow(screenDir.x / screenDir.y, 2.0));
+//     float xSlope = sqrt(1 + pow(screenDir.y / screenDir.x, 2.0));
+//     float ySlope = sqrt(1 + pow(screenDir.x / screenDir.y, 2.0));
 
-    float xLength = xDist * xSlope;
-    float yLength = yDist * ySlope;
+//     float xLength = xDist * xSlope;
+//     float yLength = yDist * ySlope;
 
-    float stepLength = min(xLength, yLength) / SSR_Steps;
-    // float stepLength = 1.0 / SSR_Steps;
+//     float stepLength = min(xLength, yLength) / SSR_Steps;
+//     // float stepLength = 1.0 / SSR_Steps;
 
-    vec3 rayStep = screenDir * stepLength;
+//     vec3 rayStep = screenDir * stepLength;
 
-    hitPos = screenPos + jitter * rayStep;
+//     hitPos = screenPos + jitter * rayStep;
 
-    for(int i = 0; i < SSR_Steps; i++, hitPos += rayStep) {
-        float sampleDepth = texture2D(depthtex, hitPos.xy).r;
+//     for(int i = 0; i < SSR_Steps; i++, hitPos += rayStep) {
+//         float sampleDepth = texture2D(depthtex, hitPos.xy).r;
 
-        if(clamp(hitPos.xy, 0.0, 1.0) != hitPos.xy) {
-            return 0.0;
-            // hitPos = vec3(0.0);
-            // return true;
-        }
+//         if(clamp(hitPos.xy, 0.0, 1.0) != hitPos.xy) {
+//             return 0.0;
+//             // hitPos = vec3(0.0);
+//             // return true;
+//         }
 
-        // float depthToleranceFactor = mix(0.0006, 0.0009, linearizeDepthNorm(hitPos.z));
-        float depthDiff = linearizeDepthNorm(hitPos.z) - linearizeDepthNorm(sampleDepth);
+//         // float depthToleranceFactor = mix(0.0006, 0.0009, linearizeDepthNorm(hitPos.z));
+//         float depthDiff = linearizeDepthNorm(hitPos.z) - linearizeDepthNorm(sampleDepth);
 
-        // if(abs(0.001 - (hitPos.z - sampleDepth)) < 0.0009) {
-        if(sampleDepth - hitPos.z < -0.00001) {
-        // if(depthDiff > 0.0 && depthDiff < 0.15) {
-            binarySearch(hitPos, rayStep, depthtex);
-            sampleDepth = texture2D(depthtex, hitPos.xy).r;
+//         // if(abs(0.001 - (hitPos.z - sampleDepth)) < 0.0009) {
+//         if(sampleDepth - hitPos.z < -0.00001) {
+//         // if(depthDiff > 0.0 && depthDiff < 0.15) {
+//             binarySearch(hitPos, rayStep, depthtex);
+//             sampleDepth = texture2D(depthtex, hitPos.xy).r;
 
-            if(/* texture2D(depthtex, hitPos.xy).r == 1.0 || */ sampleDepth - hitPos.z < -0.0001)
-                return 0.0;
+//             if(/* texture2D(depthtex, hitPos.xy).r == 1.0 || */ sampleDepth - hitPos.z < -0.0001)
+//                 return 0.0;
 
-            // vec3 normal = NormalDecode(texture2D(normaltex, hitPos.xy).zw);
-            // if(dot(rayDir, normal) > 0.1)
-            //     return -1;
+//             // vec3 normal = NormalDecode(texture2D(normaltex, hitPos.xy).zw);
+//             // if(dot(rayDir, normal) > 0.1)
+//             //     return -1;
             
-            // return 1;
-            float edgeVal = min(min(min(hitPos.x, hitPos.y), 1.0-hitPos.x), 1.0-hitPos.y);
-            return smoothstep(0.0, 0.03, edgeVal);
-        }
-    }
+//             // return 1;
+//             float edgeVal = min(min(min(hitPos.x, hitPos.y), 1.0-hitPos.x), 1.0-hitPos.y);
+//             return smoothstep(0.0, 0.03, edgeVal);
+//         }
+//     }
 
-    return 0.0;
-    // hitPos = vec3(0.0);
-    // return true;
-}
+//     return 0.0;
+//     // hitPos = vec3(0.0);
+//     // return true;
+// }
 
-bool contactShadow(vec3 viewPos, vec3 lightPosNorm, mat4 projectionMatrix, sampler2D depthtex) {
+// bool contactShadow(vec3 viewPos, vec3 lightPosNorm, mat4 projectionMatrix, sampler2D depthtex) {
     
-    int steps = 64;
-    vec3 rayStep = lightPosNorm * 1.25 / steps;
+//     int steps = 64;
+//     vec3 rayStep = lightPosNorm * 1.25 / steps;
 
-    for (int step = 0; step < 64; step++) {
-        viewPos += rayStep;
-        vec3 screenPos = viewToScreen(viewPos);
+//     for (int step = 0; step < 64; step++) {
+//         viewPos += rayStep;
+//         vec3 screenPos = viewToScreen(viewPos);
 
-        if (clamp(screenPos.xy, 0.0, 1.0) != screenPos.xy) {
-            return false;
-        }
+//         if (clamp(screenPos.xy, 0.0, 1.0) != screenPos.xy) {
+//             return false;
+//         }
 
-        float sampleDepth = texture2D(depthtex, screenPos.xy).r;
+//         float sampleDepth = texture2D(depthtex, screenPos.xy).r;
 
-        if(abs(linearizeDepthNorm(sampleDepth) - linearizeDepthNorm(screenPos.z)) < 0.0001) {
-            return true;
-        }
-    }
+//         if(abs(linearizeDepthNorm(sampleDepth) - linearizeDepthNorm(screenPos.z)) < 0.0001) {
+//             return true;
+//         }
+//     }
 
-    return false;
-}
+//     return false;
+// }
 
-float ssShadows(vec3 startPos, vec3 endPos, float jitter, sampler2D depthtex) {
+float ssShadows(vec3 startPos, vec3 endPos, float jitter, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 projectionMatrix) {
     float steps = 32.0;
 
-    vec3 screenStep = (viewToScreen(endPos) - viewToScreen(startPos)) / steps;
+    vec3 screenStep = (viewToScreen(endPos, frameCounter, screenSize, projectionMatrix) - viewToScreen(startPos, frameCounter, screenSize, projectionMatrix)) / steps;
     vec3 screenPos = startPos;
 
     vec3 viewStep = (endPos - startPos) / steps;
@@ -488,7 +490,7 @@ float ssShadows(vec3 startPos, vec3 endPos, float jitter, sampler2D depthtex) {
     for(int i = 0; i < steps; i++) {
         // screenPos += screenStep;
         viewPos += viewStep;
-        screenPos = viewToScreen(viewPos);
+        screenPos = viewToScreen(viewPos, frameCounter, screenSize, projectionMatrix);
 
         if(clamp(screenPos.xy, 0.0, 1.0) == screenPos.xy) {
             float sampleDepth = texture2D(depthtex, screenPos.xy).r;
@@ -502,7 +504,7 @@ float ssShadows(vec3 startPos, vec3 endPos, float jitter, sampler2D depthtex) {
 }
 
 #ifdef SSS
-void SubsurfaceScattering(inout vec3 color, in vec3 albedo, in float subsurface, in float blockerDist, in vec3 light) {
+void SubsurfaceScattering(inout vec3 color, vec3 albedo, float subsurface, float blockerDist, vec3 light, float near, float far) {
     if(subsurface > 0.0 ) {
         // vec3 shadowPos = calcShadowPos(viewPos, gbufferModelViewInverse);
         // float shadowMapDepth = texture2D(shadowtex0, shadowPos.xy).r;
@@ -512,43 +514,48 @@ void SubsurfaceScattering(inout vec3 color, in vec3 albedo, in float subsurface,
         //     subsurface *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
         // #endif
 
-        color += albedo * exp(min(-diff * 2.5 / subsurface, 0.0)) * 0.2 * subsurface * light;
+        color += albedo * exp(min(-diff * 5.5 / subsurface, 0.0)) * 0.2 * subsurface * light;
     }
 }
 #endif
 
 #ifdef HandLight
-void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3 normal, in vec4 specMap, bool isHand) {
-    if(heldBlockLightValue > 0) {
+
+vec3 handLightColor(int itemId) {
+    #ifdef HandLight_Colors
+        if(itemId == 12001)
+            return vec3(0.2, 3.0, 10.0);
+        else if(itemId == 12002)
+            return vec3(10.0, 1.5, 0.0);
+        else if(itemId == 12003)
+            return vec3(15.0, 4.0, 1.5);
+        else if(itemId == 12004)
+            return vec3(3.0, 6.0, 15.0);
+        else if(itemId == 12005)
+            return vec3(1.5, 1.0, 10.0);
+        else if(itemId == 12006)
+            return vec3(4.0, 1.0, 10.0);
+        else
+    #endif
+        return vec3(15.0, 7.2, 2.9);
+}
+
+void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3 normal, in vec4 specMap, bool isHand, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 projectionMatrix, int heldId1, float heldLight1, int heldId2, float heldLight2) {
+    if(heldLight1 > 0) {
         vec3 lightPos = vec3(0.2, -0.1, -0.24);
         // vec3 lightPos = screenToView(vec2(0.873, 0.213), 0.55);
         vec3 lightDir = -normalize(viewPos - lightPos);
         float dist = length(viewPos - lightPos);
         
-        vec3 lightColor = vec3(1.5 * float(heldBlockLightValue) / (15.0 * dist * dist));
+        vec3 lightColor = vec3(1.5 * float(heldLight1) / (15.0 * dist * dist));
 
-        #ifdef HandLight_Colors
-            if(heldItemId == 10001)
-                lightColor *= vec3(0.2, 3.0, 10.0);
-            else if(heldItemId == 10002)
-                lightColor *= vec3(10.0, 1.5, 0.0);
-            else if(heldItemId == 10003)
-                lightColor *= vec3(15.0, 4.0, 1.5);
-            else if(heldItemId == 10004)
-                lightColor *= vec3(3.0, 6.0, 15.0);
-            else if(heldItemId == 10005)
-                lightColor *= vec3(1.5, 1.0, 10.0);
-            else if(heldItemId == 10006)
-                lightColor *= vec3(4.0, 1.0, 10.0);
-            else
-        #endif
-            lightColor *= vec3(15.0, 7.2, 2.9);
+        lightColor *= handLightColor(heldId1);
 
         if(!isHand/*  || dist > 0.07 */) {
             #ifdef HandLight_Shadows
                 // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
                 float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
-                lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+                lightColor *= ssShadows(viewPos, lightPos, jitter, frameCounter, screenSize, depthtex, projectionMatrix);
             #endif
 
             // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
@@ -560,36 +567,21 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
 
         // color = vec3(dist);
     }
-    if(heldBlockLightValue2 > 0) {
+    if(heldLight2 > 0) {
         vec3 lightPos = vec3(-0.2, -0.1, -0.24);
         // vec3 lightPos = screenToView(vec2(0.127, 0.213), 0.55);
         vec3 lightDir = -normalize(viewPos - lightPos);
         float dist = length(viewPos - lightPos);
         
-        vec3 lightColor = vec3(1.5 * float(heldBlockLightValue2) / (15.0 * dist * dist));
+        vec3 lightColor = vec3(1.5 * float(heldLight2) / (15.0 * dist * dist));
 
-        #ifdef HandLight_Colors
-            if(heldItemId2 == 10001)
-                lightColor *= vec3(0.2, 3.0, 10.0);
-            else if(heldItemId2 == 10002)
-                lightColor *= vec3(10.0, 1.5, 0.0);
-            else if(heldItemId2 == 10003)
-                lightColor *= vec3(15.0, 4.0, 1.5);
-            else if(heldItemId2 == 10004)
-                lightColor *= vec3(3.0, 6.0, 15.0);
-            else if(heldItemId2 == 10005)
-                lightColor *= vec3(1.5, 1.0, 10.0);
-            else if(heldItemId2 == 10006)
-                lightColor *= vec3(4.0, 1.0, 10.0);
-            else
-        #endif
-            lightColor *= vec3(15.0, 7.2, 2.9);
+        lightColor *= handLightColor(heldId2);
 
         if(!isHand/*  || dist > 0.07 */) {
             #ifdef HandLight_Shadows
                 // float jitter = texture2D(noisetex, texcoord * 20.0 + frameTimeCounter).r;
                 float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
-                lightColor *= ssShadows(viewPos, lightPos, jitter, depthtex1);
+                lightColor *= ssShadows(viewPos, lightPos, jitter, frameCounter, screenSize, depthtex, projectionMatrix);
             #endif
 
             // vec3 normalUse = isHand < 0.9 ? normal : playerDir;
@@ -604,7 +596,7 @@ void DynamicHandLight(inout vec3 color, in vec3 viewPos, in vec3 albedo, in vec3
 
 #ifdef LightningLight
 #ifdef lightingRendering
-void DynamicLightningLight(inout vec3 color, in vec3 scenePos, in vec3 albedo, in vec3 normal, in vec4 specMap) {
+void DynamicLightningLight(inout vec3 color, vec4 lightningBoltPosition, vec3 scenePos, vec3 albedo, vec3 normal, vec4 specMap, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 gbufferModelView, mat4 projectionMatrix) {
     
     if(lightningBoltPosition.w > 0.5) {
 
@@ -615,7 +607,7 @@ void DynamicLightningLight(inout vec3 color, in vec3 scenePos, in vec3 albedo, i
         
         #ifdef LightningLight_Shadows
             float jitter = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
-            lightColor *= ssShadows((gbufferModelView * vec4(scenePos, 1.0)).xyz, (gbufferModelView * lightningBoltPosition).xyz, jitter, depthtex1);
+            lightColor *= ssShadows((gbufferModelView * vec4(scenePos, 1.0)).xyz, (gbufferModelView * lightningBoltPosition).xyz, jitter, frameCounter, screenSize, depthtex, projectionMatrix);
         #endif
 
         color += cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specMap, lightColor, lightDir);
@@ -625,7 +617,7 @@ void DynamicLightningLight(inout vec3 color, in vec3 scenePos, in vec3 albedo, i
 #endif
 
 #ifdef baseFragment
-void applyEndPortal(in vec3 worldPos, out vec3 albedo, out vec4 specMap) {
+void applyEndPortal(vec3 worldPos, out vec3 albedo, out vec4 specMap, float frameTimeCounter, float viewWidth) {
     mat2 rot0 = mat2(cos(0.0), -sin(0.0), sin(0.0), cos(0.0));
     mat2 rot1 = mat2(cos(1.0), -sin(1.0), sin(1.0), cos(1.0));
     mat2 rot2 = mat2(cos(2.0), -sin(2.0), sin(2.0), cos(2.0));

@@ -106,7 +106,7 @@ void main() {
         vec3 normal 	    = NormalDecode(material.x);
 	    vec3 normalGeometry = NormalDecode(material.y);
         vec4 specMap        = SpecularDecode(material.z);
-        vec3 viewPos        = calcViewPos(viewVector, depth);
+        vec3 viewPos        = calcViewPos(viewVector, depth, gbufferProjection);
         vec2 lmcoord        = lmcoordRaw.rg;
         float isHand        = lmcoordRaw.b;
         float emissiveness  = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
@@ -160,8 +160,8 @@ void main() {
         #ifndef inNether
             float blockerDist;
 
-            vec3 offset = normalToView(lightDir) * pomResults.r;
-            vec3 shadowResult = min(vec3(pomResults.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
+            vec3 offset = lightDir * pomResults.r;
+            vec3 shadowResult = min(vec3(pomResults.g), pcssShadows(scenePos + offset, texcoord, normalGeometry, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
             
             float shadowMult = 1.0;
             #if defined Shadow_LeakFix && !defined inEnd
@@ -222,18 +222,18 @@ void main() {
         vec3 viewNormal = (gbufferModelView * vec4(normal, 0.0)).xyz;
     
         #ifdef HandLight
-            DynamicHandLight(colorOut.rgb, viewPos, albedo, viewNormal, specMap, isHand > 0.5);
+            DynamicHandLight(colorOut.rgb, viewPos, albedo, viewNormal, specMap, isHand > 0.5, frameCounter, vec2(viewWidth, viewHeight), depthtex1, gbufferProjection, heldItemId, heldBlockLightValue, heldItemId2, heldBlockLightValue2);
         #endif
 
         #ifdef LightningLight
-            DynamicLightningLight(colorOut.rgb, scenePos, albedo, normal, specMap);
+            DynamicLightningLight(colorOut.rgb, lightningBoltPosition, scenePos, albedo, normal, specMap, frameCounter, vec2(viewWidth, viewHeight), depthtex1, gbufferModelView, gbufferProjection);
         #endif
 
 
     // ------------------- Sub-surface Scattering -------------------
         #if defined SSS && !defined inNether
             float subsurface = getSubsurface(specMap);
-			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult);
+			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult, near, far);
         #endif
         
     }

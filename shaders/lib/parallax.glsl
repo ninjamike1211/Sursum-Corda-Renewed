@@ -283,7 +283,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 	#endif
 }
 
-float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, vec2 norm) {
+float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, vec2 norm) {
 
 	vec2 texSize = texcoordRange.zw - texcoordRange.xy;
 
@@ -382,7 +382,7 @@ float parallaxDepthOffset(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoord
 
 
 // calculates POM and calculates and returns new screen space depth, to be stored in gl_FragDepth
-float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, out float shadow, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float fadeAmount, out bool onEdge, out vec2 norm) {
+float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, vec3 lightDir, out float shadow, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float fadeAmount, out bool onEdge, out vec2 norm) {
 	
 	// Calculates POM and stores texture alligned depth from POM
 	vec3 shadowTexcoord = vec3(-1.0);
@@ -390,7 +390,7 @@ float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, out float shadow,
 	float zOffset = parallaxMapping(texcoord, pos, tbn, texcoordRange, texWorldSize, lod, POM_Layers, fadeAmount, shadowTexcoord, onEdge, norm);
 
 	// Calculate shadow
-	shadow = parallaxShadows(shadowTexcoord, tbn, texcoordRange, texWorldSize, lod, POM_Shadow_Layers, fadeAmount, norm);
+	shadow = parallaxShadows(shadowTexcoord, tbn, lightDir, texcoordRange, texWorldSize, lod, POM_Shadow_Layers, fadeAmount, norm);
 	// shadow = parallaxShadows(texcoord, zOffset, tbn, texcoordRange, texWorldSize, lod, POM_Shadow_Layers);
 
 	// Calculate new screen screenspace position from original view space position and POM depth difference

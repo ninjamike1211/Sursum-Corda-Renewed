@@ -55,7 +55,7 @@ void main() {
 	// if(!isRiding) {
 		// float currentDist = unpackCoC(texture(colortex14, texcoord).r);
 		float isHand = texture(colortex3, texcoord).b;
-		float depth = linearizeDepthFast(texture(depthtex1, texcoord).r);
+		float depth = linearizeDepthFast(texture(depthtex1, texcoord).r, near, far);
 		// float blockerDist = 0.0;
 		// float count = 0.0;
 

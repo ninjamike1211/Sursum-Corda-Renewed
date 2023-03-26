@@ -24,7 +24,7 @@ const int colortex14Format = R16F;
 const bool colortex14Clear = false;
 const int colortex15Format = RGBA16F;
 const bool colortex15Clear = false;
-const int shadowcolor0Format = RGBA16F;
+const int shadowcolor0Format = RGBA8;
 */
 
 
@@ -72,7 +72,7 @@ const int shadowcolor0Format = RGBA16F;
 
 // Shadows
 	const int 	shadowMapResolution = 	2048;	// Resolution of shadow map, higher resolution means sharper shadows but less performance [512 1024 2048 4096]
-	const float shadowDistance = 		120;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
+	const float shadowDistance = 		10;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
 
 	#define Shadow_Distort_Factor 	0.1
 	#define Shadow_Bias 			0.0001

@@ -31,7 +31,7 @@ void main() {
     vec3 ray_direction = unprojectSphere(texcoord);
     vec3 ray_origin = vec3(0.0, 6371e3 + 1.0 * (eyeAltitude + 1064), 0.0);   
     
-    skyOut.rgb = get_sky_color(ray_origin, ray_direction, sunDir, moonDir, moonPhase);
+    skyOut.rgb = get_sky_color(ray_origin, ray_direction, sunDir, moonDir, rainStrength, moonPhase);
     skyOut.a = 1.0;
 
 }

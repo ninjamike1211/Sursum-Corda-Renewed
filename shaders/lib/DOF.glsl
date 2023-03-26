@@ -40,7 +40,7 @@
 
         vec2 centerDepthData = texelFetch(colortex12, ivec2(1,0), 0).ba;
         float centerDepth = centerDepthData.r + (centerDepthData.g / 255.0);
-        centerDepthLinear = linearizeDepthFast(centerDepth);
+        centerDepthLinear = linearizeDepthFast(centerDepth, near, far);
     }
 
 #endif
@@ -49,7 +49,7 @@
 
     // float currentDist = unpackCoC(texture(colortex14, texcoord).r);
     float isHand = texture(colortex3, texcoord).b;
-    float depth = linearizeDepthFast(texture(depthtex1, texcoord).r);
+    float depth = linearizeDepthFast(texture(depthtex1, texcoord).r, near, far);
     // float blockerDist = 0.0;
     // float count = 0.0;
 
@@ -133,7 +133,7 @@
         #ifdef DOF
         // if(!isRiding) {
             
-            float depth = linearizeDepthFast(texture(depthtex1, texcoord).r);
+            float depth = linearizeDepthFast(texture(depthtex1, texcoord).r, near, far);
             float CoC = (texture2D(colortex9, texcoord).r * 2.0 - 1.0) * DOF_MaxRadius;
             
             #ifdef DOF_NearTransitionBlur
@@ -169,7 +169,7 @@
 
                 for(int i = 0; i < samples; i++) {
                     vec2  samplePos   = texcoord + CoC * GetVogelDiskSample(i, samples, 0.0) * vec2(1.0, aspectRatio);
-                    float sampleDepth = linearizeDepthFast(texture(depthtex1, samplePos).r);
+                    float sampleDepth = linearizeDepthFast(texture(depthtex1, samplePos).r, near, far);
 
                     // if(sampleDepth - depth > -0.1) {
                         colorOut.rgb += texture(colortex0, samplePos).rgb;

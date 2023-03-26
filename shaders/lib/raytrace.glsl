@@ -34,12 +34,12 @@ float minOf3(vec3 x) { return min(x.x, min(x.y, x.z)); }
 // }
 
 // The favorite raytracer of your favorite raytracer
-bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, out vec3 rayPos, sampler2D depthtex) {
+bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, int frameCounter, vec2 screenSize, out vec3 rayPos, sampler2D depthtex, mat4 projectionMatrix) {
     // "out vec3 rayPos" is our ray's position, we use it as an "out" parameter to be able to output both the intersection check and the hit position
 
-    rayPos  = viewToScreen(viewPos);
+    rayPos  = viewToScreen(viewPos, frameCounter, screenSize, projectionMatrix);
     // Starting position in screen space, it's better to perform space conversions OUTSIDE of the loop to increase performance
-    vec3 rayDir  = viewToScreen(viewPos + viewRayDir) - rayPos;
+    vec3 rayDir  = viewToScreen(viewPos + viewRayDir, frameCounter, screenSize, projectionMatrix) - rayPos;
     rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.9999 / (stepCount+jitter));
     // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
 
@@ -99,11 +99,11 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, out ve
 // }
 
 // Modified version of raytrace for screen space shadows (contact shadows)
-bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter) {
+bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 projectionMatrix) {
 
-    vec3 rayPos  = viewToScreen(viewPos);
+    vec3 rayPos  = viewToScreen(viewPos, frameCounter, screenSize, projectionMatrix);
     // Starting position in screen space, it's better to perform space conversions OUTSIDE of the loop to increase performance
-    rayDir  = viewToScreen(viewPos + rayDir) - rayPos;
+    rayDir  = viewToScreen(viewPos + rayDir, frameCounter, screenSize, projectionMatrix) - rayPos;
     rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.1 / (stepCount+jitter));
     // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
 
@@ -120,20 +120,20 @@ bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter) {
         // Checking if the ray goes outside of the screen (if clamping the coordinates to [0;1] returns a different value, then we're outside)
         // There's no need to continue ray marching if the ray goes outside of the screen
 
-        float depth         = (texture(depthtex1, rayPos.xy).r);
+        float depth         = (texture(depthtex, rayPos.xy).r);
         // Sampling the depth at the ray's position
-        // We use depthtex1 to get the depth of all blocks EXCEPT translucents, it's useful for refractions
+        // We use depthtex to get the depth of all blocks EXCEPT translucents, it's useful for refractions
         float depthLenience = max(abs(rayDir.z) * 3.0, 0.02 / pow(viewPos.z, 2.0));
 
         intersect = abs(depthLenience - (rayPos.z - depth)) < depthLenience && depth >= 0.56;
         // Comparing depths to see if we hit something AND checking if the depth is above 0.56 (= if we didn't intersect the player's hand)
 
         if(intersect) {
-            binarySearch(rayPos, rayDir, depthtex1);
+            binarySearch(rayPos, rayDir, depthtex);
 
-            float depth         = (texture(depthtex1, rayPos.xy).r);
+            float depth         = (texture(depthtex, rayPos.xy).r);
             // Sampling the depth at the ray's position
-            // We use depthtex1 to get the depth of all blocks EXCEPT translucents, it's useful for refractions
+            // We use depthtex to get the depth of all blocks EXCEPT translucents, it's useful for refractions
             // float depthLenience = max(abs(rayDir.z) * 3.0, 0.02 / pow(viewPos.z, 2.0));
 
             // intersect = abs(depthLenience - (rayPos.z - depth)) < depthLenience && depth >= 0.56;

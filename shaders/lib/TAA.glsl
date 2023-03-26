@@ -1,12 +1,6 @@
 #ifndef TAAGLSL
 #define TAAGLSL
 
-/*
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-*/
-
 
 const vec2 TAAOffsets[16] = vec2[] (
     vec2(0.500000, 0.333333),
@@ -32,12 +26,12 @@ const vec2 TAAOffsets[16] = vec2[] (
     http://s3.amazonaws.com/arena-attachments/655504/c5c71c5507f0f8bf344252958254fb7d.pdf?1468341463
 */
 
-vec2 taaOffset() {
-	if(cameraMoved)
-		return vec2(0.0);
+vec2 taaOffset(int frameCounter, vec2 screenSize) {
+	// if(cameraMoved)
+	// 	return vec2(0.0);
 	
 	int taaIndex = frameCounter % 16;
-	return vec2((TAAOffsets[taaIndex] * 2.0 - 1.0) / vec2(viewWidth, viewHeight));
+	return vec2((TAAOffsets[taaIndex] * 2.0 - 1.0) / screenSize);
 }
 
 #ifdef taaFragment

@@ -82,8 +82,8 @@ void main() {
 
         // Calculate basic values
         vec3 normal     = NormalDecode(material.x);
-        vec3 normalView = normalToView(normal);
-        vec3 viewPos    = calcViewPos(viewVector, depth);
+        vec3 normalView = normalToView(normal, gbufferModelView);
+        vec3 viewPos    = calcViewPos(viewVector, depth, gbufferProjection);
         vec3 scenePos   = mat3(gbufferModelViewInverse) * viewPos;
 
         vec3 fresnel    = calcFresnel(max(dot(normalView, normalize(-viewPos)), 0.0), specMap, albedo);
@@ -109,11 +109,11 @@ void main() {
         // Apply clouds
         #ifdef cloudsEnable
             #ifdef inNether
-                applyNetherCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, fogColor);
+                applyNetherCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, fogColor, far, lightDir);
             #elif defined inEnd
-                applyEndCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + vec3(0.0, eyeAltitude, 0.0), skyColor, -skyDirect);
+                applyEndCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + vec3(0.0, eyeAltitude, 0.0), skyColor, -skyDirect, far, lightDir);
             #else
-                applyCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, skyDirect);
+                applyCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, skyDirect, far, lightDir);
             #endif
         #endif
 
@@ -141,7 +141,7 @@ void main() {
 
             // do the raytracing
             vec3 rayPos = vec3(-1.0);
-            bool rayHit = raytrace(viewPos, rayDir, 64, jitter, rayPos, depthtex1);
+            bool rayHit = raytrace(viewPos, rayDir, 64, jitter, frameCounter, vec2(viewWidth, viewHeight), rayPos, depthtex1, gbufferProjection);
 
             // Apply raytraced reflection only if it hit
             vec3 reflectColor;

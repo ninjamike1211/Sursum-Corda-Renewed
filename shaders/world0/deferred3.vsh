@@ -41,8 +41,8 @@ void main() {
     
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 
-    viewVector = calcViewVector(texcoord);
+    viewVector = calcViewVector(texcoord, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
     
-    skyDirect = sunLightSample();
+    skyDirect = sunLightSample(sunHeight, shadowHeight, rainStrength, moonPhase);
     skyAmbient = skyLightSample(colortex10);
 }

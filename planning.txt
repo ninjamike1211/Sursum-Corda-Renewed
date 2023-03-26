@@ -21,10 +21,11 @@ Temporal Variables (colortex12)
     (1,0): rg: smooth center depth depthtex0, ba: smooth center depth depthtex2 (without hand)
 
 To do list:
-    Either find credits for atmosphere or recreate
+    Fix major performance problems
     Fix/tweak volumetric fog (espeically rain and rain to clear transition)
     Fix water volumetric fog (especially in caves)
     Add support for darkness/blindness/nausia effects
+    Either find credits for atmosphere or recreate
     Improve TAA (possibly with depth/normal accumulation)
     Fix Nether lighting/specular breaking under entities that are lit by blocklight
     Fix/change flowing water
@@ -42,3 +43,7 @@ Voxelization ideas:
     Smarter waving objects:
         vines that wave based on if they're floating or attached to a wall
         waving nether vines (top vine block doesn't wave)
+
+
+Things to look into:
+    2D with analytical height falloff for volumetric fog noise effect

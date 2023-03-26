@@ -197,7 +197,7 @@ void main() {
         #endif
 
         #if defined TAA
-            gl_Position.xy += taaOffset() * gl_Position.w;
+            gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
         #endif
     #endif
 

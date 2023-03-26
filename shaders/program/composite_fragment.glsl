@@ -120,8 +120,8 @@ layout(location = 2) out vec4  velocityOut;
 		float transparentDepth 	= texture(depthtex0, texcoord).r;
 		float depth 			= texture(depthtex1, texcoord).r;
 
-		vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth);
-		vec3 viewPos 			= calcViewPos(viewVector, depth);
+		vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth, gbufferProjection);
+		vec3 viewPos 			= calcViewPos(viewVector, depth, gbufferProjection);
 		vec3 scenePos 			= (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 		vec3 eyeDir             = mat3(gbufferModelViewInverse) * normalize(viewPos);
 
@@ -139,10 +139,13 @@ layout(location = 2) out vec4  velocityOut;
 				vec3 fogCloudColor = fogColor;
 				
 				#ifdef Nether_CloudFog
-					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor);
+					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor, far, lightDir);
 				#endif
 				
 				netherFog(opaqueColor, vec3(0.0), viewPos, fogCloudColor);
+			}
+			else if(isEyeInWater == 2) {
+				lavaFog(opaqueColor.rgb, viewPos);
 			}
 		}
 
@@ -157,7 +160,7 @@ layout(location = 2) out vec4  velocityOut;
 
 			// Apply clouds
 			#ifdef cloudsEnable
-				applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, opaqueColor.rgb, fogColor);
+				applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, opaqueColor.rgb, fogColor, far, lightDir);
 			#endif
 
 			// Output correct velocity for the sky
@@ -178,10 +181,13 @@ layout(location = 2) out vec4  velocityOut;
 				vec3 fogCloudColor = fogColor;
 
 				#ifdef Nether_CloudFog
-					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor);
+					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor, far, lightDir);
 				#endif
 
 				netherFog(transparentColor, vec3(0.0), transparentViewPos, fogCloudColor);
+			}
+			else if(isEyeInWater == 2) {
+				lavaFog(transparentColor.rgb, transparentViewPos);
 			}
 
 
@@ -199,7 +205,7 @@ layout(location = 2) out vec4  velocityOut;
 		float waterDepth        = texture(colortex5, texcoord).r;
 		float transparentDepth 	= texture(depthtex0, texcoord).r;
 		uvec3 material          = texture(colortex2, texcoord).rgb;
-		vec3  waterViewPos      = calcViewPos(viewVector, waterDepth);
+		vec3  waterViewPos      = calcViewPos(viewVector, waterDepth, gbufferProjection);
 
 		vec4  transparentColor 	= texture(colortex0, texcoord);
 			velocityOut 		= texture(colortex6, texcoord);
@@ -220,7 +226,7 @@ layout(location = 2) out vec4  velocityOut;
 
 
 				// if(isEyeInWater == 0)
-					refractDir = refract(viewDir, normalToView(normalGeom - normalTex), 0.9);
+					refractDir = refract(viewDir, normalToView(normalGeom - normalTex, gbufferModelView), 0.9);
 					// refractDir = refract(viewDir, normalToView(normalTex), 0.9);
 				// else if(isEyeInWater == 1)
 					// refractDir = refract(viewDir, normalToView(normalTex), 1.);
@@ -229,7 +235,7 @@ layout(location = 2) out vec4  velocityOut;
 
 				float jitter = 0.0;
 
-				bool hit = raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, hitPos, depthtex1);
+				bool hit = raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, frameCounter, vec2(viewWidth, viewHeight), hitPos, depthtex1, gbufferProjection);
 
 				// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
 				if(isEyeInWater == 1 || hit) {
@@ -250,14 +256,14 @@ layout(location = 2) out vec4  velocityOut;
 
 	// --------------------- Calculate positions --------------------
 
-		vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth);
+		vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth, gbufferProjection);
 		vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
 		vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
 		
 			materialOut = material;
 		vec4 specMap     = SpecularDecode(material.z);
 
-		vec3 viewPos  = calcViewPos(viewVector, depth);
+		vec3 viewPos  = calcViewPos(viewVector, depth, gbufferProjection);
 		vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
 	// ----------------------- Opaque Objects -----------------------
@@ -270,7 +276,7 @@ layout(location = 2) out vec4  velocityOut;
 				if(waterDepth != 0.0) {
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, scenePos, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(waterScenePos, scenePos, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
 					#endif
@@ -279,9 +285,9 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(opaqueColor.rgb, vec3(0.0), waterScenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect);
+							volumetricFog(opaqueColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
+							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -291,9 +297,9 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(opaqueColor.rgb, vec3(0.0), scenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect);
+							volumetricFog(opaqueColor, vec3(0.0), scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, vec3(0.0), viewPos, skyDirect);
+							fog(opaqueColor, vec3(0.0), viewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -306,15 +312,15 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(opaqueColor.rgb, waterScenePos, scenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect);
+							volumetricFog(opaqueColor, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, waterViewPos, viewPos, skyDirect);
+							fog(opaqueColor, waterViewPos, viewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 					#endif
@@ -323,11 +329,17 @@ layout(location = 2) out vec4  velocityOut;
 				else {
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), scenePos, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), scenePos, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, vec3(0.0), viewPos, skyDirect);
 					#endif
 				}
+			}
+			else if(isEyeInWater == 2) {
+				lavaFog(opaqueColor.rgb, viewPos);
+			}
+			else if(isEyeInWater == 3) {
+				snowFog(opaqueColor.rgb, viewPos);
 			}
 		}
 
@@ -350,7 +362,7 @@ layout(location = 2) out vec4  velocityOut;
 				// sky = mix(sky, sunDiskColor, sunDisk);
 
 				#ifdef cloudsEnable
-					applyEndCloudColor(eyeDir, cameraPosition * vec3(50.0, 1.0, 50.0), sky, -skyDirect);
+					applyEndCloudColor(eyeDir, cameraPosition * vec3(50.0, 1.0, 50.0), sky, -skyDirect, far, lightDir);
 				#endif
 
 				sky = abs(sky * 2.0);
@@ -367,7 +379,7 @@ layout(location = 2) out vec4  velocityOut;
 				opaqueColor.rgb = sky + smoothstep(-0.030, 0.05, eyeDir.y) * opaqueColor.rgb * 10.0 /* * step(0.05, opaqueColor.r) */;
 			
 				#ifdef cloudsEnable
-					applyCloudColor(eyeDir, cameraPosition, opaqueColor.rgb, skyDirect);
+					applyCloudColor(eyeDir, cameraPosition, opaqueColor.rgb, skyDirect, far, lightDir);
 				#endif
 
 			#endif
@@ -391,9 +403,9 @@ layout(location = 2) out vec4  velocityOut;
 				if(waterDepth == 0.0) {
 					#ifndef inEnd
 						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), normalize(viewPos) * 30.0, texcoord, skyDirect);
+							volumetricFog(opaqueColor, vec3(0.0), normalize(scenePos) * 30.0, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, vec3(0.0), normalize(viewPos) * 30.0, skyDirect);
+							fog(opaqueColor, vec3(0.0), normalize(viewPos) * 30.0, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -401,16 +413,16 @@ layout(location = 2) out vec4  velocityOut;
 				else {
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, waterViewPos, normalize(viewPos) * far, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, normalize(scenePos) * far, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(waterScenePos, normalize(scenePos) * far, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, waterViewPos, normalize(viewPos) * far, skyDirect);
 					#endif
 
 					#ifndef inEnd
 						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect);
+							volumetricFog(opaqueColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
+							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -421,16 +433,16 @@ layout(location = 2) out vec4  velocityOut;
 					// render atmospheric fog
 					#ifndef inEnd
 						#ifdef VolFog
-							volumetricFog(opaqueColor, waterViewPos, normalize(viewPos) * 30.0, texcoord, skyDirect);
+							volumetricFog(opaqueColor, waterScenePos, normalize(scenePos) * 30.0, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(opaqueColor, waterViewPos, normalize(viewPos) * 30.0, skyDirect);
+							fog(opaqueColor, waterViewPos, normalize(viewPos) * 30.0, skyDirect, fogDensityMult);
 						#endif
 					#endif
 
 					// render water fog
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
 					#endif
@@ -438,7 +450,7 @@ layout(location = 2) out vec4  velocityOut;
 				else {
 					#ifdef VolWater
 						// waterVolumetricFog(opaqueColor, vec3(0.0), normalize(viewPos) * far, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), normalize(scenePos) * far, skyDirect, opaqueColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), normalize(scenePos) * far, skyDirect, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(opaqueColor, vec3(0.0), normalize(viewPos) * far, skyDirect);
 					#endif
@@ -459,15 +471,15 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(transparentColor.rgb, vec3(0.0), waterScenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect);
+							volumetricFog(transparentColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(transparentColor, vec3(0.0), waterViewPos, skyDirect);
+							fog(transparentColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 
 					#ifdef VolWater
 						// waterVolumetricFog(transparentColor, waterViewPos, transparentViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, transparentScenePos, skyDirect, transparentColor.rgb, texcoord);
+						waterVolumetricFog(waterScenePos, transparentScenePos, skyDirect, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(transparentColor, waterViewPos, transparentViewPos, skyDirect);
 					#endif
@@ -478,9 +490,9 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(transparentColor.rgb, vec3(0.0), transparentScenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(transparentColor, vec3(0.0), transparentViewPos, texcoord, skyDirect);
+							volumetricFog(transparentColor, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(transparentColor, vec3(0.0), transparentViewPos, skyDirect);
+							fog(transparentColor, vec3(0.0), transparentViewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -491,7 +503,7 @@ layout(location = 2) out vec4  velocityOut;
 				if(waterDepth != 0.0 && transparentDepth - waterDepth > -EPS) {
 					#ifdef VolWater
 						// waterVolumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, transparentColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(transparentColor, vec3(0.0), waterViewPos, skyDirect);
 					#endif
@@ -500,9 +512,9 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(transparentColor.rgb, waterScenePos, transparentScenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(transparentColor, waterViewPos, transparentViewPos, texcoord, skyDirect);
+							volumetricFog(transparentColor, waterScenePos, transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(transparentColor, waterViewPos, transparentViewPos, skyDirect);
+							fog(transparentColor, waterViewPos, transparentViewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
@@ -510,11 +522,17 @@ layout(location = 2) out vec4  velocityOut;
 				else {
 					#ifdef VolWater
 						// waterVolumetricFog(transparentColor, vec3(0.0), transparentViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, transparentColor.rgb, texcoord);
+						waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(transparentColor, vec3(0.0), transparentViewPos, skyDirect);
 					#endif
 				}
+			}
+			else if(isEyeInWater == 2) {
+				lavaFog(opaqueColor.rgb, viewPos);
+			}
+			else if(isEyeInWater == 3) {
+				snowFog(opaqueColor.rgb, viewPos);
 			}
 
 

@@ -346,7 +346,7 @@ void main() {
 			#ifdef Water_POM
 			if(geomNormal.y > 0.99999) {
 				// vec3 worldPosInitial = worldPos;
-				waterParallaxMapping(worldPos, vec2(1.0));
+				waterParallaxMapping(worldPos, vec2(1.0), cameraPosition, frameTimeCounter);
 
 				// testOut = vec4(worldPos - worldPosInitial, 1.0);
 				
@@ -369,7 +369,7 @@ void main() {
 			#endif
 
 			// if(abs(glNormal.y) > 0.1)
-			normalVal = normalize(tbn * waterNormal(worldPos)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
+			normalVal = normalize(tbn * waterNormal(worldPos, frameTimeCounter)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
 		
 			if(rainStrength > 0.0) {
 				vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter);
@@ -485,7 +485,7 @@ void main() {
 	// -------------------- Shadows --------------------
 		float NGdotL = dot(geomNormal, lightDir);
 		float blockerDist;
-		vec3 offset = normalToView(lightDir) * pomOut.r;
+		vec3 offset = normalToView(lightDir, gbufferModelView) * pomOut.r;
 		vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(viewPos + offset, texcoord, NGdotL, blockerDist));
 		
 		float shadowMult = 1.0;
@@ -511,7 +511,7 @@ void main() {
 	// ---------------------- SSS ----------------------
 		#ifdef SSS
 			float subsurface = getSubsurface(specMap);
-			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult);
+			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult, near, far);
 		#endif
 	#endif
 

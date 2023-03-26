@@ -3,11 +3,6 @@
 
 // #include "/defines.glsl"
 
-// uniform float rainStrength;
-// uniform float sunHeight;
-// uniform float shadowHeight;
-// uniform int   moonPhase;
-
 #define AS_MAIN_SAMPLES 16 //Scattering steps
 #define AS_LIGHT_SAMPLES 8 //Transmittance steps
 #define AS_RENDER_SCALE 0.649 //Resolution multiplier
@@ -78,7 +73,7 @@ vec3 skyLightSample(sampler2D skySampler) {
 //     // mix(1.0, 25.0, smoothstep(-0.030, -0.022, eyeDir.y) * smoothstep(0.9985, 0.9995, dot(normalize(viewPos), sunDirView)));
 // }
 
-vec3 sunLightSample() {
+vec3 sunLightSample(float sunHeight, float shadowHeight, float rainStrength, int moonPhase) {
 
     vec3 color;
 
@@ -385,7 +380,7 @@ vec3 atmospheric_scattering_single(vec3 ray_origin, vec3 ray_direction, vec3 sun
     You can make different function like this one
     for example a new one to simulate Mars atmosphere
 */
-vec3 get_sky_color(vec3 ray_origin, vec3 ray_direction, vec3 sun_direction, vec3 moon_direction, int moonPhase) {
+vec3 get_sky_color(vec3 ray_origin, vec3 ray_direction, vec3 sun_direction, vec3 moon_direction, float rainStrength, int moonPhase) {
     //Initialize data struct
     as_data atmosphere;
     
