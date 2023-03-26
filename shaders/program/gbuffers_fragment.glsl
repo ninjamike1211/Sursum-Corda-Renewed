@@ -281,6 +281,8 @@ void main() {
 					#ifdef POM_Shadow
 					if(dot(lightDir, glNormal) > 0.0)
 						pomOut.g = parallaxShadows(tangentPos, tbn, lightDir, textureBounds, texWorldSize, lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
+					else
+						pomOut.g = 0.0;
 					#endif
 
 				// ---------- Parallax Pixel Depth Offset ----------
