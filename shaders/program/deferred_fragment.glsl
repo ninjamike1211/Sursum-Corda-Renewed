@@ -161,7 +161,7 @@ void main() {
             float blockerDist;
 
             vec3 offset = lightDir * pomResults.r;
-            vec3 shadowResult = min(vec3(pomResults.g), pcssShadows(scenePos + offset, texcoord, normalGeometry, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
+            vec3 shadowResult = min(vec3(pomResults.g), pcssShadows(scenePos + offset, texcoord, NGdotL, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
             
             float shadowMult = 1.0;
             #if defined Shadow_LeakFix && !defined inEnd

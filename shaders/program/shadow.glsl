@@ -104,7 +104,7 @@
     in vec3 glNormal;
     flat in int entity;
 
-    layout(depth_greater) out float gl_FragDepth;
+    // layout(depth_greater) out float gl_FragDepth;
     layout(location = 0)  out vec4  shadowColor;
 
     void main() {
@@ -114,9 +114,9 @@
         shadowColor = texture(tex, texcoordFinal) * glColor;
         if (shadowColor.a < alphaTestRef) discard;
 
-        float clipLen = length(clipXY);
-        float bias = getShadowBias(glNormal.z, clipLen);
-        gl_FragDepth += bias;
+        // float clipLen = length(clipXY);
+        // float bias = getShadowBias(glNormal.z, clipLen);
+        // gl_FragDepth += bias;
 
         shadowColor.rgb = shadowColor.rgb;
 

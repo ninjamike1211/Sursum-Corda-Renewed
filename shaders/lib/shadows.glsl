@@ -136,7 +136,7 @@ float getShadowBias(float NdotL, float len) {
         return shadowVal / samples;
     }
 
-    vec3 pcssShadows(vec3 scenePos, vec2 texcoord, vec3 normal, out float blockerDepth, vec2 screenSize, int frameCounter) {
+    vec3 pcssShadows(vec3 scenePos, vec2 texcoord, float NGdotL, out float blockerDepth, vec2 screenSize, int frameCounter) {
         vec3 shadowPos = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz; //convert to shadow screen space
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
@@ -210,7 +210,7 @@ float getShadowBias(float NdotL, float len) {
         // shadowPos.z -= Shadow_Bias /* * (distortFactor * distortFactor) */ / abs(NGdotL); //apply shadow bias
         // applyShadowBias(shadowPos, NGdotL);
         
-        // shadowPos.z -= getShadowBias(NGdotL, shadowClipLen);
+        shadowPos.z -= getShadowBias(NGdotL, shadowClipLen);
 
         // shadowPos.xyz += mat3(shadowProjection) * (mat3(shadowModelView) * normal) * (16.0 / shadowMapResolution);
 

@@ -177,5 +177,9 @@ void main() {
             colorOut.rgb = mix(colorOut.rgb, reflectColor, fresnel);
         else
             colorOut.rgb += fresnel * reflectColor;
+            // colorOut.rgb += vec3(0.0);
+
+
+        // colorOut.rgb = fresnel * reflectColor;
     }
 }

@@ -390,6 +390,8 @@ void main() {
 	#ifndef inNether
 
 // --------------------------- Water ----------------------------
+	waterDepth = vec4(0.0);
+	
 	if(entity == 10010) {
 
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
@@ -597,7 +599,7 @@ void main() {
 		#ifndef inNether
 			float blockerDist;
 			vec3 offset = lightDir * pomOut.r;
-			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, geomNormal, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
+			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, NGdotL, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
 			
 			float shadowMult = 1.0;
 			#if defined Shadow_LeakFix && !defined inEnd
