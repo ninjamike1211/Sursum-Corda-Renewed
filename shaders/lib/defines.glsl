@@ -123,9 +123,9 @@ const int shadowcolor0Format = RGBA8;
 	#define SSR_Steps 		64		// Steps to use in main SSR loop [16 20 24 28 32 40 48 64 72]
 	#define SSR_BinarySteps 4		// Binary refinement steps in SSR loop [1 2 4 6 8 12 16]
 
-	#define SSR_LowThreshold		0.2
+	#define SSR_LowThreshold		0.0
 	#define SSR_HighThreshold		0.55
-	#define SSR_LowRoughThreshold	0.05
+	#define SSR_LowRoughThreshold	0.0
 	#define SSR_HighRoughThreshold	0.55
 
 

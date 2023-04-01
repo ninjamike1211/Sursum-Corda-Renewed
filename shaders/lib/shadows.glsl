@@ -33,7 +33,7 @@
 #define SHADOW_SCALE 1.0
 #define SHADOW_ZSCALE 0.5
 #define SHADOW_DISTORSION 0.05
-#define SHADOW_BIAS 0.00007
+#define SHADOW_BIAS 0.00004
 
 vec3 shadowDistortion(vec3 clipPos) {
 	clipPos.xy  /= length(clipPos.xy) + SHADOW_DISTORSION;
@@ -234,7 +234,7 @@ float getShadowBias(float NdotL, float len) {
         vec3 currentScenePos = randomVal * rayIncrement * 1.8 + sceneOrigin;
         // rayIncrement -= randomVal * rayIncrement * 1.8 / VolFog_Steps;
         vec3 shadowAmount = vec3(0.0);
-        vec3 noiseAmount  = vec3(VolFog_Steps);
+        // vec3 noiseAmount  = vec3(VolFog_Steps);
         for(int i = 0; i < VolFog_Steps; i++) {
             currentScenePos += rayIncrement;
             vec3 shadowPos = calcShadowPosScene(currentScenePos);
@@ -242,11 +242,11 @@ float getShadowBias(float NdotL, float len) {
             // if(shadowPos.z < shadowDepth) {
             //     shadowAmount += 1.0;
             // }
-            if(fogDensityMult > 0.1) {
-                vec3 worldPos = currentScenePos + cameraPosition;
-                noiseAmount -= 0.4 * SimplexPerlin3D(1.0 * worldPos + 0.5 * frameTimeCounter);
-                noiseAmount -= 0.6 * SimplexPerlin3D(0.3 * worldPos + 0.3 * frameTimeCounter);
-            }
+            // if(fogDensityMult > 0.1) {
+            //     vec3 worldPos = currentScenePos + cameraPosition;
+            //     noiseAmount -= 0.4 * SimplexPerlin3D(1.0 * worldPos + 0.5 * frameTimeCounter);
+            //     noiseAmount -= 0.6 * SimplexPerlin3D(0.3 * worldPos + 0.3 * frameTimeCounter);
+            // }
 
             // shadowAmount += noise * 0.5 + 0.5;
 
@@ -261,7 +261,7 @@ float getShadowBias(float NdotL, float len) {
             #endif
         }
         shadowAmount /= VolFog_Steps;
-        noiseAmount /= VolFog_Steps;
+        // noiseAmount /= VolFog_Steps;
 
         // float density = clamp(-1.0 + exp(length(viewPos) * 0.003), 0.0, 1.0);
         // vec3 fogColor = mix(vec3(0.5, 0.6, 0.7), vec3(0.0), 1.0-shadowAmount);
@@ -269,22 +269,13 @@ float getShadowBias(float NdotL, float len) {
 
         #ifdef inEnd
             vec3 coefs = 2 * vec3(0.006, 0.005, 0.007);
-        #endif
-
-        #ifdef inNether
-            vec3 coefs = vec3(0.002, 0.0005, 0.000375);
-            // coefs = 0.01 * fogColor;
-            shadowAmount = vec3(1.0);
-        #endif
-        
-        #ifndef inEnd
-        #ifndef inNether
+        #else
             vec3 coefs = mix(10.0, 500.0, fogDensityMult) * vec3(2.0, 1.5, 1.0)*vec3(0.0000038, 0.0000105, 0.0000331);
-        #endif
         #endif
 
         vec3 fogColorUse = mix(SunMoonColor*0.5, SunMoonColor, shadowAmount);
-        fogColorUse *= (noiseAmount * 0.8 + 1.2);
+        fogColorUse *= mix(vec3(1.0), vec3(1.08, 1.05, 1.03), max(shadowAmount * dot(scenePos, lightDir) * 0.2 + 0.8, 0.0));
+        // fogColorUse *= (noiseAmount * 0.8 + 1.2);
         // vec3 fogColorUse = SunMoonColor;
         // if(inNether)
         //     fogColorUse = fogColor;

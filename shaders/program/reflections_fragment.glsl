@@ -95,7 +95,7 @@ void main() {
         float roughReflectionAmount = smoothstep(SSR_LowRoughThreshold, SSR_HighRoughThreshold, roughness);
         
         if(roughReflectionAmount > 0.0) {
-            vec2  offset = blue_noise_disk[int(jitter * 63.99)] * 0.07 * roughReflectionAmount;
+            vec2  offset = blue_noise_disk[int(jitter * 63.99)] * 0.1 * roughReflectionAmount;
             mat3  tbn    = tbnNormal(normalView);
             normalView   = normalize(normalView + tbn * vec3(offset, 0.0));
         }
