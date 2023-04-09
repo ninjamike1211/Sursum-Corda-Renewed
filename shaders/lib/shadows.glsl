@@ -124,6 +124,9 @@ float getShadowBias(float NdotL, float len) {
     }
 
     vec3 softShadows(vec3 shadowPos, float clipLen, float penumbra, int samples, float angle) {
+        if(clamp(shadowPos.xy, 0.0, 1.0) != shadowPos.xy)
+            return vec3(1.0);
+        
         vec3 shadowVal = vec3(0.0);
         float distortFactor = shadowDistortionDerivative(clipLen) * 6.0;
         // distortFactor = 1.0;

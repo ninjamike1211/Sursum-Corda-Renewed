@@ -72,7 +72,7 @@ const int shadowcolor0Format = RGBA8;
 
 // Shadows
 	const int 	shadowMapResolution = 	2048;	// Resolution of shadow map, higher resolution means sharper shadows but less performance [512 1024 2048 4096]
-	const float shadowDistance = 		10;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
+	const float shadowDistance = 		120;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
 
 	#define Shadow_Distort_Factor 	0.1
 	#define Shadow_Bias 			0.0001
@@ -194,7 +194,7 @@ const int shadowcolor0Format = RGBA8;
 
 
 // Motion Blur
-	#define MotionBlur
+	// #define MotionBlur
 	#define MotionBlur_Samples 16
 	#define MotionBlur_Strength 1.0		// Strength of motion blur [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
