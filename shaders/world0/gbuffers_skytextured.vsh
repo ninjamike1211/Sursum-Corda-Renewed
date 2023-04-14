@@ -1,4 +1,4 @@
-#version 420 compatibility
+#version 430 compatibility
 
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;

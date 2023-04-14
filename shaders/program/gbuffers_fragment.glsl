@@ -5,7 +5,7 @@
 uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
-uniform sampler2D colortex12;
+// uniform sampler2D colortex12;
 uniform sampler2D depthtex1;
 
 uniform mat4  gbufferModelView;
@@ -113,6 +113,7 @@ layout (depth_greater) out float gl_FragDepth;
 #define baseFragment
 #define lightingRendering
 
+#include "/lib/SSBO.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -153,6 +154,9 @@ layout (depth_greater) out float gl_FragDepth;
 #endif
 
 #ifdef DirectionalLightmap
+#endif
+
+#ifdef Shadow_LeakFix
 #endif
 
 */
@@ -606,7 +610,8 @@ void main() {
 			float shadowMult = 1.0;
 			#if defined Shadow_LeakFix && !defined inEnd
 				// shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-				shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
+				// shadowResult *= texelFetch(colortex12, ivec2(0.0), 0).a;
+				shadowResult *= ssbo.caveShadowMult;
 			#endif
 		#else
 			float shadowResult = pomOut.g;

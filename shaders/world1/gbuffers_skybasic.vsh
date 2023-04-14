@@ -1,4 +1,4 @@
-#version 420 compatibility
+#version 430 compatibility
 
 uniform vec3 cameraPosition;
 

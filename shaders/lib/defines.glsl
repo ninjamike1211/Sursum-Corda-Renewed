@@ -84,7 +84,6 @@ const int shadowcolor0Format = RGBA8;
 	#define ShadowNoiseAnimated 			// When enabled move noise with each frame, allowing for lower shadow samples at the cost of noise "moving"
 	#define Shadow_LeakFix
 
-
 // Water
 	// #define Water_Flat
 	// #define Water_Noise

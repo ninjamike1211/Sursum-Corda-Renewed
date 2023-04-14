@@ -2,11 +2,12 @@
 #define WAVING
 
 // #include "/functions.glsl"
+// #include "/lib/SSBO.glsl"
 
 // uniform float frameTimeCounter;
 // uniform float rainStrength;
 
-vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float frameTimeCounter, float rainStrength, sampler2D varSampler) {
+vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float frameTimeCounter, float rainStrength) {
 
 	// float prevWindAmplitude = 0.1 * (snoise(vec2(0.05 * (frameTimeCounter - frameTime) + worldPos.x + worldPos.z)) * 0.5 + 0.5);
 
@@ -14,19 +15,19 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 	// vec2  windDirection = vec2(cos(windAngle), sin(windAngle));
 	// float windAmplitude = mix(0.1, 0.2, rainStrength) + mix(0.1, 0.0, rainStrength) * (snoise(vec2(0.03 * frameTimeCounter /* + worldPos.x + worldPos.z */)) * 0.5 + 0.5);
 	
-	vec4 windData = texelFetch(varSampler, ivec2(0,1), 0);
+	// vec4 windData = texelFetch(varSampler, ivec2(0,1), 0);
 
-	float windAmplitude = windData.r;
-	float windAngle     = windData.g * TAU;
-	float windPhase     = (windData.b /* + windData.b / 255.0 */) * TAU;
+	// float windAmplitude = windData.r;
+	// float windAngle     = windData.g * TAU;
+	// float windPhase     = (windData.b /* + windData.b / 255.0 */) * TAU;
 
-	vec2  windDirection = vec2(cos(windAngle), sin(windAngle));
+	vec2  windDirection = vec2(cos(ssbo.windAngle), sin(ssbo.windAngle));
 
 	switch(entity) {
 		case 10001: { // Leaves
 
-			float windWave   = sin(windPhase + Wind_Leaf_Wavelength * (worldPos.x + worldPos.z + Wind_Leaf_YFactor * worldPos.y));
-			float windOffset = (windAmplitude * Wind_Leaf_Offset) + (windAmplitude * Wind_Leaf_WaveStrength) * windWave;
+			float windWave   = sin(ssbo.windPhase + Wind_Leaf_Wavelength * (worldPos.x + worldPos.z + Wind_Leaf_YFactor * worldPos.y));
+			float windOffset = (ssbo.windAmplitude * Wind_Leaf_Offset) + (ssbo.windAmplitude * Wind_Leaf_WaveStrength) * windWave;
 
 			return vec3(
 				windDirection.x * windOffset,
@@ -39,8 +40,8 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 			// float isTop = step(texcoord.y, textureBounds.y);
 			float isTop = (0.5 - (midBlock.y / 64.0)) * step(midBlock.y, 32.0);
 
-			float windWave   = sin(windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
-			float windOffset = (windAmplitude * Wind_Plant_Offset) + (windAmplitude * Wind_Plant_Wavestrength) * windWave;
+			float windWave   = sin(ssbo.windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
+			float windOffset = (ssbo.windAmplitude * Wind_Plant_Offset) + (ssbo.windAmplitude * Wind_Plant_Wavestrength) * windWave;
 
 			return vec3(
 				isTop * windDirection.x * windOffset,
@@ -53,8 +54,8 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 			// float isTop = step(texcoord.y, textureBounds.y);
 			float isTop = 0.5 - (midBlock.y / 64.0);
 
-			float windWave   = sin(windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
-			float windOffset = (windAmplitude * Wind_Plant_Offset) + (windAmplitude * Wind_Plant_Wavestrength) * windWave;
+			float windWave   = sin(ssbo.windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
+			float windOffset = (ssbo.windAmplitude * Wind_Plant_Offset) + (ssbo.windAmplitude * Wind_Plant_Wavestrength) * windWave;
 
 			return 0.5 * isTop * vec3(
 				windDirection.x * windOffset,
@@ -67,8 +68,8 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 			// float isTop = step(texcoord.y, textureBounds.y);
 			float isTop = 0.5 - (midBlock.y / 64.0);
 
-			float windWave   = sin(windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
-			float windOffset = (windAmplitude * Wind_Plant_Offset) + (windAmplitude * Wind_Plant_Wavestrength) * windWave;
+			float windWave   = sin(ssbo.windPhase + Wind_Plant_Wavelength * (worldPos.x + worldPos.z));
+			float windOffset = (ssbo.windAmplitude * Wind_Plant_Offset) + (ssbo.windAmplitude * Wind_Plant_Wavestrength) * windWave;
 
 			return (isTop * 0.5 + 0.5) * vec3(
 				windDirection.x * windOffset,
@@ -80,8 +81,8 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 
 			float facingX = step(0.1, abs(normal.x));
 
-			float windWave   = sin(windPhase + Wind_Vine_YWavelength * worldPos.y + Wind_Vine_XZWavelength * (worldPos.x + worldPos.z));
-			float windOffset = (windAmplitude * Wind_Vine_Offset) + ((windAmplitude * 0.1 + 0.3) * Wind_Vine_Wavestrength) * windWave;
+			float windWave   = sin(ssbo.windPhase + Wind_Vine_YWavelength * worldPos.y + Wind_Vine_XZWavelength * (worldPos.x + worldPos.z));
+			float windOffset = (ssbo.windAmplitude * Wind_Vine_Offset) + ((ssbo.windAmplitude * 0.1 + 0.3) * Wind_Vine_Wavestrength) * windWave;
 
 			return vec3(
 				(facingX * 0.5 + 0.5) * windDirection.x * windOffset,
@@ -92,7 +93,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 		case 10008: { // Vertical chains
 		
 			worldPos.xz = floor(worldPos.xz);
-			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
+			float windWave = ssbo.windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(ssbo.windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
 
 			return vec3(
 				windDirection.x * windWave,
@@ -105,7 +106,7 @@ vec3 wavingOffset(vec3 worldPos, int entity, vec3 midBlock, vec3 normal, float f
 
 			worldPos.y = max(worldPos.y, floor(worldPos.y - 0.01) + 0.6);
 			worldPos.xz = floor(worldPos.xz);
-			float windWave = windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
+			float windWave = ssbo.windAmplitude * mix(0.07 * sin(2.0 * frameTimeCounter + 1.0 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), 0.02 * sin(ssbo.windPhase + 1.3 * worldPos.y + 0.729 * (worldPos.x + worldPos.z)), rainStrength);
 
 			return vec3(
 				windDirection.x * windWave,

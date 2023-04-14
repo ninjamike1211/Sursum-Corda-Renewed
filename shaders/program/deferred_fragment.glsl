@@ -6,7 +6,7 @@ uniform sampler2D  colortex3;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex8;
 uniform sampler2D  colortex9;
-uniform sampler2D  colortex12;
+// uniform sampler2D  colortex12;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
 uniform sampler2D  noisetex;
@@ -53,6 +53,7 @@ const int noiseTextureResolution = 512;
 
 #define lightingRendering
 
+#include "/lib/SSBO.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -82,6 +83,7 @@ in vec2 texcoord;
 in vec3 viewVector;
 flat in vec3 skyAmbient;
 flat in vec3 skyDirect;
+
 
 /* RENDERTARGETS: 7,9 */
 layout(location = 0) out vec4 colorOut;
@@ -166,8 +168,9 @@ void main() {
             float shadowMult = 1.0;
             #if defined Shadow_LeakFix && !defined inEnd
                 // shadowResult *= smoothstep(9.0/32.0, 21.0/32.0, lmcoord.g);
-                shadowMult = texelFetch(colortex12, ivec2(0.0), 0).a;
-                shadowResult *= shadowMult;
+                // shadowMult = texelFetch(colortex12, ivec2(0.0), 0).a;
+                // shadowResult *= shadowMult;
+                shadowResult *= ssbo.caveShadowMult;
             #endif
 
             // Contact Shadows (NOT FINISHED)

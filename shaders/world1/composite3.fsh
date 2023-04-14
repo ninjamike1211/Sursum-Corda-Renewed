@@ -1,5 +1,5 @@
-#version 420 compatibility
+#version 430 compatibility
 
 #define FragmentStageBlur
 
-#include "/lib/DOF.glsl"
+#include /program/DOF.glsl"

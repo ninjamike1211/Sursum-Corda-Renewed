@@ -1,10 +1,11 @@
-#version 420 compatibility
+#version 430 compatibility
 
 #define ExposureSpeed 1.0
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex14;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex2;
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
@@ -17,6 +18,8 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform float aspectRatio;
 uniform float frameTime;
+uniform float frameTimeCounter;
+uniform float playerMood;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
@@ -26,12 +29,16 @@ uniform float sunHeight;
 uniform float shadowHeight;
 uniform int   moonPhase;
 
+#define SSBO_Vertex
+
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
+#include "/lib/noise.glsl"
 #include "/lib/sample.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/sky2.glsl"
+#include "/lib/SSBO.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -57,6 +64,7 @@ flat out float exposure;
 #endif
 
 
+
 void main() {
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
     
@@ -66,6 +74,10 @@ void main() {
     // vec4 ray = gbufferProjectionInverse * vec4(texcoord * 2.0 - 1.0, 0.0, 1.0);
 	// viewVector = (ray.xyz / ray.w);
 	// viewVector /= viewVector.z;
+
+
+// --------------------- Temporal Variables ---------------------
+    setSSBO();
 
 
 // ------------------------ Auto Exposure -----------------------

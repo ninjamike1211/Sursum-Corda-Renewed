@@ -1,4 +1,4 @@
-// #version 420 compatibility
+// #version 430 compatibility
 
 #define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104 105 106]
 #define viewBufferSweep 0.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
@@ -20,6 +20,7 @@ uniform bool  cameraMoved;
 #include "/lib/kernels.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/SSBO.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -51,7 +52,6 @@ uniform sampler2D  shadowtex0;
 uniform sampler2D  shadowtex1;
 uniform sampler2D  shadowcolor0;
 uniform sampler2D  shadowcolor1;
-
 // uniform bool hasSkyLight;
 
 /* RENDERTARGETS: 0 */
@@ -176,4 +176,10 @@ void main() {
 
     // if(texcoord.x > 0.9)
     //     gl_FragData[0] = vec4(hasSkyLight);
+
+    // if(texcoord.x > 0.95)
+    //     gl_FragData[0] = vec4(ssbo.caveShadowMult);
+    // else if(texcoord.x > 0.9)
+    //     gl_FragData[0] = vec4(ssbo.moodVelocityAvg * 0.5 + 0.5);
+    //     // gl_FragData[0] = vec4(0.5);
 }

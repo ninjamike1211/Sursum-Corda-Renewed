@@ -1,6 +1,6 @@
 #ifdef Shadow_Vertex
 
-    uniform sampler2D colortex12;
+    // uniform sampler2D colortex12;
 
     uniform mat4  shadowModelViewInverse;
     uniform float rainStrength;
@@ -23,6 +23,7 @@
 
     #define shadowGbuffer
 
+    #include "/lib/SSBO.glsl"
     #include "/lib/defines.glsl"
     #include "/lib/functions.glsl"
     #include "/lib/TAA.glsl"
@@ -53,7 +54,7 @@
         if(entity > 10000) {
             vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength, colortex12);
+            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
         }
         #endif
 

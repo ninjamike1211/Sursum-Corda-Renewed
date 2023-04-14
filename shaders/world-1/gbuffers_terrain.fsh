@@ -1,6 +1,6 @@
-#version 420 compatibility
+#version 430 compatibility
 
-#define useGeomStage
+// #define useGeomStage
 #define inNether
 #define usePBRTextures
 #define usePOM

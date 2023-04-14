@@ -1,7 +1,7 @@
 #ifdef VertexStage
 
     // uniform float centerDepthSmooth;
-    uniform sampler2D colortex12;
+    // uniform sampler2D colortex12;
     uniform sampler2D depthtex0;
     uniform mat4 gbufferModelView;
     uniform mat4  gbufferModelViewInverse;
@@ -20,6 +20,7 @@
     #include "/lib/kernels.glsl"
     #include "/lib/TAA.glsl"
     #include "/lib/spaceConvert.glsl"
+    #include "/lib/SSBO.glsl"
 
 
     // ------------------------ File Contents -----------------------
@@ -30,6 +31,7 @@
     out vec2 texcoord;
     flat out float centerDepthLinear;
 
+
     void main() {
         gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
         
@@ -38,8 +40,8 @@
         // centerDepthLinear = linearizeDepthFast(centerDepthSmooth);
         // centerDepthLinear = linearizeDepthFast(texture(depthtex0, vec2(0.5)).r);
 
-        vec2 centerDepthData = texelFetch(colortex12, ivec2(1,0), 0).ba;
-        float centerDepth = centerDepthData.r + (centerDepthData.g / 255.0);
+        // vec2 centerDepthData = texelFetch(colortex12, ivec2(1,0), 0).ba;
+        float centerDepth = ssbo.centerDepthSmooth.y;
         centerDepthLinear = linearizeDepthFast(centerDepth, near, far);
     }
 

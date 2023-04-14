@@ -1,10 +1,11 @@
-#version 420 compatibility
+#version 430 compatibility
 
 #define ExposureSpeed 1.0
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex14;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex2;
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
@@ -16,16 +17,23 @@ uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float aspectRatio;
+uniform float rainStrength;
 uniform float frameTime;
+uniform float frameTimeCounter;
+uniform float playerMood;
 uniform int   frameCounter;
 uniform int   worldTime;
 uniform bool  cameraMoved;
 
+#define SSBO_Vertex
+
 #include "/lib/defines.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/sample.glsl"
+#include "/lib/noise.glsl"
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/SSBO.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -50,6 +58,9 @@ void main() {
 	// viewVector /= viewVector.z;
 
 
+// --------------------- Temporal Variables ---------------------
+    setSSBO();
+
 // ------------------------ Auto Exposure -----------------------
     vec3 avgColor = textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb;
     float exposureScreen = 0.1 / dot(avgColor, vec3(0.2125, 0.7154, 0.0721));
@@ -72,7 +83,7 @@ void main() {
 
 
 
-// #version 420 compatibility
+// #version 430 compatibility
 
 // #define ExposureSpeed 1.0
 

@@ -1,4 +1,4 @@
-#version 420 compatibility
+#version 430 compatibility
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex3;
@@ -49,7 +49,7 @@ void main() {
 
 
 
-// #version 420 compatibility
+// #version 430 compatibility
 
 // uniform sampler2D colortex0;
 // uniform sampler2D colortex3;

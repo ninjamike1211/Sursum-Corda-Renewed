@@ -1,7 +1,7 @@
 #include "/lib/defines.glsl"
 
 uniform sampler2D colortex10;
-uniform sampler2D colortex12;
+// uniform sampler2D colortex12;
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
@@ -111,6 +111,7 @@ out VertexData {
 //     layout(location = 28) out vec4 newClipPos;
 // #endif
 
+#include "/lib/SSBO.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
 #include "/lib/TAA.glsl"
@@ -209,7 +210,7 @@ void main() {
         if(entity > 10000 && entity < 11000) {
             vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength, colortex12);
+            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
         }
     #endif
 
