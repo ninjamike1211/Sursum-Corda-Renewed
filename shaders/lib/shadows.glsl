@@ -88,22 +88,22 @@ float getShadowBias(float NdotL, float len) {
     vec3 calcShadowPosView(vec3 viewPos, mat4 inverseModelViewMatrix) {
         vec4 playerPos = inverseModelViewMatrix * vec4(viewPos, 1.0);
         vec3 shadowPos = (shadowProjection * (shadowModelView * playerPos)).xyz;
-        float sClipLen = length(shadowPos.xy);
+        // float sClipLen = length(shadowPos.xy);
 
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
-        shadowPos = shadowDistortion(shadowPos.xyz, sClipLen);
+        shadowPos = shadowDistortion(shadowPos.xyz);
 
         return shadowPos * 0.5 + 0.5;
     }
 
     vec3 calcShadowPosScene(vec3 scenePos) {
         vec3 shadowPos = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
-        float sClipLen = length(shadowPos.xy);
+        // float sClipLen = length(shadowPos.xy);
 
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
-        shadowPos = shadowDistortion(shadowPos.xyz, sClipLen);
+        shadowPos = shadowDistortion(shadowPos.xyz);
 
         return shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
     }
@@ -398,7 +398,7 @@ float getShadowBias(float NdotL, float len) {
 
     uniform vec3 waterColorSmooth;
 
-    void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 sceneColor, vec2 texcoord, vec2 screenSize, int frameCounter) {
+    void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 directLight, vec3 ambientLight, inout vec3 sceneColor, vec2 texcoord, vec2 screenSize, int frameCounter) {
         
         #ifdef ShadowNoiseAnimated
             float randomVal = interleaved_gradient(ivec2(texcoord * screenSize), frameCounter);
@@ -424,7 +424,7 @@ float getShadowBias(float NdotL, float len) {
             #ifdef VolWater_Colored
                 shadowAmount += shadowVisibility(shadowPos);
             #else
-                shadowAmount += vec3(0.1, 0.15, 0.3) * step(shadowPos.z, texture2D(shadowtex1, shadowPos.xy).r);
+                shadowAmount += step(shadowPos.z, texture2D(shadowtex1, shadowPos.xy).r);
             #endif
         }
 
@@ -434,10 +434,11 @@ float getShadowBias(float NdotL, float len) {
         // vec3 fog = mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.5);
         // fog = 0.25 * light * (shadowAmount * 0.9 + fog * 0.1);
 
-        vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
+        // vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
         // fog = mix(fog, shadowAmount, shadowAmount);
+        vec3 fog = (0.1 * directLight * shadowAmount) + (0.2 * ambientLight * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4));
 
-        sceneColor = mix(fog, sceneColor, exp(-0.1 * length(sceneEnd - sceneOrigin)));
+        sceneColor = mix(fog, sceneColor, exp(-0.06 * length(sceneEnd - sceneOrigin)));
     }
 
 #endif
