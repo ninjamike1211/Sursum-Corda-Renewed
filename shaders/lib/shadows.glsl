@@ -136,7 +136,7 @@ float getShadowBias(float NdotL, float len) {
             shadowVal += shadowVisibility(shadowPosTemp);
         }
 
-        return shadowVal / samples;
+        return mix(shadowVal / samples, vec3(1.0), smoothstep(0.8, 0.9, min2(abs(shadowPos.xy * 2.0 - 1.0))));
     }
 
     vec3 pcssShadows(vec3 scenePos, vec2 texcoord, float NGdotL, out float blockerDepth, vec2 screenSize, int frameCounter) {
@@ -230,11 +230,11 @@ float getShadowBias(float NdotL, float len) {
             float randomAngle = randomVal * TAU;
         #endif
         
-        vec3 rayIncrement = (scenePos - sceneOrigin) / VolFog_Steps;
+        vec3 rayIncrement = (sceneOrigin - scenePos) / VolFog_Steps;
         // float startOffset = texture2D(noisetex, fract(texcoord * screenSize / 256 + sin(1000*frameTimeCounter))).r;
         // startOffset = fract(startOffset + mod(frameTimeCounter, 64.0) * goldenRatioConjugate);
         // vec3 currentViewPos = 0 * normalize(viewPos);
-        vec3 currentScenePos = randomVal * rayIncrement * 1.8 + sceneOrigin;
+        vec3 currentScenePos = scenePos - randomVal * rayIncrement * 1.8;
         // rayIncrement -= randomVal * rayIncrement * 1.8 / VolFog_Steps;
         vec3 shadowAmount = vec3(0.0);
         // vec3 noiseAmount  = vec3(VolFog_Steps);
@@ -298,104 +298,6 @@ float getShadowBias(float NdotL, float len) {
         // albedo.rgb += shadowAmount * 2*vec3(0.13, 0.1, 0.08);
     }
 
-    void waterVolumetricFog(inout vec4 albedo, vec3 eyeOrigin, vec3 eyePos, vec2 texcoord, vec3 SunMoonColor, vec3 lightDir, vec2 screenSize, int frameCounter) {
-        #ifdef ShadowNoiseAnimated
-            float randomVal = interleaved_gradient(ivec2(texcoord * screenSize), frameCounter);
-            float randomAngle = randomVal * TAU;
-        #else
-            float randomVal = interleaved_gradient(ivec2(texcoord * screenSize), 0);
-            float randomAngle = randomVal * TAU;
-        #endif
-        
-        vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
-        vec3 scatteringCoef = 0.3 * vec3(0.04);
-
-        vec3 lightDirYNorm = lightDir/lightDir.y;
-
-        vec3 rayIncrement = (eyeOrigin - eyePos) / VolWater_Steps;
-        rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
-        vec3 currentEyePos = eyePos /* + 1.8 * rayIncrement / VolWater_Steps */;
-
-        for(int i = 0; i < VolWater_Steps; i++) {
-            currentEyePos += rayIncrement;
-
-            // vec3 lightAmount = SunMoonColor;
-            // vec3 lightCurrentPos = lightDirYNorm * (length(viewOrigin) < 0.01 ? (61.0 - eyeAltitude) : (eyeOrigin.y - currentEyePos.y)) + currentEyePos;
-            // vec3 lightIncrement = (lightCurrentPos - currentEyePos) / VolWater_LightSteps;
-            // for(int j = 0; j < VolWater_LightSteps; j++) {
-            //     vec3 transmittance = exp(-absorptionCoef * length(lightIncrement));
-            //     vec3 scattering = lightAmount * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
-            //     lightAmount = lightAmount * transmittance + scattering;
-
-            //     lightCurrentPos += lightIncrement;
-            // }
-
-
-            // vec3 shadowPos = calcShadowPosScene(currentEyePos + gbufferModelViewInverse[3].xyz);
-            vec3 shadowPos = calcShadowPosScene(currentEyePos);
-                // applyShadowBias(shadowPos, 1.0);
-                // float shadowDepth = texture2D(shadowtex0, shadowPos.xy).r;
-                // if(shadowPos.z < shadowDepth) {
-                //     shadowAmount += 1.0;
-                // }
-
-            float depthDiff;
-            #ifdef VolWater_SmoothShadows
-                vec3 shadowAmount = softShadows(shadowPos, VolWater_SmoothShadowBlur, VolWater_SmoothShadowSamples, randomAngle, shadowtex0, shadowtex1, shadowcolor0);
-            #else
-                vec3 shadowAmount = shadowVisibilityDepth(shadowPos, depthDiff);
-            #endif
-            shadowAmount = shadowAmount * 0.9 + 0.1;
-            vec3 lightAmount = SunMoonColor /* * clamp((1.0 - depthDiff) * 10.0, 0.1, 1.0) */;
-
-            vec3 transmittance = exp(-absorptionCoef * length(rayIncrement));
-            vec3 scattering = lightAmount * shadowAmount * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
-
-            albedo.rgb = albedo.rgb * transmittance + scattering;
-        }
-    }
-
-    // void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 light, inout vec3 albedo, vec2 texcoord) {
-
-    //     #ifdef ShadowNoiseAnimated
-    //         float randomVal = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), frameCounter);
-    //         float randomAngle = randomVal * TAU;
-    //     #else
-    //         float randomVal = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), 0);
-    //         float randomAngle = randomVal * TAU;
-    //     #endif
-
-    //     vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
-    //     vec3 scatteringCoef = 0.3 * vec3(0.04);
-
-    //     vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
-    //     rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
-    //     vec3 scenePos = sceneOrigin;
-
-    //     for(int i = 0; i < VolWater_Steps; i++) {
-    //         scenePos += rayIncrement;
-
-    //         vec3 shadowPos = calcShadowPosScene(scenePos);
-
-    //         vec3 shadowValue = shadowVisibility(shadowPos);
-    //         shadowValue = shadowValue * 0.9 + 0.1;
-
-    //         // albedo -= 0.02 * (1.0 - exp(-length(rayIncrement)));
-    //         // albedo += 0.2 * shadowValue * (1.0 - exp(-length(rayIncrement)));
-
-    //         // albedo = mix(albedo, light * shadowValue, exp(-length(rayIncrement)));
-
-    //         vec3 transmittance = exp(-absorptionCoef * length(rayIncrement));
-    //         vec3 scattering = light * shadowValue * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
-
-    //         albedo.rgb = albedo.rgb * transmittance + scattering;
-    //     }
-
-    //     // shadowValue /= VolWater_Steps;
-
-    //     // albedo = shadowValue;
-    // }
-
     uniform vec3 waterColorSmooth;
 
     void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 directLight, vec3 ambientLight, inout vec3 sceneColor, vec2 texcoord, vec2 screenSize, int frameCounter) {
@@ -410,9 +312,9 @@ float getShadowBias(float NdotL, float len) {
 
         // float rayLengthMult = length(sceneEnd - sceneOrigin) / min(length(sceneEnd - sceneOrigin), 1.0);
 
-        vec3 rayIncrement = (sceneEnd - sceneOrigin) / VolWater_Steps;
+        vec3 rayIncrement = (sceneOrigin - sceneEnd) / VolWater_Steps;
         rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
-        vec3 scenePos = sceneOrigin;
+        vec3 scenePos = sceneEnd;
 
         vec3 shadowAmount = vec3(0.0);
 

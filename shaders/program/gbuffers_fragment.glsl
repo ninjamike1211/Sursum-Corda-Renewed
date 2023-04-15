@@ -396,7 +396,7 @@ void main() {
 	#ifndef inNether
 
 // --------------------------- Water ----------------------------
-	waterDepth = vec4(0.0);
+	waterDepth = vec4(0.0, 0.0, 0.0, 1.0);
 	
 	if(entity == 10010) {
 

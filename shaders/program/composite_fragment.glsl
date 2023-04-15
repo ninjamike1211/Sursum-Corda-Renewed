@@ -227,7 +227,7 @@ layout(location = 2) out vec4  velocityOut;
 
 				// if(isEyeInWater == 0)
 					refractDir = refract(viewDir, normalToView(normalGeom - normalTex, gbufferModelView), 0.9);
-					// refractDir = refract(viewDir, normalToView(normalTex), 0.9);
+					// refractDir = refract(viewDir, normalToView(normalTex, gbufferModelView), 1.05);
 				// else if(isEyeInWater == 1)
 					// refractDir = refract(viewDir, normalToView(normalTex), 1.);
 				// vec3 refractDir = refract(normalize(viewPos), normalToView(normalGeom), 0.75);
@@ -266,86 +266,12 @@ layout(location = 2) out vec4  velocityOut;
 		vec3 viewPos  = calcViewPos(viewVector, depth, gbufferProjection);
 		vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
-	// ----------------------- Opaque Objects -----------------------
-		if(depth < 1.0) {
 
-		// ---------------- Water and Atmospheric Fog ---------------
-			// fog when player is not underwater
-			if(isEyeInWater == 0) {
-				// if there is water in the current pixel, render both water and atmospheric fog
-				if(waterDepth != 0.0) {
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, waterViewPos, viewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
-					#endif
 
-					#ifdef inEnd
-						endFog(opaqueColor.rgb, vec3(0.0), waterScenePos, colortex10);
-					#else
-						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
-						#endif
-					#endif
-				}
-				// if there is no water, only render atmospheric fog
-				else {
-					#ifdef inEnd
-						endFog(opaqueColor.rgb, vec3(0.0), scenePos, colortex10);
-					#else
-						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, vec3(0.0), viewPos, skyDirect, fogDensityMult);
-						#endif
-					#endif
-				}
-			}
-			// fog when player is underwater
-			else if(isEyeInWater == 1) {
-				// if the current pixel contains the surface of water, render both water and atmospheric fog
-				if(waterDepth != 0.0) {
-					#ifdef inEnd
-						endFog(opaqueColor.rgb, waterScenePos, scenePos, colortex10);
-					#else
-						#ifdef VolFog
-							volumetricFog(opaqueColor, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, waterViewPos, viewPos, skyDirect, fogDensityMult);
-						#endif
-					#endif
-
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
-					#endif
-				}
-				// if the current pixel doesn't contain the surface of water, only render water fog
-				else {
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, vec3(0.0), viewPos, skyDirect);
-					#endif
-				}
-			}
-			else if(isEyeInWater == 2) {
-				lavaFog(opaqueColor.rgb, viewPos);
-			}
-			else if(isEyeInWater == 3) {
-				snowFog(opaqueColor.rgb, viewPos);
-			}
-		}
 
 
 	// ------------------------ Sky Rendering -----------------------
-		else {
+		if(depth == 1.0) {
 			// Read sky value from buffer
 			vec3 eyeDir;
 			if(waterDepth != 0.0)
@@ -383,6 +309,15 @@ layout(location = 2) out vec4  velocityOut;
 				#endif
 
 			#endif
+
+			viewPos = normalize(viewPos) * 1.7 *shadowDistance;
+			scenePos = normalize(scenePos) * 1.7 *shadowDistance;
+
+			if(transparentDepth == 1.0) {
+				transparentViewPos = viewPos;
+				transparentScenePos = scenePos;
+			}
+
 				
 
 			specMap.a = sunDisk * 254.0/255.0;
@@ -395,152 +330,126 @@ layout(location = 2) out vec4  velocityOut;
 					velocityOut.xy = texcoord - prevScreenPos;
 				}
 			#endif
-
-			// water and atmospheric fog applied to sky
-			// fog when player is not underwater
-			if(isEyeInWater == 0) {
-				// if there is no water, only render atmospheric fog
-				if(waterDepth == 0.0) {
-					#ifndef inEnd
-						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), normalize(scenePos) * 30.0, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, vec3(0.0), normalize(viewPos) * 30.0, skyDirect, fogDensityMult);
-						#endif
-					#endif
-				}
-				// if there is water in the current pixel, render both water and atmospheric fog
-				else {
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, waterViewPos, normalize(viewPos) * far, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, normalize(scenePos) * far, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, waterViewPos, normalize(viewPos) * far, skyDirect);
-					#endif
-
-					#ifndef inEnd
-						#ifdef VolFog
-							volumetricFog(opaqueColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
-						#endif
-					#endif
-				}
-			}
-			// fog when player is underwater
-			else if(isEyeInWater == 1) {
-				if(waterDepth != 0.0) {
-					// render atmospheric fog
-					#ifndef inEnd
-						#ifdef VolFog
-							volumetricFog(opaqueColor, waterScenePos, normalize(scenePos) * 30.0, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(opaqueColor, waterViewPos, normalize(viewPos) * 30.0, skyDirect, fogDensityMult);
-						#endif
-					#endif
-
-					// render water fog
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, vec3(0.0), waterViewPos, skyDirect);
-					#endif
-				}
-				else {
-					#ifdef VolWater
-						// waterVolumetricFog(opaqueColor, vec3(0.0), normalize(viewPos) * far, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), normalize(scenePos) * far, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(opaqueColor, vec3(0.0), normalize(viewPos) * far, skyDirect);
-					#endif
-				}
-			}
 		}
 
-
-	// ----------- Transparent Objects and Alpha Blending -----------
-		if(transparentColor.a > 0.0 && transparentDepth < 1.0) {
 			
-		// ---------------- Water and Atmospheric Fog ---------------
+
+	// ----------------- Opaque behind transparent ------------------
+		if(depth != transparentDepth) {
+
 			// fog when player is not underwater
 			if(isEyeInWater == 0) {
-				// If there is water in front of the transparent object
-				if(waterDepth != 0.0 && transparentDepth > waterDepth) {
-					#ifdef inEnd
-						endFog(transparentColor.rgb, vec3(0.0), waterScenePos, colortex10);
+				// if there is water in the current pixel, render both water and atmospheric fog
+				if(waterDepth != 0.0) {
+					#ifdef VolWater
+						waterVolumetricFog(waterScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
-						#ifdef VolFog
-							volumetricFog(transparentColor, vec3(0.0), waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
-						#else
-							fog(transparentColor, vec3(0.0), waterViewPos, skyDirect, fogDensityMult);
-						#endif
+						waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
 					#endif
 
-					#ifdef VolWater
-						// waterVolumetricFog(transparentColor, waterViewPos, transparentViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(waterScenePos, transparentScenePos, skyDirect, skyAmbient, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(transparentColor, waterViewPos, transparentViewPos, skyDirect);
-					#endif
+					// If there is transparent, then water, then opaque include the atmospheric fog for the opaque
+					if(transparentDepth - waterDepth < -EPS) {
+						#ifdef inEnd
+							endFog(opaqueColor.rgb, transparentScenePos, waterScenePos, colortex10);
+						#else
+							#ifdef VolFog
+								volumetricFog(opaqueColor, transparentScenePos, waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+							#else
+								fog(opaqueColor, transparentScenePos, waterViewPos, skyDirect, fogDensityMult);
+							#endif
+						#endif
+					}
 				}
-				// No water in front of transparent object
+				// if there is no water, only render atmospheric fog
 				else {
 					#ifdef inEnd
-						endFog(transparentColor.rgb, vec3(0.0), transparentScenePos, colortex10);
+						endFog(opaqueColor.rgb, transparentScenePos, scenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(transparentColor, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+							volumetricFog(opaqueColor, transparentScenePos, scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(transparentColor, vec3(0.0), transparentViewPos, skyDirect, fogDensityMult);
+							fog(opaqueColor, transparentScenePos, viewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
 				}
 			}
+
 			// fog when player is underwater
 			else if(isEyeInWater == 1) {
-				// transparent object is outside of water
-				if(waterDepth != 0.0 && transparentDepth - waterDepth > -EPS) {
-					#ifdef VolWater
-						// waterVolumetricFog(transparentColor, vec3(0.0), waterViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), waterScenePos, skyDirect, skyAmbient, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
-					#else
-						waterFog(transparentColor, vec3(0.0), waterViewPos, skyDirect);
-					#endif
-
+				// if the current pixel contains the surface of water, render both water and atmospheric fog
+				if(waterDepth != 0.0) {
 					#ifdef inEnd
-						endFog(transparentColor.rgb, waterScenePos, transparentScenePos, colortex10);
+						endFog(opaqueColor.rgb, waterScenePos, scenePos, colortex10);
 					#else
 						#ifdef VolFog
-							volumetricFog(transparentColor, waterScenePos, transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+							volumetricFog(opaqueColor, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
-							fog(transparentColor, waterViewPos, transparentViewPos, skyDirect, fogDensityMult);
+							fog(opaqueColor, waterViewPos, viewPos, skyDirect, fogDensityMult);
 						#endif
 					#endif
+
+					// If there is transparent, then water, then opaque include extra water fog for the opaque
+					if(transparentDepth - waterDepth < -EPS) {
+						#ifdef VolWater
+							waterVolumetricFog(transparentScenePos, waterScenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+						#else
+							waterFog(transparentViewPos, waterViewPos, viewPos, skyDirect);
+						#endif
+					}
 				}
-				// transparent object is underwater or is water
+				// if the current pixel doesn't contain the surface of water, only render water fog
 				else {
 					#ifdef VolWater
-						// waterVolumetricFog(transparentColor, vec3(0.0), transparentViewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, skyAmbient, transparentColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+						// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
+						waterVolumetricFog(transparentScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
-						waterFog(transparentColor, vec3(0.0), transparentViewPos, skyDirect);
+						waterFog(opaqueColor, transparentScenePos, viewPos, skyDirect);
 					#endif
 				}
 			}
 			else if(isEyeInWater == 2) {
-				lavaFog(opaqueColor.rgb, viewPos);
+				lavaFog(opaqueColor.rgb, viewPos - transparentViewPos);
 			}
 			else if(isEyeInWater == 3) {
-				snowFog(opaqueColor.rgb, viewPos);
+				snowFog(opaqueColor.rgb, viewPos - transparentViewPos);
 			}
+		}
 
-
-		// --------------------- Alpha Blending ---------------------
+	// ----------- Transparent Objects and Alpha Blending -----------
+		if(transparentColor.a > 0.0 && transparentDepth < 1.0) {
 			colorOut = vec4(mix(opaqueColor.rgb, transparentColor.rgb / transparentColor.a, transparentColor.a), 1.0);
 		}
 		else {
 			colorOut = opaqueColor;
+		}
+			
+
+	// ---------------- Water and Atmospheric Fog ---------------
+		// fog when player is not underwater
+		if(isEyeInWater == 0) {
+			#ifdef inEnd
+				endFog(colorOut.rgb, vec3(0.0), transparentScenePos, colortex10);
+			#else
+				#ifdef VolFog
+					volumetricFog(colorOut, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+				#else
+					fog(colorOut, vec3(0.0), transparentViewPos, skyDirect, fogDensityMult);
+				#endif
+			#endif
+		}
+		// fog when player is underwater
+		else if(isEyeInWater == 1) {
+			#ifdef VolWater
+				waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, skyAmbient, colorOut.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+			#else
+				waterFog(colorOut, vec3(0.0), transparentViewPos, skyDirect);
+			#endif
+		}
+		else if(isEyeInWater == 2) {
+			lavaFog(colorOut.rgb, viewPos);
+		}
+		else if(isEyeInWater == 3) {
+			snowFog(colorOut.rgb, viewPos);
 		}
 	}
 #endif
