@@ -118,21 +118,25 @@ void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) 
 #endif
 
 float waterFogFactor(vec3 viewOrigin, vec3 viewPos) {
-    return exp(-0.1 * length(viewPos - viewOrigin));
+    return exp(-0.06 * length(viewPos - viewOrigin));
 }
 
-void waterFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 lightColor) {
-    vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
-    vec3 scatteringCoef = 0.3 * vec3(0.04);
+void waterFog(vec3 viewOrigin, vec3 viewPos, vec3 directLight, vec3 ambientLight, inout vec3 sceneColor, vec3 waterColorSmooth) {
+    // vec3 absorptionCoef = 1.0 * vec3(0.13, 0.07, 0.06);
+    // vec3 scatteringCoef = 0.3 * vec3(0.04);
 
-    vec3 transmittance = exp(-absorptionCoef * length(viewPos - viewOrigin));
-    vec3 scattering = lightColor * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
+    // vec3 transmittance = exp(-absorptionCoef * length(viewPos - viewOrigin));
+    // vec3 scattering = lightColor * transmittance * scatteringCoef * (1.0 - transmittance) / absorptionCoef;
 
-    albedo.rgb = albedo.rgb * transmittance + scattering;
+    // albedo.rgb = albedo.rgb * transmittance + scattering;
 
     // vec3 fog = (light * 0.15 + 0.02) * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4);
 
     // sceneColor.rgb = mix(fog, sceneColor.rgb, exp(-0.1 * length(viewPos - viewOrigin)));
+
+    vec3 fog = (0.08 * directLight * waterColorSmooth) + (0.2 * ambientLight * mix(sRGBToLinear3(waterColorSmooth), vec3(0.25, 0.3, 0.4), 0.4));
+
+    sceneColor = mix(fog, sceneColor, waterFogFactor(viewOrigin, viewPos));
 }
 
 // void diffuseLighting(inout vec4 albedo, vec3 shadowVal, vec2 lmcoord, int time, float rainStrength) {

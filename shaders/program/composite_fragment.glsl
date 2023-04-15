@@ -344,7 +344,7 @@ layout(location = 2) out vec4  velocityOut;
 					#ifdef VolWater
 						waterVolumetricFog(waterScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
-						waterFog(opaqueColor, waterViewPos, viewPos, skyDirect);
+						waterFog(waterViewPos, viewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 					#endif
 
 					// If there is transparent, then water, then opaque include the atmospheric fog for the opaque
@@ -393,7 +393,7 @@ layout(location = 2) out vec4  velocityOut;
 						#ifdef VolWater
 							waterVolumetricFog(transparentScenePos, waterScenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 						#else
-							waterFog(transparentViewPos, waterViewPos, viewPos, skyDirect);
+							waterFog(transparentViewPos, waterViewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 						#endif
 					}
 				}
@@ -403,7 +403,7 @@ layout(location = 2) out vec4  velocityOut;
 						// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
 						waterVolumetricFog(transparentScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
-						waterFog(opaqueColor, transparentScenePos, viewPos, skyDirect);
+						waterFog(transparentScenePos, viewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 					#endif
 				}
 			}
@@ -442,7 +442,7 @@ layout(location = 2) out vec4  velocityOut;
 			#ifdef VolWater
 				waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, skyAmbient, colorOut.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 			#else
-				waterFog(colorOut, vec3(0.0), transparentViewPos, skyDirect);
+				waterFog(vec3(0.0), transparentViewPos, skyDirect, skyAmbient, colorOut.rgb, waterColorSmooth);
 			#endif
 		}
 		else if(isEyeInWater == 2) {
