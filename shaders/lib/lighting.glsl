@@ -80,15 +80,67 @@ void snowFog(inout vec3 albedo, vec3 position) {
     albedo = mix(vec3(0.7, 0.8, 1.0), albedo, fogFactor);
 }
 
-float netherFogFactor(vec3 viewOrigin, vec3 viewPos) {
-    float dist = length(viewPos - viewOrigin);
+float netherFogFactor(float dist) {
+    // float dist = length(viewPos - viewOrigin);
     return clamp(exp(-dist*0.02), 0.0, 1.0);
 }
 
-void netherFog(inout vec4 albedo, vec3 viewOrigin, vec3 viewPos, vec3 fogColor) {
-    float fogFactor = netherFogFactor(viewOrigin, viewPos);
+void netherFog(inout vec3 sceneColor, float dist, vec3 fogColor) {
+    float fogFactor = netherFogFactor(dist);
 
-    albedo.rgb = mix(0.7*fogColor, albedo.rgb, fogFactor);
+    sceneColor = mix(0.7*fogColor, sceneColor, fogFactor);
+}
+
+void netherFog(inout vec3 sceneColor, vec3 sceneOrigin, vec3 sceneEnd, vec3 fogColor) {
+    netherFog(sceneColor, length(sceneEnd - sceneOrigin), fogColor);
+}
+
+void netherFogVolumetric(inout vec3 sceneColor, vec3 sceneOrigin, vec3 sceneEnd, vec3 fogColor, vec3 cameraPosition, float frameTimeCounter) {
+    
+    vec3 volRay = sceneEnd - sceneOrigin;
+    float dist = length(volRay);
+
+
+    if(dist > VolFog_Nether_MaxDistance) {
+        netherFog(sceneColor, dist - VolFog_Nether_MaxDistance, fogColor);
+
+        volRay = VolFog_Nether_MaxDistance * normalize(volRay);
+        sceneEnd = sceneOrigin + volRay;
+    }
+
+    vec3 currentScenePos = sceneEnd;
+    vec3 rayIncrement = volRay / VolFog_Nether_Steps;
+    float rayIncrementLength = length(rayIncrement);
+
+    // for(int i = 0; i < VolFog_Nether_Steps; i++)
+    //     sceneColor = mix(0.7 * fogColor, sceneColor, exp(-0.1 * rayIncrementLength));
+    // sceneColor = mix(0.7 * fogColor, sceneColor, exp(-0.1 * 0.5 * dist));
+    // sceneColor = mix(0.7 * fogColor, sceneColor, exp(-0.1 * 0.5 * dist));
+
+    for(int i = 0; i < VolFog_Nether_Steps; i++) {
+        currentScenePos += rayIncrement;
+        vec3 worldPos = currentScenePos + cameraPosition * 1.6;
+
+        float noiseAmount =  0.2 * SimplexPerlin3D(0.6 * worldPos + 2.5 * vec3(-0.5,  0.4,  0.6) * frameTimeCounter);
+              noiseAmount += 0.3 * SimplexPerlin3D(0.2 * worldPos + 0.5 * vec3(-0.5,  0.4,  0.6) * frameTimeCounter);
+              noiseAmount += 0.5 * SimplexPerlin3D(0.1 * worldPos + 0.25 * vec3(-0.5,  0.4,  0.6) * frameTimeCounter);
+        noiseAmount = noiseAmount * 0.5 + 0.5;
+
+        // float noiseAmount = SimplexPerlin3D(0.1 * worldPos) * 0.5 + 0.5;
+        // vec3 fogColorValue = mix(vec3(0.5, 0.2, 0.1), 0.7 * fogColor, mix(0.5, 1.0, noiseAmount));
+        vec3 fogColorValue = mix(vec3(0.0, -0.02, -0.1), 0.7 * fogColor, mix(0.5, 1.0, noiseAmount));
+        // vec3 fogColorValue = 0.7 * fogColor * (noiseAmount * 2.0 - 1.0);
+        // vec3 fogColorValue = 0.7 * fogColor;
+        
+        // fogValue += mix(vec3(0.5, 0.1, 0.0), fogColor, noiseAmount);
+
+        // netherFog(sceneColor, length(rayIncrement), fogColorValue);
+
+        float fogFactor = exp(-rayIncrementLength * mix(0.0, 0.1, noiseAmount) );
+
+        sceneColor = mix(fogColorValue, sceneColor, fogFactor);
+
+    }
 }
 
 #ifdef UseEndSkyFog

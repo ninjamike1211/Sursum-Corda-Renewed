@@ -113,90 +113,72 @@ layout(location = 2) out vec4  velocityOut;
 	void main() {
 
 	// --------------------- Read texture values --------------------
-		vec4 transparentColor 	= texture(colortex0, texcoord);
-		uvec3 material 			= texture(colortex2, texcoord).rgb;
-		velocityOut 			= texture(colortex6, texcoord);
-		vec4 opaqueColor 		= texture(colortex7, texcoord);
-		float transparentDepth 	= texture(depthtex0, texcoord).r;
-		float depth 			= texture(depthtex1, texcoord).r;
+		vec4 transparentColor 	 = texture(colortex0, texcoord);
+		uvec3 material 			 = texture(colortex2, texcoord).rgb;
+		velocityOut 			 = texture(colortex6, texcoord);
+		vec4 opaqueColor 		 = texture(colortex7, texcoord);
+		float transparentDepth 	 = texture(depthtex0, texcoord).r;
+		float depth 			 = texture(depthtex1, texcoord).r;
 
-		vec3 transparentViewPos = calcViewPos(viewVector, transparentDepth, gbufferProjection);
-		vec3 viewPos 			= calcViewPos(viewVector, depth, gbufferProjection);
-		vec3 scenePos 			= (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-		vec3 eyeDir             = mat3(gbufferModelViewInverse) * normalize(viewPos);
+		vec3 transparentViewPos  = calcViewPos(viewVector, transparentDepth, gbufferProjection);
+		vec3 viewPos 			 = calcViewPos(viewVector, depth, gbufferProjection);
+		vec3 eyeDir              = mat3(gbufferModelViewInverse) * normalize(viewPos);
+		
+		#ifdef VolFog_Nether
+			vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
+			vec3 scenePos 			 = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+		#endif
 
 		vec4 specMap = SpecularDecode(material.z);
 		
 		materialOut = material;
 
+		// float fogLuminance = luminance(fogColor);
+		// vec3 fogColorNether = 4.0 * fogColor * fogLuminance;
+		vec3 fogColorNether = 0.7 * fogColor;
+
 
 	// ----------------------- Opaque Objects -----------------------
-		if(depth < 1.0) {
+		if(transparentDepth != depth) {
 
 		// ---------------- Water and Atmospheric Fog ---------------
 			// fog when player is not underwater
 			if(isEyeInWater == 0) {
-				vec3 fogCloudColor = fogColor;
-				
-				#ifdef Nether_CloudFog
-					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor, far, lightDir);
+				#ifdef VolFog_Nether
+					netherFogVolumetric(opaqueColor.rgb, transparentScenePos, scenePos, fogColorNether, cameraPosition, frameTimeCounter);
+				#else
+					netherFog(opaqueColor.rgb, transparentViewPos, viewPos, fogColorNether);
 				#endif
-				
-				netherFog(opaqueColor, vec3(0.0), viewPos, fogCloudColor);
 			}
 			else if(isEyeInWater == 2) {
-				lavaFog(opaqueColor.rgb, viewPos);
+				lavaFog(opaqueColor.rgb, viewPos - transparentViewPos);
 			}
 		}
 
 
-	// ------------------------ Sky Rendering -----------------------
-		else {
-			// Read sky value from buffer
-			vec3 sky = texture2D(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
-
-			// Apply moon, hide moon when below horizon
-			opaqueColor.rgb = sky;
-
-			// Apply clouds
-			#ifdef cloudsEnable
-				applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, opaqueColor.rgb, fogColor, far, lightDir);
-			#endif
-
-			// Output correct velocity for the sky
-			#if defined TAA || defined MotionBlur
-				if(transparentDepth == 1.0) {
-					vec2 prevScreenPos = toPrevScreenPos(texcoord);
-					velocityOut.xy = texcoord - prevScreenPos;
-				}
-			#endif
-		}
-
-
-	// ----------- Transparent Objects and Alpha Blending -----------
+	// --------------------- Alpha Blending ---------------------
 		if(transparentColor.a > 0.0 && transparentDepth < 1.0) {
-			
-		// ---------------- Water and Atmospheric Fog ---------------
-			if(isEyeInWater == 0) {
-				vec3 fogCloudColor = fogColor;
-
-				#ifdef Nether_CloudFog
-					applyNetherCloudColor(eyeDir, vec3(50, 10, 50) * cameraPosition, fogCloudColor, fogColor, far, lightDir);
-				#endif
-
-				netherFog(transparentColor, vec3(0.0), transparentViewPos, fogCloudColor);
-			}
-			else if(isEyeInWater == 2) {
-				lavaFog(transparentColor.rgb, transparentViewPos);
-			}
-
-
-		// --------------------- Alpha Blending ---------------------
 			colorOut = vec4(mix(opaqueColor.rgb, transparentColor.rgb / transparentColor.a, transparentColor.a), 1.0);
+		
 		}
 		else {
 			colorOut = opaqueColor;
 		}
+			
+
+	// ---------------- Water and Atmospheric Fog ---------------
+		if(isEyeInWater == 0) {
+			#ifdef VolFog_Nether
+				netherFogVolumetric(colorOut.rgb, vec3(0.0), scenePos, fogColorNether, cameraPosition, frameTimeCounter);
+			#else
+				netherFog(colorOut.rgb, length(viewPos), fogColorNether);
+			#endif
+		}
+		else if(isEyeInWater == 2) {
+			lavaFog(colorOut.rgb, viewPos);
+		}
+
+
 	}
 #else
 	void main() {

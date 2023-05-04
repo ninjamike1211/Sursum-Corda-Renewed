@@ -166,7 +166,7 @@ void main() {
     // -------------------- Apply Reflection --------------------
 
         #ifdef inNether
-            fresnel *= netherFogFactor(vec3(0.0), viewPos);
+            fresnel *= netherFogFactor(length(viewPos));
         #else
             if(isEyeInWater == 1)
                 fresnel *= waterFogFactor(vec3(0.0), viewPos);

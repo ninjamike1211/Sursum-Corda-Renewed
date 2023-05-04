@@ -99,6 +99,10 @@ const int shadowcolor0Format = RGBA8;
 	#define VolFog_SmoothShadowSamples 	4 		// Number of samples used for smooth shadows in volumetric fog [1 2 4 6 8 10 12 14 16 20 24 32]
 	#define VolFog_SmoothShadowBlur 	0.002 	// Amount of blur applied ot shadows in volumetric fog [0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.010 0.015 0.020]
 
+	#define VolFog_Nether						// Volumetric nether fog effect, significant performance impact
+	#define VolFog_Nether_Steps		 	16		// Steps in volumetric nether fog effect. Larger values allow longer fog or higher quality, with significant performance impact [8 12 16 32 48 64 96 128]
+	#define VolFog_Nether_MaxDistance 	25.0	// Max distance of volumetric effect in fog in blocks, larger values require higher VolFog_Nehter_Steps to look good [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
+
 	#define VolWater						// Volumetric fog in water, looks good but large performance impact
 	#define VolWater_Steps 		16			// Number of samples in fog [4 6 8 12 16 20 24 28 32 48 64]
 	#define VolWater_LightSteps 8			// Number of samples in light [2 4 6 8 10 12 16 20 24 28 32]
