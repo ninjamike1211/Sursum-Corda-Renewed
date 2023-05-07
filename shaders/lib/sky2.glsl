@@ -84,6 +84,7 @@ vec3 sunLightSample(float sunHeight, float shadowHeight, float rainStrength, int
     else {
         color = vec3(0.1, 0.2, 0.4) * (cos(0.25 * PI * moonPhase) * 0.25 + 0.75) * smoothstep(0.0, 0.3, shadowHeight);
         color *= mix(1.0, 0.3, rainStrength);
+        color *= 0.15;
     }
 
     return color;
@@ -414,7 +415,7 @@ vec3 get_sky_color(vec3 ray_origin, vec3 ray_direction, vec3 sun_direction, vec3
     atmosphere.iSun = 10.5 * mix(1.0, 0.3, rainStrength);
    
     //Moon intensity
-    atmosphere.iMoon = 0.5 * (cos(0.25 * PI * moonPhase) * 0.25 + 0.75);
+    atmosphere.iMoon = 0.25 * (cos(0.25 * PI * moonPhase) * 0.25 + 0.75);
        
     //Output
 	return atmospheric_scattering(ray_origin, ray_direction, sun_direction, moon_direction, atmosphere);

@@ -5,16 +5,21 @@ layout(std430, binding = 0) buffer ssbo_temporalData {
     float previousMood;
     float moodVelocityAvg;
     float caveShadowMult;
+
     float windAmplitude;
     float windAngle;
     float windPhase;
+
     vec2 centerDepthSmooth;
+
+    float exposure;
 } ssbo;
 
 
 #ifdef SSBO_Vertex
 void setSSBO() {
-    // --------------------- Temporal Variables ---------------------
+
+// --------------------- Temporal Variables ---------------------
     float moodVelocity = (playerMood - ssbo.previousMood) / frameTime;
     if(playerMood < 0.0001)
         moodVelocity = -1.0;
@@ -40,11 +45,22 @@ void setSSBO() {
     vec2 newCenterDepth = vec2(texture(depthtex0, vec2(0.5)).r, texture(depthtex2, vec2(0.5)).r);
 
     if(DOF_FocusSpeed > 0.0) {
-        float newAmount = clamp(frameTime * DOF_FocusSpeed, 0.0, 1.0);
         newCenterDepth = mix(ssbo.centerDepthSmooth, newCenterDepth, frameTime * DOF_FocusSpeed);
     }
     
     ssbo.centerDepthSmooth = newCenterDepth;
+
+// ------------------------ Auto Exposure -----------------------
+    vec3 avgColor = textureLod(colortex0, vec2(0.5), log2(max(viewWidth, viewHeight))).rgb;
+    float exposureScreen = 0.1 / dot(avgColor, vec3(0.2125, 0.7154, 0.0721));
+    // float exposureScreen = luminance(avgColor);
+
+    if(ExposureSpeed > 0.0) {
+        exposureScreen = mix(ssbo.exposure, exposureScreen, frameTime * ExposureSpeed);
+    }
+
+    ssbo.exposure = exposureScreen;
+
 }
 #endif
 

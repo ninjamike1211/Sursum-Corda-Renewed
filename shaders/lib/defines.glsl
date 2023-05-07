@@ -65,6 +65,9 @@ const int shadowcolor0Format = RGBA8;
 	#define endDirectLight 		vec3(0.15, 0.08, 0.3)
 
 
+#define ExposureSpeed 0.25
+
+
 // Temporal Anti-aliasing
 	#define TAA // Temporal anti-alliasing, smooths edges and improves visual quality, sometimes causes ghosting
 	#define TAA_NEIGHBORHOOD_SIZE 1

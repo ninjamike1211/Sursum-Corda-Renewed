@@ -9,6 +9,7 @@ uniform float viewHeight;
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
+#include "/lib/SSBO.glsl"
 
 
 // ------------------------ File Contents -----------------------
@@ -19,7 +20,7 @@ uniform float viewHeight;
 
 in vec2 texcoord;
 in vec3 viewVector;
-flat in float exposure;
+// flat in float exposure;
 
 #ifdef LensFlare
     flat in vec2  sunScreenPos;
@@ -33,9 +34,8 @@ flat in float exposure;
     flat in vec3  skyDirect;
 #endif
 
-/* RENDERTARGETS: 0,14 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 colorOut;
-layout(location = 1) out vec4 exposureOutput;
 
 vec3 change_luminance(vec3 c_in, float l_out) {
     float l_in = luminance(c_in);
@@ -74,6 +74,20 @@ vec3 uncharted2_filmic(vec3 v) {
     return curr * white_scale;
 }
 
+vec3 ACESFilm(vec3 x) {
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+
+    return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
+}
+
+vec3 applyExposure(vec3 color, float exposure) {
+    return color * (0.5 + 0.25 * exposure);
+}
+
 void main() {
     colorOut = texture(colortex0, texcoord);
     
@@ -83,15 +97,17 @@ void main() {
     // colorOut.rgb = vec3(1.0) - exp(-colorOut.rgb * exposure);
     // albedo.rgb /= albedo.rgb + vec3(1.0);
     // colorOut.rgb = reinhard_extended_luminance(colorOut.rgb, exposure * 10.0);
-    colorOut.rgb = reinhard_jodie(colorOut.rgb);
     // colorOut.rgb = uncharted2_filmic(colorOut.rgb);
     // gamma correction 
-    // if(depth == 1.0)
-        colorOut = linearToSRGB(colorOut);
+    
+    colorOut.rgb = applyExposure(colorOut.rgb, ssbo.exposure);
+
+    // colorOut.rgb = reinhard_jodie(colorOut.rgb);
+    colorOut.rgb = ACESFilm(colorOut.rgb);
+
+    colorOut = linearToSRGB(colorOut);
 
     colorOut.rgb += texture(noisetex, fract(texcoord * vec2(viewWidth, viewHeight) / 512.0)).r / 255.0;
-
-    exposureOutput = vec4(exposure);
 
 
 // ------------------------- Lens Flare -------------------------
