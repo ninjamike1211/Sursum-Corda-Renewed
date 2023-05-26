@@ -5,49 +5,50 @@
 uniform sampler2D tex;
 uniform sampler2D normals;
 uniform sampler2D specular;
-// uniform sampler2D colortex12;
-uniform sampler2D depthtex1;
 
 uniform mat4  gbufferModelView;
-uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform vec4  entityColor;
 uniform vec3  cameraPosition;
-uniform vec3  fogColor;
 uniform ivec2 atlasSize;
-uniform float eyeAltitude;
 uniform float alphaTestRef;
-uniform float near;
-uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform float rainStrength;
 uniform float wetness;
 uniform float frameTimeCounter;
-uniform float fogDensityMult;
 uniform int   frameCounter;
 uniform int   isEyeInWater;
-uniform int   worldTime;
-uniform int   heldItemId;
-uniform int   heldBlockLightValue;
-uniform int   heldItemId2;
-uniform int   heldBlockLightValue2;
-uniform bool  cameraMoved;
 
-uniform int entityId;
-
-#ifdef LightningLight
-    uniform vec4 lightningBoltPosition;
+#ifdef entities
+	uniform mat4 gbufferModelViewInverse;
+	uniform mat4 gbufferProjectionInverse;
+	uniform vec4 entityColor;
 #endif
 
+#ifdef afterDeferred
+	uniform sampler2D depthtex1;
+
+	#if defined SSS && !defined inNether
+		uniform float near;
+		uniform float far;
+	#endif
+
+	#ifdef HandLight
+		uniform int   heldItemId;
+		uniform int   heldBlockLightValue;
+		uniform int   heldItemId2;
+		uniform int   heldBlockLightValue2;
+	#endif
+#endif
 
 #ifndef inNether
-	uniform sampler2D shadowtex0;
-	uniform sampler2D shadowtex1;
-	uniform sampler2D shadowcolor0;
-	uniform mat4  shadowModelView;
-	uniform mat4  shadowProjection;
+	#ifdef Use_ShadowMap
+		uniform sampler2D shadowtex0;
+		uniform sampler2D shadowtex1;
+		uniform sampler2D shadowcolor0;
+		uniform mat4  shadowModelView;
+		uniform mat4  shadowProjection;
+	#endif
 
 	uniform vec3 lightDir;
 	uniform vec3 lightDirView;
@@ -122,7 +123,7 @@ layout (depth_greater) out float gl_FragDepth;
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 
-#ifndef inNether
+#if !defined inNether && defined Use_ShadowMap
 	#include "/lib/shadows.glsl"
 #endif
 
@@ -602,7 +603,7 @@ void main() {
 	// -------------------- Shadows --------------------
 		float NGdotL = dot(geomNormal, lightDir);
 
-		#ifndef inNether
+		#if !defined inNether && defined Use_ShadowMap
 			float blockerDist;
 			vec3 offset = lightDir * pomOut.r;
 			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, NGdotL, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
@@ -632,7 +633,7 @@ void main() {
 		colorOut.a = albedo.a;
 
 	// ---------------------- SSS ----------------------
-		#if defined SSS && !defined inNether
+		#if defined SSS && !defined inNether && defined Use_ShadowMap
 			float subsurface = getSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo.rgb, subsurface, blockerDist, skyDirect * shadowMult, near, far);
 		#endif

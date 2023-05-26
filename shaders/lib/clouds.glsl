@@ -16,7 +16,7 @@ void getCloudCoords(vec3 eyeDir, vec3 eyeOrigin, float height, float radius, out
 	cloudCoords = radius * sin(angles) - eyeOrigin.xz;
 }
 
-void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir) {
+void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir, float frameTimeCounter, float rainStrength) {
 
 	vec2 cloudCoordsHigh, cloudAnglesHigh;
 	float cloudDistHigh;
@@ -103,7 +103,7 @@ void applyCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lig
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }
 
-void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 fogColor, float far, vec3 lightDir) {
+void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 fogColor, float far, vec3 lightDir, float frameTimeCounter) {
 
 	vec2 cloudCoordsHigh;
 	float cloudDistHigh;
@@ -159,7 +159,7 @@ void applyNetherCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, ve
 	baseColor = mix(baseColor, cloudColorLow, cloudAlphaLow);
 }
 
-void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir) {
+void applyEndCloudColor(vec3 eyeDir, vec3 eyeOrigin, inout vec3 baseColor, vec3 lightColor, float far, vec3 lightDir, float frameTimeCounter) {
 
 	vec2 cloudCoordsHigh;
 	float cloudDistHigh;

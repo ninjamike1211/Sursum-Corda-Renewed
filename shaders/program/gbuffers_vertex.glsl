@@ -1,28 +1,29 @@
 #include "/lib/defines.glsl"
 
-uniform sampler2D colortex10;
-// uniform sampler2D colortex12;
-uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
-uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
 uniform vec3  cameraPosition;
-uniform float rainStrength;
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float sunHeight;
-uniform float shadowHeight;
-uniform float frameTime;
-uniform float frameTimeCounter;
-uniform int   frameCounter;
-uniform int   moonPhase;
-uniform bool  cameraMoved;
 
-#ifdef inNether
-    uniform vec3 fogColor;
+#if (defined wavingPlants) || (!defined inNether && !defined inEnd)
+    uniform float rainStrength;
 #endif
+
+#if defined inNether || defined wavingPlants
+    uniform float frameTimeCounter;
+#endif
+
+#if defined TAA
+    uniform int frameCounter;
+    uniform float viewWidth;
+    uniform float viewHeight;
+#endif
+
+#if !defined inEnd && !defined inNether
+    uniform sampler2D colortex10;
+    uniform float sunHeight;
+    uniform float shadowHeight;
+    uniform int   moonPhase;
+#endif
+
 
 #if defined TAA || defined MotionBlur
     uniform vec3 previousCameraPosition;
@@ -43,8 +44,11 @@ uniform bool  cameraMoved;
 #endif
 
 in vec4 at_tangent;
-in vec3 at_midBlock;
 in vec2 mc_midTexCoord;
+
+#ifdef wavingPlants
+    in vec3 at_midBlock;
+#endif
 
 out VertexData {
     vec2 texcoord;
@@ -76,41 +80,6 @@ out VertexData {
 
 };
 
-// layout(location = 10) out vec2 texcoord;
-// layout(location = 11) out vec4 glColor;
-// layout(location = 12) out vec2 lmcoord;
-// layout(location = 13) out vec3 viewPos;
-// layout(location = 14) out vec3 scenePos;
-// layout(location = 15) out vec3 tbnPos;
-// layout(location = 16) flat out mat3 tbn;
-// layout(location = 19) flat out vec4 textureBounds;
-// layout(location = 20) flat out vec3 glNormal;
-// layout(location = 21) flat out vec3 skyAmbient;
-// layout(location = 22) flat out vec3 skyDirect;
-// layout(location = 23) flat out int  entity;
-
-// #ifdef inNether
-//     uniform vec3 fogColor;
-
-//     layout(location = 24) flat out vec3 lightDir;
-//     layout(location = 25) flat out vec3 lightDirView;
-// #endif
-
-// #ifdef POM_TexSizeFix
-//     layout(location = 26) out vec2 localTexcoord;
-// #endif
-
-// #if defined TAA || defined MotionBlur
-//     uniform vec3 previousCameraPosition;
-//     uniform mat4 gbufferPreviousModelView;
-//     uniform mat4 gbufferPreviousProjection;
-
-//     in vec3 at_velocity;
-
-//     layout(location = 27) out vec4 oldClipPos;
-//     layout(location = 28) out vec4 newClipPos;
-// #endif
-
 #include "/lib/SSBO.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -133,11 +102,6 @@ out VertexData {
 void main() {
 
 // -------------------- Basic Geometry Values -------------------
-    // #ifdef weather
-    //     glColor = vec4(gl_Color.rgb, 0.5);
-    // #else
-    //     glColor = vec4(gl_Color.rgb, 1.0);
-    // #endif
     glColor = gl_Color;
 
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;

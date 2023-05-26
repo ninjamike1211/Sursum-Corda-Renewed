@@ -1,56 +1,61 @@
+#include "/lib/defines.glsl"
+
 uniform sampler2D  colortex0;
 uniform usampler2D colortex2;
-uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
 uniform sampler2D  colortex6;
 uniform sampler2D  colortex7;
-uniform sampler2D  colortex9;
 uniform sampler2D  colortex10;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
-uniform sampler2D  shadowtex0;
-uniform sampler2D  shadowtex1;
-uniform sampler2D  shadowcolor0;
 
 uniform vec3  lightDir;
-uniform vec3  sunDir;
-uniform vec3  sunDirView;
-uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform mat4  gbufferPreviousModelView;
-uniform mat4  gbufferPreviousProjection;
 uniform vec3  cameraPosition;
-uniform vec3  previousCameraPosition;
+uniform vec3 waterColorSmooth;
 uniform float frameTimeCounter;
 uniform float eyeAltitude;
 uniform int   isEyeInWater;
-uniform float rainStrength;
-uniform mat4  shadowModelView;
-uniform mat4  shadowProjection;
-uniform float near;
-uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
-uniform float sunHeight;
-uniform float shadowHeight;
-uniform int   moonPhase;
-uniform float fogDensityMult;
-uniform float heldBlockLightValue;
-uniform float heldBlockLightValue2;
-uniform int   heldItemId;
-uniform int   heldItemId2;
-uniform vec3  fogColor;
+
+#ifdef waterRefraction
+	uniform mat4  gbufferModelView;
+#endif
+
+#if defined TAA || defined MotionBlur
+	uniform mat4  gbufferProjectionInverse;
+	uniform mat4  gbufferPreviousModelView;
+	uniform mat4  gbufferPreviousProjection;
+	uniform vec3  previousCameraPosition;
+#endif
+
+#ifndef inNether
+	#ifdef Use_ShadowMap
+		uniform sampler2D  shadowtex0;
+		uniform sampler2D  shadowtex1;
+		uniform sampler2D  shadowcolor0;
+		uniform mat4  shadowModelView;
+		uniform mat4  shadowProjection;
+	#endif
+
+	uniform float far;
+	uniform float viewWidth;
+	uniform float viewHeight;
+	uniform int   frameCounter;
+#else
+	uniform vec3  fogColor;
+#endif
+
+#if !defined inEnd && !defined inNether
+	uniform vec3  sunDir;
+	uniform float rainStrength;
+	uniform float fogDensityMult;
+#endif
 
 #ifdef inEnd
 	#define UseEndSkyFog
 #endif
 
-#include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/kernels.glsl"
 #include "/lib/noise.glsl"
@@ -59,13 +64,13 @@ uniform vec3  fogColor;
 #include "/lib/spaceConvert.glsl"
 #include "/lib/sample.glsl"
 #include "/lib/sky2.glsl"
-#include "/lib/shadows.glsl"
 #include "/lib/clouds.glsl"
 #include "/lib/lighting.glsl"
 #include "/lib/raytrace.glsl"
 
-#define waterRefraction
-
+#if !defined inNether && defined Use_ShadowMap
+	#include "/lib/shadows.glsl"
+#endif
 
 // ------------------------ File Contents -----------------------
     // Main Composite pass, combining opaque and transparent geometry
@@ -233,6 +238,8 @@ layout(location = 2) out vec4  velocityOut;
 		#else
 			float depth       = texture(depthtex1, texcoord).r;
 			vec4  opaqueColor = texture(colortex7, texcoord);
+			vec3  viewDir = normalize(waterViewPos);
+			vec3  refractDir = viewDir;
 		#endif
 
 
@@ -270,7 +277,7 @@ layout(location = 2) out vec4  velocityOut;
 				// sky = mix(sky, sunDiskColor, sunDisk);
 
 				#ifdef cloudsEnable
-					applyEndCloudColor(eyeDir, cameraPosition * vec3(50.0, 1.0, 50.0), sky, -skyDirect, far, lightDir);
+					applyEndCloudColor(eyeDir, cameraPosition * vec3(50.0, 1.0, 50.0), sky, -skyDirect, far, lightDir, frameTimeCounter);
 				#endif
 
 				sky = abs(sky * 2.0);
@@ -281,19 +288,24 @@ layout(location = 2) out vec4  velocityOut;
 
 			#else
 				float sunDisk = smoothstep(-0.034, 0.05, eyeDir.y) * smoothstep(0.9995, 0.9998, dot(eyeDir, sunDir));
-				sky *= mix(1.0, 400.0, sunDisk);
+				sky *= mix(1.0, 600.0, sunDisk);
 
 				// Apply moon, hide moon when below horizon
 				opaqueColor.rgb = sky + smoothstep(-0.030, 0.05, eyeDir.y) * opaqueColor.rgb * 10.0 /* * step(0.05, opaqueColor.r) */;
 			
 				#ifdef cloudsEnable
-					applyCloudColor(eyeDir, cameraPosition, opaqueColor.rgb, skyDirect, far, lightDir);
+					applyCloudColor(eyeDir, cameraPosition, opaqueColor.rgb, skyDirect, far, lightDir, frameTimeCounter, rainStrength);
 				#endif
 
 			#endif
 
-			viewPos = normalize(viewPos) * 1.7 *shadowDistance;
-			scenePos = normalize(scenePos) * 1.7 *shadowDistance;
+			#ifdef Use_ShadowMap
+				viewPos = normalize(viewPos) * 1.7 *shadowDistance;
+				scenePos = normalize(scenePos) * 1.7 *shadowDistance;
+			#else
+				viewPos = normalize(viewPos) * 1.7 *far;
+				scenePos = normalize(scenePos) * 1.7 *far;
+			#endif
 
 			if(transparentDepth == 1.0) {
 				transparentViewPos = viewPos;
@@ -323,8 +335,8 @@ layout(location = 2) out vec4  velocityOut;
 			if(isEyeInWater == 0) {
 				// if there is water in the current pixel, render both water and atmospheric fog
 				if(waterDepth != 0.0) {
-					#ifdef VolWater
-						waterVolumetricFog(waterScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+					#if defined VolWater && defined Use_ShadowMap
+						waterVolumetricFog(waterScenePos, scenePos, skyDirect, skyAmbient, waterColorSmooth, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(waterViewPos, viewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 					#endif
@@ -334,7 +346,7 @@ layout(location = 2) out vec4  velocityOut;
 						#ifdef inEnd
 							endFog(opaqueColor.rgb, transparentScenePos, waterScenePos, colortex10);
 						#else
-							#ifdef VolFog
+							#if defined VolFog && defined Use_ShadowMap
 								volumetricFog(opaqueColor, transparentScenePos, waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 							#else
 								fog(opaqueColor, transparentScenePos, waterViewPos, skyDirect, fogDensityMult);
@@ -347,7 +359,7 @@ layout(location = 2) out vec4  velocityOut;
 					#ifdef inEnd
 						endFog(opaqueColor.rgb, transparentScenePos, scenePos, colortex10);
 					#else
-						#ifdef VolFog
+						#if defined VolFog && defined Use_ShadowMap
 							volumetricFog(opaqueColor, transparentScenePos, scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
 							fog(opaqueColor, transparentScenePos, viewPos, skyDirect, fogDensityMult);
@@ -363,7 +375,7 @@ layout(location = 2) out vec4  velocityOut;
 					#ifdef inEnd
 						endFog(opaqueColor.rgb, waterScenePos, scenePos, colortex10);
 					#else
-						#ifdef VolFog
+						#if defined VolFog && defined Use_ShadowMap
 							volumetricFog(opaqueColor, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
 							fog(opaqueColor, waterViewPos, viewPos, skyDirect, fogDensityMult);
@@ -372,8 +384,8 @@ layout(location = 2) out vec4  velocityOut;
 
 					// If there is transparent, then water, then opaque include extra water fog for the opaque
 					if(transparentDepth - waterDepth < -EPS) {
-						#ifdef VolWater
-							waterVolumetricFog(transparentScenePos, waterScenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+						#if defined VolWater && defined Use_ShadowMap
+							waterVolumetricFog(transparentScenePos, waterScenePos, skyDirect, skyAmbient, waterColorSmooth, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 						#else
 							waterFog(transparentViewPos, waterViewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 						#endif
@@ -381,9 +393,9 @@ layout(location = 2) out vec4  velocityOut;
 				}
 				// if the current pixel doesn't contain the surface of water, only render water fog
 				else {
-					#ifdef VolWater
+					#if defined VolWater && defined Use_ShadowMap
 						// waterVolumetricFog(opaqueColor, vec3(0.0), viewPos, texcoord, skyDirect, lightDir);
-						waterVolumetricFog(transparentScenePos, scenePos, skyDirect, skyAmbient, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+						waterVolumetricFog(transparentScenePos, scenePos, skyDirect, skyAmbient, waterColorSmooth, opaqueColor.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 					#else
 						waterFog(transparentScenePos, viewPos, skyDirect, skyAmbient, opaqueColor.rgb, waterColorSmooth);
 					#endif
@@ -412,7 +424,7 @@ layout(location = 2) out vec4  velocityOut;
 			#ifdef inEnd
 				endFog(colorOut.rgb, vec3(0.0), transparentScenePos, colortex10);
 			#else
-				#ifdef VolFog
+				#if defined VolFog && defined Use_ShadowMap
 					volumetricFog(colorOut, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 				#else
 					fog(colorOut, vec3(0.0), transparentViewPos, skyDirect, fogDensityMult);
@@ -421,8 +433,8 @@ layout(location = 2) out vec4  velocityOut;
 		}
 		// fog when player is underwater
 		else if(isEyeInWater == 1) {
-			#ifdef VolWater
-				waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, skyAmbient, colorOut.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
+			#if defined VolWater && defined Use_ShadowMap
+				waterVolumetricFog(vec3(0.0), transparentScenePos, skyDirect, skyAmbient, waterColorSmooth, colorOut.rgb, texcoord, vec2(viewWidth, viewHeight), frameCounter);
 			#else
 				waterFog(vec3(0.0), transparentViewPos, skyDirect, skyAmbient, colorOut.rgb, waterColorSmooth);
 			#endif

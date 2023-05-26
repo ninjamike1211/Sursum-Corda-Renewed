@@ -30,11 +30,6 @@
 
 // Beter shadow distortion from Groundwork-4  (https://github.com/DrDesten/Groundwork)
 
-#define SHADOW_SCALE 1.0
-#define SHADOW_ZSCALE 0.5
-#define SHADOW_DISTORSION 0.05
-#define SHADOW_BIAS 0.00004
-
 vec3 shadowDistortion(vec3 clipPos) {
 	clipPos.xy  /= length(clipPos.xy) + SHADOW_DISTORSION;
 	clipPos.z   *= SHADOW_ZSCALE;
@@ -280,7 +275,7 @@ float getShadowBias(float NdotL, float len) {
         #endif
 
         vec3 fogColorUse = mix(SunMoonColor*0.5, SunMoonColor, shadowAmount);
-        fogColorUse *= mix(vec3(1.0), vec3(1.08, 1.05, 1.03), shadowAmount * smoothstep(0.5, 1.0, max(dot(sceneEnd, lightDir), 0.0)));
+        fogColorUse *= mix(vec3(1.0), 2*vec3(1.8, 1.3, 1.03), shadowAmount * pow(linstep(0.85, 1.0, dot(normalize(sceneEnd), lightDir)), 2.0));
         // fogColorUse *= (noiseAmount * 0.8 + 1.2);
         // vec3 fogColorUse = SunMoonColor;
         // if(inNether)
@@ -301,9 +296,8 @@ float getShadowBias(float NdotL, float len) {
         // albedo.rgb += shadowAmount * 2*vec3(0.13, 0.1, 0.08);
     }
 
-    uniform vec3 waterColorSmooth;
 
-    void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 directLight, vec3 ambientLight, inout vec3 sceneColor, vec2 texcoord, vec2 screenSize, int frameCounter) {
+    void waterVolumetricFog(vec3 sceneOrigin, vec3 sceneEnd, vec3 directLight, vec3 ambientLight, vec3 waterColorSmooth, inout vec3 sceneColor, vec2 texcoord, vec2 screenSize, int frameCounter) {
         
         #ifdef ShadowNoiseAnimated
             float randomVal = interleaved_gradient(ivec2(texcoord * screenSize), frameCounter);

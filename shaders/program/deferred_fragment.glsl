@@ -3,36 +3,32 @@
 uniform sampler2D  colortex1;
 uniform usampler2D colortex2;
 uniform sampler2D  colortex3;
-uniform sampler2D  colortex4;
 uniform sampler2D  colortex8;
-uniform sampler2D  colortex9;
-// uniform sampler2D  colortex12;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
-uniform sampler2D  noisetex;
 
-uniform mat4 gbufferModelView;
-uniform mat4 gbufferProjectionInverse;
-uniform mat4 gbufferModelViewInverse;
-uniform float frameTimeCounter;
-uniform bool inEnd;
-uniform bool inNether;
-uniform int heldItemId;
-uniform int heldBlockLightValue;
-uniform int heldItemId2;
-uniform int heldBlockLightValue2;
+#ifdef SSAO
+    uniform sampler2D  colortex9;
+#endif
+
+uniform mat4  gbufferModelView;
+uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform vec3  cameraPosition;
-uniform float rainStrength;
-uniform float near;
-uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
-uniform float eyeAltitude;
-uniform float fogDensityMult;
+
+#ifdef HandLight
+    uniform int heldItemId;
+    uniform int heldBlockLightValue;
+    uniform int heldItemId2;
+    uniform int heldBlockLightValue2;
+#endif
+
+#if defined SSS && !defined inNether
+    uniform float near;
+    uniform float far;
+#endif
 
 #ifdef LightningLight
     uniform vec4 lightningBoltPosition;
@@ -41,11 +37,14 @@ uniform float fogDensityMult;
 const int noiseTextureResolution = 512;
 
 #ifndef inNether
-    uniform sampler2D  shadowtex0;
-    uniform sampler2D  shadowtex1;
-    uniform sampler2D  shadowcolor0;
-    uniform mat4  shadowModelView;
-    uniform mat4  shadowProjection;
+    #ifdef Use_ShadowMap
+        uniform sampler2D  shadowtex0;
+        uniform sampler2D  shadowtex1;
+        uniform sampler2D  shadowcolor0;
+        uniform mat4  shadowModelView;
+        uniform mat4  shadowProjection;
+    #endif
+
     uniform vec3 lightDir;
 #else
     flat in vec3 lightDir;
@@ -62,7 +61,7 @@ const int noiseTextureResolution = 512;
 #include "/lib/spaceConvert.glsl"
 #include "/lib/sample.glsl"
 
-#ifndef inNether
+#if !defined inNether && defined Use_ShadowMap
     #include "/lib/shadows.glsl"
 #endif
 
@@ -113,9 +112,9 @@ void main() {
         float isHand        = lmcoordRaw.b;
         float emissiveness  = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
 
-        #ifdef LightningLight
+        // #ifdef LightningLight
             vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-        #endif
+        // #endif
 
 
     // ---------------------------- SSAO ----------------------------
@@ -139,27 +138,11 @@ void main() {
             SSAOOut = vec4(1.0);
         #endif
 
-        #ifdef POM_Shadow
-            // #ifndef SSAO
-                vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
-            // #endif
-            
-            float shadow = 0.0;
-
-            for(int i = 0; i < 9; i++) {
-                vec2 offset = vec2(0.0, (i-4)) * texelSize;
-
-                shadow += gaussian_9[i] * texture(colortex8, texcoord + offset).g;
-            }
-
-            pomResults.g = shadow;
-        #endif
-
 
     // --------------------------- Shadows --------------------------
         float NGdotL = dot(normalGeometry, lightDir);
 
-        #ifndef inNether
+        #if !defined inNether && defined Use_ShadowMap
             float blockerDist;
 
             vec3 offset = lightDir * pomResults.r;
@@ -234,7 +217,7 @@ void main() {
 
 
     // ------------------- Sub-surface Scattering -------------------
-        #if defined SSS && !defined inNether
+        #if defined SSS && !defined inNether && defined Use_ShadowMap
             float subsurface = getSubsurface(specMap);
 			SubsurfaceScattering(colorOut.rgb, albedo, subsurface, blockerDist, skyDirect * shadowMult, near, far);
         #endif

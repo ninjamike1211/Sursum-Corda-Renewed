@@ -17,6 +17,14 @@ float min3(vec3 val) {
 	return min(min(val.x, val.y), val.z);
 }
 
+float linstep(float edge0, float edge1, float x) {
+	return clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+}
+
+vec3 linstep(vec3 edge0, vec3 edge1, vec3 x) {
+	return vec3(linstep(edge0.x, edge1.x, x.x), linstep(edge0.y, edge1.y, x.y), linstep(edge0.z, edge1.z, x.z));
+}
+
 float luminance(vec3 v) {
     return dot(v, vec3(0.2126f, 0.7152f, 0.0722f));
 }

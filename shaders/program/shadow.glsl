@@ -124,9 +124,10 @@
         if(entity == 10010) {
             shadowColor.a = 0.0;
 
-            float caustics = (pow(waterHeightFunc(worldPosVertex.xz, frameTimeCounter), 5.0) * 0.8 + 0.2) * 1.8;
+            float waterHeight = 1.0 - abs(waterHeightFunc(worldPosVertex.xz, frameTimeCounter) * 2.0 - 1.0);
+            float caustics = pow(waterHeight, 4.0) * 0.4 + 0.3;
 
-            shadowColor.rgb = glColor.rgb * caustics * 1.0;
+            shadowColor.rgb = glColor.rgb * caustics;
         }
     }
 

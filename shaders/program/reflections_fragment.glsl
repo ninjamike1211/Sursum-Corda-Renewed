@@ -12,31 +12,17 @@ uniform sampler2D  noisetex;
 uniform mat4  gbufferModelView;
 uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform mat4  shadowProjection;
 uniform vec3  cameraPosition;
 uniform vec3  lightDir;
-uniform vec3  sunDir;
 uniform vec3  fogColor;
 uniform float eyeAltitude;
 uniform float frameTimeCounter;
 uniform float rainStrength;
-uniform float near;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
-uniform float sunHeight;
-uniform float shadowHeight;
-uniform float fogDensityMult;
-uniform float heldBlockLightValue;
-uniform float heldBlockLightValue2;
-uniform int   heldItemId;
-uniform int   heldItemId2;
-uniform int   moonPhase;
 uniform int   isEyeInWater;
 uniform int   frameCounter;
-uniform int   worldTime;
-uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
@@ -76,44 +62,51 @@ void main() {
     
     // ---------------- Reading values and setup ----------------
         // Read buffers
-        vec3 albedo      = texture(colortex1, texcoord).rgb;
-        vec2 lmcoord     = texture(colortex3, texcoord).rg;
+        vec3  albedo     = texture(colortex1, texcoord).rgb;
         float waterDepth = texture(colortex5, texcoord).r;
+
+        #if defined inOverworld && defined Shadow_LeakFix
+            vec2 lmcoord = texture(colortex3, texcoord).rg;
+        #endif
 
         // Calculate basic values
         vec3 normal     = NormalDecode(material.x);
-        vec3 normalView = normalToView(normal, gbufferModelView);
         vec3 viewPos    = calcViewPos(viewVector, depth, gbufferProjection);
         vec3 scenePos   = mat3(gbufferModelViewInverse) * viewPos;
 
-        vec3 fresnel    = calcFresnel(max(dot(normalView, normalize(-viewPos)), 0.0), specMap, albedo);
+        float jitter = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), frameCounter);
 
+        vec3 fresnel    = calcFresnel(max(dot(normal, normalize(-scenePos)), 0.0), specMap, albedo);
+
+
+    // ------------------- Rough Reflections --------------------
+        #ifdef SSR_RoughReflections
+            float roughReflectionAmount = smoothstep(SSR_LowRoughThreshold, SSR_HighRoughThreshold, roughness);
+            
+            if(roughReflectionAmount > 0.0) {
+                vec2 offset = blue_noise_disk[int(jitter * 63.99)] * 0.1 * roughReflectionAmount;
+                mat3 tbn    = tbnNormal(normal);
+                normal      = normalize(normal + tbn * vec3(offset, 0.0));
+            }
+            
+        #endif
+
+        vec3 sceneRayDir = reflect(normalize(scenePos), normal);
+        vec3 viewRayDir  = mat3(gbufferModelView) * sceneRayDir;
 
     // ------------- Fallback Sky color and Clouds --------------
         // Read sky value from buffer
-        float jitter = interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), frameCounter);
-        float roughReflectionAmount = smoothstep(SSR_LowRoughThreshold, SSR_HighRoughThreshold, roughness);
-        
-        if(roughReflectionAmount > 0.0) {
-            vec2  offset = blue_noise_disk[int(jitter * 63.99)] * 0.1 * roughReflectionAmount;
-            mat3  tbn    = tbnNormal(normalView);
-            normalView   = normalize(normalView + tbn * vec3(offset, 0.0));
-        }
-        
-        vec3 rayDir = reflect(normalize(viewPos), normalView);
-        vec3 eyeDir = mat3(gbufferModelViewInverse) * rayDir;
-
-        vec3 skyColor   = texture(colortex10, projectSphere(eyeDir) * AS_RENDER_SCALE).rgb;
+        vec3 skyColor   = texture(colortex10, projectSphere(sceneRayDir) * AS_RENDER_SCALE).rgb;
         
 
         // Apply clouds
         #ifdef cloudsEnable
             #ifdef inNether
-                applyNetherCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, fogColor, far, lightDir);
+                applyNetherCloudColor(sceneRayDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, fogColor, far, lightDir, frameTimeCounter);
             #elif defined inEnd
-                applyEndCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + vec3(0.0, eyeAltitude, 0.0), skyColor, -skyDirect, far, lightDir);
+                applyEndCloudColor(sceneRayDir, vec3(1.0, 1.0, -1.0) * scenePos + vec3(0.0, eyeAltitude, 0.0), skyColor, -skyDirect, far, lightDir, frameTimeCounter);
             #else
-                applyCloudColor(eyeDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, skyDirect, far, lightDir);
+                applyCloudColor(sceneRayDir, vec3(1.0, 1.0, -1.0) * scenePos + cameraPosition, skyColor, skyDirect, far, lightDir, frameTimeCounter, rainStrength);
             #endif
         #endif
 
@@ -141,7 +134,7 @@ void main() {
 
             // do the raytracing
             vec3 rayPos = vec3(-1.0);
-            bool rayHit = raytrace(viewPos, rayDir, 64, jitter, frameCounter, vec2(viewWidth, viewHeight), rayPos, depthtex1, gbufferProjection);
+            bool rayHit = raytrace(viewPos, viewRayDir, 64, jitter, frameCounter, vec2(viewWidth, viewHeight), rayPos, depthtex1, gbufferProjection);
 
             // Apply raytraced reflection only if it hit
             vec3 reflectColor;
@@ -177,9 +170,6 @@ void main() {
             colorOut.rgb = mix(colorOut.rgb, reflectColor, fresnel);
         else
             colorOut.rgb += fresnel * reflectColor;
-            // colorOut.rgb += vec3(0.0);
 
-
-        // colorOut.rgb = fresnel * reflectColor;
     }
 }

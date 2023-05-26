@@ -16,9 +16,8 @@ uniform float viewHeight;
 
 in vec2 texcoord;
 
-/* RENDERTARGETS: 8,9 */
-layout(location = 0) out vec4 POMOut;
-layout(location = 1) out vec4 SSAOOut;
+/* RENDERTARGETS: 9 */
+layout(location = 0) out vec4 SSAOOut;
 
 void main() {
 
@@ -38,21 +37,4 @@ void main() {
         SSAOOut = vec4(1.0);
     #endif
 
-    POMOut = texture(colortex8, texcoord);
-
-    #ifdef POM_Shadow
-        #ifndef SSAO
-            vec2 texelSize = 1.0 / vec2(viewWidth, viewHeight);
-        #endif
-        
-        float shadow = 0.0;
-
-        for(int i = 0; i < 9; i++) {
-            vec2 offset = vec2((i-4), 0.0) * texelSize;
-
-            shadow += gaussian_9[i] * texture(colortex8, texcoord + offset).g;
-        }
-
-        POMOut.g = shadow;
-    #endif
 }

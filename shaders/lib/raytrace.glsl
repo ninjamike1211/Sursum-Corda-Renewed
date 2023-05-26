@@ -10,9 +10,6 @@
 uniform sampler2D depthtex1;
 */
 
-#define BINARY_REFINEMENT 1
-#define BINARY_COUNT 4
-#define BINARY_DECREASE 0.5
 
 #define SSR_THICKNESS 10.0
 
@@ -24,14 +21,16 @@ float minOf3(vec3 x) { return min(x.x, min(x.y, x.z)); }
 // 	return (projMAD3(gbufferProjection, viewPos) / -viewPos.z) * 0.5 + 0.5;
 // }
 
-// void binarySearch(inout vec3 rayPos, vec3 rayDir, sampler2D depthtex) {
-//     for(int i = 0; i < BINARY_COUNT; i++) {
-//         rayPos += sign(texture(depthtex, rayPos.xy).r - rayPos.z) * rayDir;
-//         // Going back and forth using the delta of the 2 different depths as a parameter for sign()
-//         rayDir *= BINARY_DECREASE;
-//         // Decreasing the step length (to slowly tend towards the intersection)
-//     }
-// }
+void binarySearch(inout vec3 rayPos, vec3 rayDir, sampler2D depthtex) {
+    for(int i = 0; i < SSR_BinarySteps; i++) {
+        float depthDelta = texture2D(depthtex, rayPos.xy).r - rayPos.z; 
+        // Calculate the delta of both ray's depth and depth at ray's coordinates
+        rayPos += sign(depthDelta) * rayDir; 
+        // Go back and forth
+        rayDir *= 0.5; 
+        // Decrease the "go back and forth" movement each time we iterate
+    }
+}
 
 // The favorite raytracer of your favorite raytracer
 bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, int frameCounter, vec2 screenSize, out vec3 rayPos, sampler2D depthtex, mat4 projectionMatrix) {
@@ -76,10 +75,8 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, int fr
         // intersect = depth < rayPos.z && linearizeDepthFast(depth) + SSR_THICKNESS > linearizeDepthFast(rayPos.z);
     }
 
-    #if BINARY_REFINEMENT == 1
-        binarySearch(rayPos, rayDir, depthtex);
-        // Binary search for some extra accuracy
-    #endif
+    binarySearch(rayPos, rayDir, depthtex);
+    // Binary search for some extra accuracy
 
     // if(texture2D(depthtex1, rayPos.xy).r == 1.0)
     //     intersect = false;
@@ -88,15 +85,7 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, int fr
     // Outputting the boolean
 }
 
-// bool raytrace(inout vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, sampler2D depthtex) {
-    
-//     // Calculate screen space reflection ray direction
-//     vec3 rayDir = viewToScreen(viewPos + viewRayDir) - screenPos;
-//     vec3 rayIncrement = rayDir * 0.9999 / stepCount;
 
-
-
-// }
 
 // Modified version of raytrace for screen space shadows (contact shadows)
 bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 projectionMatrix) {

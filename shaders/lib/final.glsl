@@ -3,17 +3,9 @@
 #define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104 105 106]
 #define viewBufferSweep 0.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
-uniform mat4  gbufferModelView;
-uniform mat4  gbufferModelViewInverse;
 uniform mat4  gbufferProjection;
-uniform mat4  gbufferProjectionInverse;
-uniform vec3  cameraPosition;
 uniform float near;
 uniform float far;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int   frameCounter;
-uniform bool  cameraMoved;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
@@ -48,11 +40,13 @@ uniform sampler2D  colortex15;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
 uniform sampler2D  depthtex2;
-uniform sampler2D  shadowtex0;
-uniform sampler2D  shadowtex1;
-uniform sampler2D  shadowcolor0;
-uniform sampler2D  shadowcolor1;
-// uniform bool hasSkyLight;
+
+#ifdef Use_ShadowMap
+    uniform sampler2D  shadowtex0;
+    uniform sampler2D  shadowtex1;
+    uniform sampler2D  shadowcolor0;
+    uniform sampler2D  shadowcolor1;
+#endif
 
 /* RENDERTARGETS: 0 */
 void main() {
@@ -127,59 +121,4 @@ void main() {
     }
     #endif
 
-    // gl_FragData[0] = vec4(interleaved_gradient(ivec2(texcoord * vec2(viewWidth, viewHeight)), 0));
-    // gl_FragData[0] = vec4(InterleavedGradientNoise(texcoord * vec2(viewWidth, viewHeight)));
-
-    // vec4 specMap = texture(colortex4, texcoord);
-    // float emissiveness = specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
-    // if(texcoord.x > viewBufferSweep)
-    //     gl_FragData[0] = vec4(emissiveness);
-
-    // gl_FragData[0] = texture(colortex12, texcoord);
-
-    // if(texcoord.x > 0.95)
-    //     gl_FragData[0] = texture(colortex12, vec2(0.0)).aaaa;
-    // else if(texcoord.x > 0.9)
-    //     gl_FragData[0] = vec4(0.0, 0.0, texture(colortex12, vec2(0.0)).b, 1.0);
-    // else if(texcoord.x > 0.85)
-    //     gl_FragData[0] = vec4(0.0, texture(colortex12, vec2(0.0)).g, 0.0, 1.0);
-    // else if(texcoord.x > 0.8)
-    //     gl_FragData[0] = vec4(texture(colortex12, vec2(0.0)).r, 0.0, 0.0, 1.0);
-
-    // gl_FragData[0] = vec4(length(texture(colortex6, texcoord).rg) > EPS);
-    // gl_FragData[0] = vec4(abs(texture(colortex6, texcoord)));
-
-    // if(texcoord.x > 0.95)
-    //     gl_FragData[0] = vec4(cameraMoved);
-
-    // if(texcoord.x > 0.9)
-    //     gl_FragData[0] = vec4(sunAngle + 0.1);
-
-    // if(texcoord.x > 0.9)
-    //     gl_FragData[0] = vec4(isnan(gl_FragData[0]));
-
-    // if(texcoord.x > 0.5)
-    //     gl_FragData[0] = vec4(isinf(texture(colortex6, texcoord)));
-
-    // if(texcoord.x > 0.975)
-    //     gl_FragData[0] = vec4(0.0, 0.0, texelFetch(colortex12, ivec2(1,0), 0).b, 0.0);
-    // else if(texcoord.x > 0.95)
-    //     gl_FragData[0] = vec4(0.0, texelFetch(colortex12, ivec2(1,0), 0).g, 0.0, 0.0);
-    // else if(texcoord.x > 0.925)
-    //     gl_FragData[0] = vec4(texelFetch(colortex12, ivec2(1,0), 0).r, 0.0, 0.0, 0.0);
-    // else if(texcoord.x > 0.9) {  
-    //     vec3 centerDepthData = texelFetch(colortex12, ivec2(1,0), 0).rgb;
-    //     gl_FragData[0] = vec4(centerDepthData.r + (centerDepthData.g / 255.0) + (centerDepthData.b / 255.0 / 256.0));
-    // }
-    // else if(texcoord.x > 0.875)
-    //     gl_FragData[0] = vec4(texture(depthtex0, vec2(0.5)).r);
-
-    // if(texcoord.x > 0.9)
-    //     gl_FragData[0] = vec4(hasSkyLight);
-
-    // if(texcoord.x > 0.95)
-    //     gl_FragData[0] = vec4(ssbo.caveShadowMult);
-    // else if(texcoord.x > 0.9)
-    //     gl_FragData[0] = vec4(ssbo.moodVelocityAvg * 0.5 + 0.5);
-    //     // gl_FragData[0] = vec4(0.5);
 }

@@ -408,18 +408,6 @@ vec3 calcSSAO(vec3 normal, vec3 viewPos, vec2 texcoord, sampler2D depthTex, samp
 	return clamp(1.0 - (SSAO_Strength * occlusion / half_sphere_16.length()), 0.0, 1.0);
 }
 
-void binarySearch(inout vec3 rayPos, vec3 rayDir, sampler2D depthtex) {
-
-    for(int i = 0; i < SSR_BinarySteps; i++) {
-        float depthDelta = texture2D(depthtex, rayPos.xy).r - rayPos.z; 
-        // Calculate the delta of both ray's depth and depth at ray's coordinates
-        rayPos += sign(depthDelta) * rayDir; 
-        // Go back and forth
-        rayDir *= 0.5; 
-        // Decrease the "go back and forth" movement each time we iterate
-    }
-}
-
 // bool raytrace(vec3 viewPos, vec3 rayDir, float jitter, inout vec3 hitPos, mat4 projectionMatrix, sampler2D depthtex) {
 //     // "inout vec3 hitPos" is our ray's position, we use it as an "inout" parameter to be able to return both the intersection check and the hit position
 //     vec3 screenPos = viewToScreen(viewPos, projectionMatrix); 

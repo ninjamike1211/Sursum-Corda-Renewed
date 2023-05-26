@@ -18,13 +18,11 @@ const int colortex8Format  = RGB8;
 const int colortex9Format  = R8;
 const int colortex10Format = RGB16F;
 const int colortex11Format = RGB16F;
-const int colortex12Format = RGBA8;
 const bool colortex12Clear = false;
 const int colortex14Format = R16F;
 const bool colortex14Clear = false;
 const int colortex15Format = RGBA16F;
 const bool colortex15Clear = false;
-const int shadowcolor0Format = RGBA8;
 */
 
 
@@ -65,7 +63,7 @@ const int shadowcolor0Format = RGBA8;
 	#define endDirectLight 		vec3(0.15, 0.08, 0.3)
 
 
-#define ExposureSpeed 0.25
+#define ExposureSpeed 2.0
 
 
 // Temporal Anti-aliasing
@@ -77,6 +75,7 @@ const int shadowcolor0Format = RGBA8;
 	const int 	shadowMapResolution = 	2048;	// Resolution of shadow map, higher resolution means sharper shadows but less performance [512 1024 2048 4096]
 	const float shadowDistance = 		120;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
 
+	#define Use_ShadowMap					// Enables or disables the shadow map, large performance impact
 	#define Shadow_Distort_Factor 	0.1
 	#define Shadow_Bias 			0.0001
 	#define ShadowSamples 			32 		// Number of samples used calculating shadow blur [4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64 72 80 88 96 112 128]
@@ -87,11 +86,20 @@ const int shadowcolor0Format = RGBA8;
 	#define ShadowNoiseAnimated 			// When enabled move noise with each frame, allowing for lower shadow samples at the cost of noise "moving"
 	#define Shadow_LeakFix
 
+	#define SHADOW_SCALE 1.0
+	#define SHADOW_ZSCALE 0.5
+	#define SHADOW_DISTORSION 0.05
+	#define SHADOW_BIAS 0.00004
+
+	#ifdef Use_ShadowMap
+	#endif
+
 // Water
 	// #define Water_Flat
 	// #define Water_Noise
 	#define Water_Direction  0
 	#define Water_Depth 	 0.4
+	#define waterRefraction
 
 
 // Volumetric Effects
@@ -114,6 +122,10 @@ const int shadowcolor0Format = RGBA8;
 	#define VolWater_SmoothShadowSamples 4 	// Number of samples used for smooth shadows in volumetric water [1 2 4 6 8 10 12 14 16 20 24 32]
 	#define VolWater_SmoothShadowBlur 0.003 // Amount of blur applied ot shadows in volumetric water [0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.010 0.015 0.020]
 
+	#ifdef VolFog
+	#endif
+	#ifdef VolWater
+	#endif
 
 // Ambient Occlusion
 	const float ambientOcclusionLevel = 0.0f;
