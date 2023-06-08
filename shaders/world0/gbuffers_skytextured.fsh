@@ -2,6 +2,7 @@
 
 uniform sampler2D tex;
 
+#include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 
 in vec2 texcoord;
