@@ -24,6 +24,10 @@ uniform vec3  cameraPosition;
     uniform int   moonPhase;
 #endif
 
+#ifdef inNether
+    uniform vec3 fogColor;
+#endif
+
 
 #if defined TAA || defined MotionBlur
     uniform vec3 previousCameraPosition;
@@ -140,6 +144,12 @@ void main() {
 
 
 // ---------------------- Fixes/Overrides -----------------------
+
+    // Discard entity shadows (the circular texture under entities)
+    if(entity == 11000) {
+        gl_Position = vec4(10.0, 10.0, 10.0, 1.0);
+        return;
+    }
     
     // Thanks Belmu#4066 for thanking Niemand#1929 for the nametag fix :)
     #ifdef entities

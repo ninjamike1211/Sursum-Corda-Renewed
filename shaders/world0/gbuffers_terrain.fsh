@@ -1,6 +1,6 @@
 #version 430 compatibility
 
-#define useGeomStage
+// #define useGeomStage
 #define usePBRTextures
 #define usePOM
 #define terrain

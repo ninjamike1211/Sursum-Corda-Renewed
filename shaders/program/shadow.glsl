@@ -68,8 +68,8 @@
         // float clipLen = length(gl_Position.xy);
         clipXY = gl_Position.xy;
 
-        // gl_Position.xyz = distort(gl_Position.xyz);
-        gl_Position.xyz = shadowDistortion(gl_Position.xyz);
+        gl_Position.xyz = distort(gl_Position.xyz);
+        // gl_Position.xyz = shadowDistortion(gl_Position.xyz);
 
         // float bias = getShadowBias(glNormal.z, clipLen);
         // gl_Position.z += bias;
@@ -126,6 +126,9 @@
 
             float waterHeight = 1.0 - abs(waterHeightFunc(worldPosVertex.xz, frameTimeCounter) * 2.0 - 1.0);
             float caustics = pow(waterHeight, 4.0) * 0.4 + 0.3;
+
+            // caustics += 1.0;
+            // caustics *= 2.0;
 
             shadowColor.rgb = glColor.rgb * caustics;
         }

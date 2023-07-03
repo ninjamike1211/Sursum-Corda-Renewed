@@ -93,6 +93,8 @@ in VertexData {
 
 };
 
+uniform int entityId;
+
 
 /* RENDERTARGETS: 0,1,2,3,5,6,8,4 */
 layout(location = 0) out vec4  colorOut;
@@ -217,6 +219,24 @@ void main() {
 
 		return;
 	}
+
+
+// ----------------------- Lightning Bolt -----------------------
+	// if(entityId == 11002) {
+
+	// 	materialOut.r = NormalEncode(glNormal);
+	// 	materialOut.g = materialOut.x;
+	// 	materialOut.b = SpecularEncode(vec4(0.0, 0.0, 0.0, 0.9));
+
+	// 	albedoOut = vec4(1.0, 0.0, 0.0, 1.0);
+	// 	lightmapOut = vec4(lmcoord, 0.0, 1.0);
+	// 	pomOut = vec4(0.0, 1.0, 0.0, 1.0);
+	// 	colorOut = vec4(1.0);
+
+	// 	return;
+	// }
+
+
 
 // ---------------- Texture and Material Handling ---------------
 	// Calculate lod beforehand
@@ -408,7 +428,7 @@ void main() {
 		// albedo.rgb = vec3(0.0);
 		albedo.rgb = 0.3 * glColor.rgb;
 
-		albedo.a = 0.4;
+		albedo.a = 0.1;
 
 		#ifndef Water_Flat
 			// vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
@@ -606,7 +626,7 @@ void main() {
 		#if !defined inNether && defined Use_ShadowMap
 			float blockerDist;
 			vec3 offset = lightDir * pomOut.r;
-			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, NGdotL, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
+			vec3 shadowResult = min(vec3(pomOut.g), pcssShadows(scenePos + offset, texcoord, NGdotL, geomNormal, blockerDist, vec2(viewWidth, viewHeight), frameCounter));
 			
 			float shadowMult = 1.0;
 			#if defined Shadow_LeakFix && !defined inEnd

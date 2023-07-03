@@ -218,7 +218,7 @@ const bool colortex15Clear = false;
 
 
 // Depth of Field
-	#define DOF							// Depth of Field effect, makes very close or far objects appear blurry
+	// #define DOF							// Depth of Field effect, makes very close or far objects appear blurry
 	#define DOF_HandBlur				// Enables blurring of handheld items, which can sometimes looks strange
 	#define DOF_NearBlur				// Enables blurring of objects closer than the point of focus
 	#define DOF_VariableSampleCount		// Enables variable sample count, where the number of samples depends on the size of the blur

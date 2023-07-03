@@ -21,8 +21,16 @@ uniform float rainStrength;
 uniform float far;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float fogDensityMult;
 uniform int   isEyeInWater;
 uniform int   frameCounter;
+
+uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
+uniform mat4 shadowProjection;
+uniform mat4 shadowModelView;
+
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
@@ -32,6 +40,8 @@ uniform int   frameCounter;
 #include "/lib/TAA.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/lighting.glsl"
+#include "/lib/sample.glsl"
+#include "/lib/shadows.glsl"
 #include "/lib/sky2.glsl"
 #include "/lib/raytrace.glsl"
 #include "/lib/clouds.glsl"
@@ -118,6 +128,15 @@ void main() {
         #ifdef dimHasWater
             if(isEyeInWater == 1)
                 skyColor *= vec3(0.1, 0.3, 0.4);
+        #endif
+
+        // Apply fog to overworld sky
+        #ifdef inOverworld
+            #if defined VolFog && defined Use_ShadowMap
+                volumetricFog(skyColor, vec3(0.0), sceneRayDir * 1.7 *shadowDistance, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+            #else
+                fog(skyColor, vec3(0.0), sceneRayDir * 1.7 *far, skyDirect, fogDensityMult);
+            #endif
         #endif
 
         // Fade out sky reflection in dark enviroments

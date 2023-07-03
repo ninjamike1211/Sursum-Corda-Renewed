@@ -28,37 +28,67 @@
 // 	return distort(v, getDistortFactor(v.xy));
 // }
 
+
+
+
 // Beter shadow distortion from Groundwork-4  (https://github.com/DrDesten/Groundwork)
 
-vec3 shadowDistortion(vec3 clipPos) {
-	clipPos.xy  /= length(clipPos.xy) + SHADOW_DISTORSION;
-	clipPos.z   *= SHADOW_ZSCALE;
-	clipPos.xy  *= (1 + SHADOW_DISTORSION) * SHADOW_SCALE;
-	return clipPos;
-}
-vec3 shadowDistortion(vec3 clipPos, float len) {
-	clipPos.xy  /= len + SHADOW_DISTORSION;
-	clipPos.z   *= SHADOW_ZSCALE;
-	clipPos.xy  *= (1 + SHADOW_DISTORSION) * SHADOW_SCALE;
-	return clipPos;
-}
+// vec3 shadowDistortion(vec3 clipPos) {
+// 	clipPos.xy  /= length(clipPos.xy) + SHADOW_DISTORSION;
+// 	clipPos.z   *= SHADOW_ZSCALE;
+// 	clipPos.xy  *= (1 + SHADOW_DISTORSION) * SHADOW_SCALE;
+// 	return clipPos;
+// }
+// vec3 shadowDistortion(vec3 clipPos, float len) {
+// 	clipPos.xy  /= len + SHADOW_DISTORSION;
+// 	clipPos.z   *= SHADOW_ZSCALE;
+// 	clipPos.xy  *= (1 + SHADOW_DISTORSION) * SHADOW_SCALE;
+// 	return clipPos;
+// }
 
-float shadowDistortionDerivative(float len) {
-	return ( SHADOW_DISTORSION * (1 + SHADOW_DISTORSION) * SHADOW_SCALE ) / sqrt(len + SHADOW_DISTORSION) ;
-}
-float shadowDistortionDerivativeInverse(float len) {
-	return sqrt(len + SHADOW_DISTORSION) * (1. / ( SHADOW_DISTORSION * (1 + SHADOW_DISTORSION) * SHADOW_SCALE ) );
-}
+// float shadowDistortionDerivative(float len) {
+// 	return ( SHADOW_DISTORSION * (1 + SHADOW_DISTORSION) * SHADOW_SCALE ) / sqrt(len + SHADOW_DISTORSION) ;
+// }
+// float shadowDistortionDerivativeInverse(float len) {
+// 	return sqrt(len + SHADOW_DISTORSION) * (1. / ( SHADOW_DISTORSION * (1 + SHADOW_DISTORSION) * SHADOW_SCALE ) );
+// }
 
-float getShadowBias(float NdotL) {
-	return clamp(( sqrt(NdotL * -NdotL + 1) / NdotL ) * (SHADOW_BIAS / shadowMapResolution), 1e-6, 1e6);
-}
+// float getShadowBias(float NdotL) {
+// 	return clamp(( sqrt(NdotL * -NdotL + 1) / NdotL ) * (SHADOW_BIAS / shadowMapResolution), 1e-6, 1e6);
+// }
 
-float getShadowBias(float NdotL, float len) {
-	float shadowBias = SHADOW_BIAS * shadowDistortionDerivativeInverse(len) * shadowMapResolution;
+// float getShadowBias(float NdotL, float len) {
+// 	float shadowBias = SHADOW_BIAS * shadowDistortionDerivativeInverse(len) * shadowMapResolution;
     
-    return clamp(( sqrt(NdotL * -NdotL + 1) / NdotL ) * (shadowBias / shadowMapResolution), 1e-6, 1e6);
+//     return clamp(( sqrt(NdotL * -NdotL + 1) / NdotL ) * (shadowBias / shadowMapResolution), 1e-6, 1e6);
+// }
+
+
+// Shadow Distortion taken from Shadow Tutorial pack by builderb0y
+
+#define SHADOW_DISTORT_ENABLED //Toggles shadow map distortion
+#define SHADOW_DISTORT_FACTOR 0.10 //Distortion factor for the shadow map. Has no effect when shadow distortion is disabled. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.20 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.30 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.40 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.50 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.60 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.70 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.80 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.90 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.00]
+#define SHADOW_BIAS 1.00 //Increase this if you get shadow acne. Decrease this if you get peter panning. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00 6.00 7.00 8.00 9.00 10.00]
+#define Shadow_NormalBias //Offsets the shadow sample position by the surface normal instead of towards the sun
+
+vec3 distort(vec3 pos) {
+    float factor = length(pos.xy) + SHADOW_DISTORT_FACTOR;
+    return vec3(pos.xy / factor, pos.z * 0.5);
 }
+
+//returns the reciprocal of the derivative of our distort function,
+//multiplied by SHADOW_BIAS.
+//if a texel in the shadow map contains a bigger area,
+//then we need more bias. therefore, we need to know how much
+//bigger or smaller a pixel gets as a result of applying sistortion.
+float computeBias(vec3 pos) {
+    //square(length(pos.xy) + SHADOW_DISTORT_FACTOR) / SHADOW_DISTORT_FACTOR
+    float numerator = length(pos.xy) + SHADOW_DISTORT_FACTOR;
+    numerator *= numerator;
+    return SHADOW_BIAS / shadowMapResolution * numerator / SHADOW_DISTORT_FACTOR;
+}
+
+
 
 #ifndef shadowGbuffer
 
@@ -87,7 +117,8 @@ float getShadowBias(float NdotL, float len) {
 
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
-        shadowPos = shadowDistortion(shadowPos.xyz);
+        // shadowPos = shadowDistortion(shadowPos.xyz);
+        shadowPos = distort(shadowPos);
 
         return shadowPos * 0.5 + 0.5;
     }
@@ -98,7 +129,8 @@ float getShadowBias(float NdotL, float len) {
 
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
-        shadowPos = shadowDistortion(shadowPos.xyz);
+        // shadowPos = shadowDistortion(shadowPos.xyz);
+        shadowPos = distort(shadowPos);
 
         return shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
     }
@@ -123,18 +155,18 @@ float getShadowBias(float NdotL, float len) {
             return vec3(1.0);
         
         vec3 shadowVal = vec3(0.0);
-        float distortFactor = shadowDistortionDerivative(clipLen) * 6.0;
+        // float distortFactor = shadowDistortionDerivative(clipLen) * 6.0;
         // distortFactor = 1.0;
         for(int i = 0; i < samples; i++) {
             vec3 shadowPosTemp = shadowPos;
-            shadowPosTemp.xy += penumbra * distortFactor * GetVogelDiskSample(i, samples, angle);
+            shadowPosTemp.xy += penumbra /* * distortFactor */ * GetVogelDiskSample(i, samples, angle);
             shadowVal += shadowVisibility(shadowPosTemp);
         }
 
         return mix(shadowVal / samples, vec3(1.0), smoothstep(0.8, 0.9, min2(abs(shadowPos.xy * 2.0 - 1.0))));
     }
 
-    vec3 pcssShadows(vec3 scenePos, vec2 texcoord, float NGdotL, out float blockerDepth, vec2 screenSize, int frameCounter) {
+    vec3 pcssShadows(vec3 scenePos, vec2 texcoord, float NGdotL, vec3 sceneNormal, out float blockerDepth, vec2 screenSize, int frameCounter) {
         vec3 shadowPos = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz; //convert to shadow screen space
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
@@ -169,7 +201,8 @@ float getShadowBias(float NdotL, float len) {
             // shadowPosTemp.xyz = shadowPosTemp.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
             // shadowPosTemp.z -= Shadow_Bias /* * (distortFactor * distortFactor) */ / abs(NGdotL); //apply shadow bias
 
-            shadowPosTemp = shadowDistortion(shadowPosTemp, length(shadowPosTemp.xy));
+            // shadowPosTemp = shadowDistortion(shadowPosTemp, length(shadowPosTemp.xy));
+            shadowPosTemp = distort(shadowPosTemp);
             shadowPosTemp.xyz = shadowPosTemp.xyz * 0.5 + 0.5;
 
             // float a = texture2D(shadowtex0, shadowPosTemp.xy).r - shadowPosTemp.z;
@@ -187,7 +220,10 @@ float getShadowBias(float NdotL, float len) {
         // float distortFactor = getDistortFactor(shadowPos.xy);
         // shadowPos.xyz = distort(shadowPos.xyz, distortFactor); //apply shadow distortion
 
-        shadowPos = shadowDistortion(shadowPos, length(shadowPos.xy));
+        float bias = computeBias(shadowPos);
+
+        // shadowPos = shadowDistortion(shadowPos, length(shadowPos.xy));
+        shadowPos = distort(shadowPos);
         shadowPos.xyz = shadowPos.xyz * 0.5 + 0.5; //convert from -1 ~ +1 to 0 ~ 1
 
         // shadowPos = calcShadowPos(viewPos, gbufferModelViewInverse);
@@ -208,7 +244,16 @@ float getShadowBias(float NdotL, float len) {
         // shadowPos.z -= Shadow_Bias /* * (distortFactor * distortFactor) */ / abs(NGdotL); //apply shadow bias
         // applyShadowBias(shadowPos, NGdotL);
         
-        shadowPos.z -= getShadowBias(NGdotL, shadowClipLen);
+        // shadowPos.z -= getShadowBias(NGdotL, shadowClipLen);
+
+        #ifdef Shadow_NormalBias
+            //we are allowed to project the normal because shadowProjection is purely a scalar matrix.
+			//a faster way to apply the same operation would be to multiply by shadowProjection[0][0].
+			vec4 normal = shadowProjection * vec4(mat3(shadowModelView) * sceneNormal, 1.0);
+			shadowPos.xyz += normal.xyz / normal.w * bias;
+        #else
+            shadowPos.z -= bias / abs(NGdotL);
+        #endif
 
         // shadowPos.xyz += mat3(shadowProjection) * (mat3(shadowModelView) * normal) * (16.0 / shadowMapResolution);
 
@@ -216,7 +261,7 @@ float getShadowBias(float NdotL, float len) {
         return shadowResult /* * (float(abs(NGdotL) >= 0.01)) */;
     }
 
-    void volumetricFog(inout vec4 albedo, vec3 sceneOrigin, vec3 sceneEnd, vec2 texcoord, vec3 SunMoonColor, vec2 screenSize, float fogDensityMult, int frameCounter, float frameTimeCounter, vec3 cameraPosition) {
+    void volumetricFog(inout vec3 sceneColor, vec3 sceneOrigin, vec3 sceneEnd, vec2 texcoord, vec3 SunMoonColor, vec2 screenSize, float fogDensityMult, int frameCounter, float frameTimeCounter, vec3 cameraPosition) {
         #ifdef ShadowNoiseAnimated
             float randomVal = interleaved_gradient(ivec2(texcoord * screenSize), frameCounter);
             float randomAngle = randomVal * TAU;
@@ -238,7 +283,8 @@ float getShadowBias(float NdotL, float len) {
         // vec3 noiseAmount  = vec3(VolFog_Steps);
         for(int i = 0; i < VolFog_Steps; i++) {
             shadowPos += rayIncrement;
-            vec3 shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+            // vec3 shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+            vec3 shadowScreenPos = distort(shadowPos) * 0.5 + 0.5;
             // float shadowDepth = texture2D(shadowtex0, shadowPos.xy).r;
             // if(shadowPos.z < shadowDepth) {
             //     shadowAmount += 1.0;
@@ -288,7 +334,7 @@ float getShadowBias(float NdotL, float len) {
 
         // albedo = sRGBToLinear(albedo);
         // albedo.rgb =  fogColor*(1.0-extColor) +  albedo.rgb*insColor;
-        albedo.rgb = mix(fogColorUse, albedo.rgb, fogFactor);
+        sceneColor = mix(fogColorUse, sceneColor, fogFactor);
         // albedo = linearToSRGB(albedo);
 
         // albedo.rgb = fogColor;
@@ -316,7 +362,8 @@ float getShadowBias(float NdotL, float len) {
         rayIncrement -= randomVal * rayIncrement * 1.8 / VolWater_Steps;
         vec3 shadowPos = shadowEnd + rayIncrement;
 
-        vec3 shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+        // vec3 shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+        vec3 shadowScreenPos = distort(shadowPos) * 0.5 + 0.5;
 
         #ifdef VolWater_Colored
             vec3 shadowAmount = shadowVisibility(shadowScreenPos);
@@ -327,7 +374,8 @@ float getShadowBias(float NdotL, float len) {
         for(int i = 1; i < VolWater_Steps; i++) {
             shadowPos += rayIncrement;
 
-            shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+            // shadowScreenPos = shadowDistortion(shadowPos) * 0.5 + 0.5;
+            vec3 shadowScreenPos = distort(shadowPos) * 0.5 + 0.5;
 
             #ifdef VolWater_Colored
                 shadowAmount = mix(shadowAmount, shadowVisibility(shadowScreenPos), vec3(3.0/VolWater_Steps));

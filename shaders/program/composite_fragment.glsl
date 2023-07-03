@@ -213,7 +213,7 @@ layout(location = 2) out vec4  velocityOut;
 
 
 				// if(isEyeInWater == 0)
-					refractDir = refract(viewDir, normalToView(normalGeom - normalTex, gbufferModelView), 0.9);
+					refractDir = refract(viewDir, normalToView(normalGeom - normalTex, gbufferModelView), 0.93);
 					// refractDir = refract(viewDir, normalToView(normalTex, gbufferModelView), 1.05);
 				// else if(isEyeInWater == 1)
 					// refractDir = refract(viewDir, normalToView(normalTex), 1.);
@@ -347,7 +347,7 @@ layout(location = 2) out vec4  velocityOut;
 							endFog(opaqueColor.rgb, transparentScenePos, waterScenePos, colortex10);
 						#else
 							#if defined VolFog && defined Use_ShadowMap
-								volumetricFog(opaqueColor, transparentScenePos, waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+								volumetricFog(opaqueColor.rgb, transparentScenePos, waterScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 							#else
 								fog(opaqueColor, transparentScenePos, waterViewPos, skyDirect, fogDensityMult);
 							#endif
@@ -360,7 +360,7 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(opaqueColor.rgb, transparentScenePos, scenePos, colortex10);
 					#else
 						#if defined VolFog && defined Use_ShadowMap
-							volumetricFog(opaqueColor, transparentScenePos, scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+							volumetricFog(opaqueColor.rgb, transparentScenePos, scenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
 							fog(opaqueColor, transparentScenePos, viewPos, skyDirect, fogDensityMult);
 						#endif
@@ -376,7 +376,7 @@ layout(location = 2) out vec4  velocityOut;
 						endFog(opaqueColor.rgb, waterScenePos, scenePos, colortex10);
 					#else
 						#if defined VolFog && defined Use_ShadowMap
-							volumetricFog(opaqueColor, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+							volumetricFog(opaqueColor.rgb, waterScenePos, viewPos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 						#else
 							fog(opaqueColor, waterViewPos, viewPos, skyDirect, fogDensityMult);
 						#endif
@@ -425,7 +425,7 @@ layout(location = 2) out vec4  velocityOut;
 				endFog(colorOut.rgb, vec3(0.0), transparentScenePos, colortex10);
 			#else
 				#if defined VolFog && defined Use_ShadowMap
-					volumetricFog(colorOut, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
+					volumetricFog(colorOut.rgb, vec3(0.0), transparentScenePos, texcoord, skyDirect, vec2(viewWidth, viewHeight), fogDensityMult, frameCounter, frameTimeCounter, cameraPosition);
 				#else
 					fog(colorOut, vec3(0.0), transparentViewPos, skyDirect, fogDensityMult);
 				#endif

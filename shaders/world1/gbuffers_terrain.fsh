@@ -1,6 +1,6 @@
 #version 430 compatibility
 
-#define useGeomStage
+// #define useGeomStage
 #define inEnd
 #define usePBRTextures
 #define usePOM

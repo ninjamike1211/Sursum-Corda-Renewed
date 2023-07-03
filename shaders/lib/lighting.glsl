@@ -568,17 +568,17 @@ void SubsurfaceScattering(inout vec3 color, vec3 albedo, float subsurface, float
 vec3 handLightColor(int itemId) {
     #ifdef HandLight_Colors
         if(itemId == 12001)
-            return vec3(0.2, 3.0, 10.0);
+            return vec3(0.2, 5.0, 10.0);
         else if(itemId == 12002)
-            return vec3(10.0, 1.5, 0.0);
+            return vec3(10.0, 2.0, 0.0);
         else if(itemId == 12003)
-            return vec3(15.0, 4.0, 1.5);
+            return vec3(15.0, 5.0, 0.5);
         else if(itemId == 12004)
-            return vec3(3.0, 6.0, 15.0);
+            return vec3(4.0, 6.0, 15.0);
         else if(itemId == 12005)
-            return vec3(1.5, 1.0, 10.0);
-        else if(itemId == 12006)
             return vec3(4.0, 1.0, 10.0);
+        // else if(itemId == 12006)
+        //     return vec3(4.0, 1.0, 10.0);
         else
     #endif
         return vec3(15.0, 7.2, 2.9);
@@ -644,7 +644,10 @@ void DynamicLightningLight(inout vec3 color, vec4 lightningBoltPosition, vec3 sc
     
     if(lightningBoltPosition.w > 0.5) {
 
-        vec3 lightDir = normalize(lightningBoltPosition.xyz - (scenePos));
+        vec3 lightDir = lightningBoltPosition.xyz - (scenePos);
+        lightDir.y = max(lightDir.y, 0.0);
+        lightDir = normalize(lightDir);
+
         float dist = length(lightningBoltPosition.xyz - (scenePos));
 
         vec3 lightColor = vec3(10000.0) / (15.0 * dist * dist);
