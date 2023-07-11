@@ -45,7 +45,8 @@ void setSSBO() {
     vec2 newCenterDepth = vec2(texture(depthtex0, vec2(0.5)).r, texture(depthtex2, vec2(0.5)).r);
 
     if(DOF_FocusSpeed > 0.0) {
-        newCenterDepth = mix(ssbo.centerDepthSmooth, newCenterDepth, frameTime * DOF_FocusSpeed);
+        float blend = pow(0.4, frameTime * DOF_FocusSpeed);
+        newCenterDepth = mix(newCenterDepth, ssbo.centerDepthSmooth, blend);
     }
     
     ssbo.centerDepthSmooth = newCenterDepth;
@@ -56,7 +57,8 @@ void setSSBO() {
     // float exposureScreen = luminance(avgColor);
 
     if(ExposureSpeed > 0.0) {
-        exposureScreen = mix(ssbo.exposure, exposureScreen, frameTime * ExposureSpeed);
+        float blend = pow(0.4, frameTime * ExposureSpeed);
+        exposureScreen = mix(exposureScreen, ssbo.exposure, blend);
     }
 
     ssbo.exposure = exposureScreen;
