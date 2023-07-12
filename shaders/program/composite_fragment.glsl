@@ -18,7 +18,7 @@ uniform float frameTimeCounter;
 uniform float eyeAltitude;
 uniform int   isEyeInWater;
 
-#ifdef waterRefraction
+#ifdef Water_Refraction
 	uniform mat4  gbufferModelView;
 #endif
 
@@ -198,7 +198,7 @@ layout(location = 2) out vec4  velocityOut;
 			velocityOut 		= texture(colortex6, texcoord);
 
 	// ---------------------- Water Refraction ----------------------
-		#ifdef waterRefraction
+		#ifdef Water_Refraction
 			float depth;
 			vec4  opaqueColor;
 			vec2  texcoordRefract = texcoord;

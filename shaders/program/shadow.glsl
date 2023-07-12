@@ -86,10 +86,10 @@
     uniform float alphaTestRef;
     uniform float frameTimeCounter;
 
+    #include "/lib/functions.glsl"
     #include "/lib/defines.glsl"
     #include "/lib/noise.glsl"
     #include "/lib/water.glsl"
-    #include "/lib/functions.glsl"
     #include "/lib/shadows.glsl"
 
 
@@ -124,8 +124,8 @@
         if(entity == 10010) {
             shadowColor.a = 0.0;
 
-            float waterHeight = 1.0 - abs(waterHeightFunc(worldPosVertex.xz, frameTimeCounter) * 2.0 - 1.0);
-            float caustics = pow(waterHeight, 4.0) * 0.4 + 0.3;
+            float waterHeight = (1.0 - abs(waterHeightFuncSimple(worldPosVertex.xz, frameTimeCounter) * 2.0 - 1.0));
+            float caustics = Water_Depth * pow(waterHeight, 3.0) + 0.5*(1 - Water_Depth) * 0.8 + 0.2;
 
             // caustics += 1.0;
             // caustics *= 2.0;

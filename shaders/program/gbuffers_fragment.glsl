@@ -421,6 +421,8 @@ void main() {
 	
 	if(entity == 10010) {
 
+		waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
+
 		// if(isWaterBackface > 0.99999 /* && (textureBounds.z - textureBounds.x) < 1000.0 / atlasSize.y */) //0.0078125004656613 0.00390625023283065 0.001953125116415323
 		// 	discard;
 
@@ -431,17 +433,11 @@ void main() {
 		albedo.a = 0.1;
 
 		#ifndef Water_Flat
-			// vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 			vec3 worldPos = scenePos + cameraPosition;
-
-			// albedo.rgb = vec3(waterHeight(worldPos.xz));
 
 			#ifdef Water_POM
 			if(geomNormal.y > 0.99999) {
-				// vec3 worldPosInitial = worldPos;
 				waterParallaxMapping(worldPos, vec2(1.0), cameraPosition, frameTimeCounter);
-
-				// testOut = vec4(worldPos - worldPosInitial, 1.0);
 				
 				// Calculate new screen screenspace position from original view space position and POM depth difference
 				vec3 feetPlayerPos = worldPos - cameraPosition;
@@ -450,19 +446,16 @@ void main() {
 
 
 				// waterDepth = vec4(screenPos.z, 0.0, 0.0, 1.0);
-				waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
+				
 
 				#ifdef POM_PDO
 					gl_FragDepth = screenPos.z;
 				#endif
 			}
-			else {
-				waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
-			}
 			#endif
 
 			// if(abs(glNormal.y) > 0.1)
-			normalVal = normalize(tbn * waterNormal(worldPos, frameTimeCounter)) /* * (isEyeInWater == 1 ? -1.0 : 1.0) */;
+			normalVal = normalize(tbn * waterNormal(worldPos, frameTimeCounter));
 		
 			if(rainStrength > 0.0) {
 				vec3 noiseVals = SimplexPerlin2D_Deriv(20.0 * worldPos.xz + 5.0 * frameCounter);
@@ -470,8 +463,6 @@ void main() {
 
 				normalVal = normalize(normalVal + 0.01 * mix(vec3(0.0), puddleNormal, rainStrength));
 			}
-		#else
-			waterDepth = vec4(gl_FragCoord.z, 0.0, 0.0, 1.0);
 		#endif
 		specMap = vec4(1.0, 0.02, 0.0, 0.0);
 
