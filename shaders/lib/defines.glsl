@@ -98,9 +98,10 @@ const bool colortex15Clear = false;
 	// #define Water_Flat
 	// #define Water_Noise
 	#define Water_Direction  0
-	#define Water_Depth 	 0.4		// Maximum depth of water waves into the water block, in block units [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-	#define Water_Refraction			// Enables refraction effect for underwater geometry
+	#define Water_Depth 	 0.4			// Maximum depth of water waves into the water block, in block units [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+	#define Water_Refraction				// Enables refraction effect for underwater geometry
 	// #define Water_Refraction_Strength	// Strength of refraction effect [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+	#define Water_TotalInternalReflection	// Use accurate refraction, which results in total internal reflection, but also some artifacts
 
 
 // Volumetric Effects

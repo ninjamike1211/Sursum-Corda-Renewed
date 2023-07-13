@@ -197,6 +197,9 @@ layout(location = 2) out vec4  velocityOut;
 		vec4  transparentColor 	= texture(colortex0, texcoord);
 			velocityOut 		= texture(colortex6, texcoord);
 
+		materialOut  = material;
+		vec4 specMap = SpecularDecode(material.z);
+
 	// ---------------------- Water Refraction ----------------------
 		#ifdef Water_Refraction
 			float depth;
@@ -209,29 +212,42 @@ layout(location = 2) out vec4  velocityOut;
 				vec3 hitPos = vec3(-1.0);
 
 				vec3 normalTex 	= NormalDecode(material.x);
-				vec3 normalGeom = NormalDecode(material.y);
 
+				#ifdef Water_TotalInternalReflection
+					if(isEyeInWater == 0)
+						refractDir = refract(viewDir, normalToView(normalTex, gbufferModelView), .9);
+					else if(isEyeInWater == 1) {
+						refractDir = refract(viewDir, normalToView(normalTex, gbufferModelView), 1.05);
 
-				// if(isEyeInWater == 0)
+						if(!(dot(refractDir, normalToView(normalTex, gbufferModelView)) < 0.0)) {
+							specMap.g = 229.0 / 255.0;
+							transparentColor.a = 1.0;
+						}
+					}
+				#else
+					vec3 normalGeom = NormalDecode(material.y);
 					refractDir = refract(viewDir, normalToView(normalGeom - normalTex, gbufferModelView), 0.93);
-					// refractDir = refract(viewDir, normalToView(normalTex, gbufferModelView), 1.05);
-				// else if(isEyeInWater == 1)
-					// refractDir = refract(viewDir, normalToView(normalTex), 1.);
-				// vec3 refractDir = refract(normalize(viewPos), normalToView(normalGeom), 0.75);
-				// refractDir = mat3(gbufferModelView) * refractDir;
+				#endif
+				
 
 				float jitter = 0.0;
 
 				bool hit = raytrace(waterViewPos /* - 0.5 * viewDir */, refractDir, 64, jitter, frameCounter, vec2(viewWidth, viewHeight), hitPos, depthtex1, gbufferProjection);
 
-				// if(calcSSRNew(waterViewPos, refractDir, 0.0, hitPos, gbufferProjection, depthtex1, colortex1) != 2) {
 				if(isEyeInWater == 1 || hit) {
 					texcoordRefract = hitPos.xy;
 				}
+				#ifdef Water_TotalInternalReflection
+				else {
+					vec2 mixFactor = smoothstep(0.005, 0.0, abs(hitPos.xy - texcoord) * (1.0 - abs(texcoord * 2.0 - 1.0)));
+					// mixFactor = vec2(0.0);
+					texcoordRefract = mix(hitPos.xy, texcoord, mixFactor);
+				}
+				#endif
 
 				// texcoordRefract = hitPos.xy;
 			}
-
+			
 			depth       = texture(depthtex1, texcoordRefract).r;
 			opaqueColor = texture(colortex7, texcoordRefract);
 
@@ -249,8 +265,6 @@ layout(location = 2) out vec4  velocityOut;
 		vec3 transparentScenePos = (gbufferModelViewInverse * vec4(transparentViewPos, 1.0)).xyz;
 		vec3 waterScenePos 		 = (gbufferModelViewInverse * vec4(waterViewPos, 1.0)).xyz;
 		
-			materialOut = material;
-		vec4 specMap     = SpecularDecode(material.z);
 
 		vec3 viewPos  = calcViewPos(viewVector, depth, gbufferProjection);
 		vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
@@ -315,7 +329,6 @@ layout(location = 2) out vec4  velocityOut;
 				
 
 			specMap.a = sunDisk * 254.0/255.0;
-			materialOut.b = SpecularEncode(specMap);
 
 			// Output correct velocity for the sky
 			#if defined TAA || defined MotionBlur
@@ -445,5 +458,7 @@ layout(location = 2) out vec4  velocityOut;
 		else if(isEyeInWater == 3) {
 			snowFog(colorOut.rgb, viewPos);
 		}
+
+		materialOut.b = SpecularEncode(specMap);
 	}
 #endif

@@ -55,36 +55,35 @@ vec2 waveFunctionDeriv(vec2 pos, float time, float amplitude, float frequency, f
 
 float waterHeightFuncSimple(vec2 horizontalPos, float frameTimeCounter) {
 
-    float offset  = 0.20  * SimplexPerlin2D( vec2(1.0)  * (horizontalPos + vec2( 0.62,  0.82 ) * frameTimeCounter));
-          offset += 0.25  * SimplexPerlin2D( vec2(0.5)  * (horizontalPos + vec2( 1.53, -0.26 ) * frameTimeCounter));
-          offset += 0.30  * SimplexPerlin2D( vec2(0.4)  * (horizontalPos + vec2(-1.74,  0.78 ) * frameTimeCounter));
+    float offset  = 0.20 * SimplexPerlin2D( vec2(1.0) * (horizontalPos + vec2( 0.62,  0.82 ) * frameTimeCounter));
+          offset += 0.25 * SimplexPerlin2D( vec2(0.5) * (horizontalPos + vec2( 1.53, -0.26 ) * frameTimeCounter));
+          offset += 0.30 * SimplexPerlin2D( vec2(0.4) * (horizontalPos + vec2(-1.74,  0.78 ) * frameTimeCounter));
 
-    return offset * 0.5 + 0.5;
+    return offset/*  * 0.5 + 0.5 */;
 }
 
 float waterHeightFunc(vec2 horizontalPos, float frameTimeCounter) {
 
-    float offset  = 0.05  * Cellular2D(      vec2(3.0)  * (horizontalPos + vec2(-0.30,  1.16 ) * frameTimeCounter));
-          offset += 0.07  * Cellular2D(      vec2(2.5)  * (horizontalPos + vec2( 0.18, -1.26 ) * frameTimeCounter));
-          offset += 0.08  * Cellular2D(      vec2(2.0)  * (horizontalPos + vec2( 0.78,  0.34 ) * frameTimeCounter));
-          offset += 0.10  * Cellular2D(      vec2(1.5)  * (horizontalPos + vec2(-1.04, -0.74 ) * frameTimeCounter));
-          offset += 0.20  * SimplexPerlin2D( vec2(1.0)  * (horizontalPos + vec2( 0.62,  0.82 ) * frameTimeCounter));
-          offset += 0.25  * SimplexPerlin2D( vec2(0.5)  * (horizontalPos + vec2( 1.53, -0.26 ) * frameTimeCounter));
-          offset += 0.30  * SimplexPerlin2D( vec2(0.4)  * (horizontalPos + vec2(-1.74,  0.78 ) * frameTimeCounter));
+    float offset = waterHeightFuncSimple(horizontalPos, frameTimeCounter);
 
-    return offset * 0.5 + 0.5;
+    offset += 0.05  * Cellular2D(vec2(3.0) * (horizontalPos + vec2(-0.30,  1.16 ) * frameTimeCounter));
+    offset += 0.07  * Cellular2D(vec2(2.5) * (horizontalPos + vec2( 0.18, -1.26 ) * frameTimeCounter));
+    offset += 0.08  * Cellular2D(vec2(2.0) * (horizontalPos + vec2( 0.78,  0.34 ) * frameTimeCounter));
+    offset += 0.10  * Cellular2D(vec2(1.5) * (horizontalPos + vec2(-1.04, -0.74 ) * frameTimeCounter));
+
+    return offset/*  * 0.5 + 0.5 */;
 }
 
 float waterHeightSimple(vec2 horizontalPos, float frameTimeCounter) {
 
-    float offset = waterHeightFuncSimple(horizontalPos, frameTimeCounter);
+    float offset = waterHeightFuncSimple(horizontalPos, frameTimeCounter) * 0.5 + 0.5;
 
     return (offset * Water_Depth + (1-Water_Depth));
 }
 
 float waterHeight(vec2 horizontalPos, float frameTimeCounter) {
 
-    float offset = waterHeightFunc(horizontalPos, frameTimeCounter);
+    float offset = waterHeightFunc(horizontalPos, frameTimeCounter) * 0.5 + 0.5;
 
     return (offset * Water_Depth + (1-Water_Depth));
 }
@@ -143,10 +142,10 @@ vec3 waterNormal(vec3 worldPos, float frameTimeCounter) {
     float stepSize = 0.03;
 
     vec2 e = vec2(stepSize, 0);
-    vec3 px1 = vec3(worldPos.x - e.x, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz - e.xy, frameTimeCounter), worldPos.z - e.y);
-    vec3 px2 = vec3(worldPos.x + e.x, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz + e.xy, frameTimeCounter), worldPos.z + e.y);
-    vec3 py1 = vec3(worldPos.x - e.y, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz - e.yx, frameTimeCounter), worldPos.z - e.x);
-    vec3 py2 = vec3(worldPos.x + e.y, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz + e.yx, frameTimeCounter), worldPos.z + e.x);
+    vec3 px1 = vec3(worldPos.x - e.x, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz - e.xy, frameTimeCounter) * 0.5 + 0.5, worldPos.z - e.y);
+    vec3 px2 = vec3(worldPos.x + e.x, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz + e.xy, frameTimeCounter) * 0.5 + 0.5, worldPos.z + e.y);
+    vec3 py1 = vec3(worldPos.x - e.y, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz - e.yx, frameTimeCounter) * 0.5 + 0.5, worldPos.z - e.x);
+    vec3 py2 = vec3(worldPos.x + e.y, Water_Depth * 0.15 * waterHeightFunc(worldPos.xz + e.yx, frameTimeCounter) * 0.5 + 0.5, worldPos.z + e.x);
 
     return normalize(cross(px2 - px1, py2 - py1)).xzy * vec3(1.0, 1.0, -1.0);
 }
