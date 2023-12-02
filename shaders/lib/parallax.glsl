@@ -8,13 +8,15 @@
 // uniform vec3 lightDir;
 
 #if POM_Filter == 0
-	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, float lod) {
-		float sampleHeight = textureLod(normals, texcoord, lod).a;
+	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, mat2 dFdXY) {
+		float sampleHeight = textureGrad(normals, texcoord, dFdXY[0], dFdXY[1]).a;
 		return (sampleHeight > 0.0) ? (1.0 - sampleHeight) : (0.0);
 	}
 #elif POM_Filter == 1
 	// Interpolates height map (bilinear filtering), used for a smooth POM
-	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, float lod) {
+	float sampleHeigth(vec2 texcoord, vec4 texcoordRange, mat2 dFdXY) {
+
+		float lod = 0;
 
 		float lodFactor = exp2(-floor(lod));
 		vec2 pixelCoord = texcoord * atlasSize * lodFactor - 0.5;
@@ -63,7 +65,9 @@
 		return a*t3 + b*t2 + c*t + d;
 	}
 
-	float sampleHeigth(vec2 texcoord, vec4 bounds, float lod) {
+	float sampleHeigth(vec2 texcoord, vec4 bounds, mat2 dFdXY) {
+		float lod = 0
+
 		vec2 texSize = textureSize(normals, int(lod));
 		vec2 fragCoord = texcoord * texSize;
 		ivec2 iFragCoord = ivec2(fragCoord);
@@ -111,7 +115,9 @@
 #endif
 
 #ifdef POM_SlopeNormals
-vec3 parallaxSmoothSlopeNormal(vec2 texcoord, vec4 texcoordRange, float lod) {
+vec3 parallaxSmoothSlopeNormal(vec2 texcoord, vec4 texcoordRange) {
+
+	float lod = 0;
 
 	float lodFactor = exp2(-floor(lod));
 	vec2 pixelCoord = texcoord * atlasSize * lodFactor - 0.5;
@@ -134,7 +140,9 @@ vec3 parallaxSmoothSlopeNormal(vec2 texcoord, vec4 texcoordRange, float lod) {
 }
 
 // Calculates the edge of the POM of the current texcoord, and returns the tangent space xy normal
-vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float currentLayerDepth, out vec3 tangentPos, float layerThickness, vec4 texcoordRange, float lod) {
+vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float currentLayerDepth, out vec3 tangentPos, float layerThickness, vec4 texcoordRange) {
+
+	float lod = 0;
 	
 	vec2  texSize = texcoordRange.zw - texcoordRange.xy;
 	float lodFactor = exp2(-floor(lod));
@@ -150,7 +158,7 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float curr
 	// Calculates the texcoord for the corner (x and y edges) nearest to the current texcoord along the path of the trace vector
 	vec2 nearestEdge = floor(texcoord * atlasSizeLod + (sign(-traceVector) * 0.5 + 0.5)) / atlasSizeLod;
 
-	// Perform up to 2 DDA raytraces to find correct edge
+	// Perform up to 3 DDA raytraces to find correct edge
 	int i = 0;
 	while(i < 3) {
 		
@@ -211,7 +219,7 @@ vec2 parallaxSlopeNormal(inout vec2 texcoord, vec2 traceVector, inout float curr
 #endif
 
 // Parallax Occlusion Mapping, outputs new texcoord with inout parameter and returns texture-alligned depth into texture after POM
-float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, out vec3 tangentPos, out bool onEdge, out vec2 norm) {
+float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, mat2 dFdXY, float layerCount, float fadeAmount, out vec3 tangentPos, out bool onEdge, out vec2 norm) {
 
 	vec2 texSize = texcoordRange.zw - texcoordRange.xy;
 
@@ -226,7 +234,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 	float currentLayerDepth = 0.0;
 	float lastDepthMapValue = 0.0;
 
-	float currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, lod);
+	float currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, dFdXY);
 	
 	// loop until the view vector hits the height map
 	for(int i = 0; i < layerCount; i++) {
@@ -242,7 +250,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 		currentLayerDepth += layerDepth;
 		lastDepthMapValue  = currentDepthMapValue;
 
-		currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, lod);
+		currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, dFdXY);
 	}
 
 	// Linear Interpolation between last 2 layers
@@ -271,7 +279,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 
 		#ifdef POM_SlopeNormals
 		if(onEdge)
-			norm = parallaxSlopeNormal(texcoord, traceVector, currentLayerDepth, tangentPos, layerDepth, texcoordRange, lod) * float(onEdge);
+			norm = parallaxSlopeNormal(texcoord, traceVector, currentLayerDepth, tangentPos, layerDepth, texcoordRange) * float(onEdge);
 		#endif
 
 		// #ifdef debugOut
@@ -283,7 +291,7 @@ float parallaxMapping(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRang
 	#endif
 }
 
-float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoordRange, vec2 texWorldSize, float lod, float layerCount, float fadeAmount, vec2 norm) {
+float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoordRange, vec2 texWorldSize, mat2 dFdXY, float layerCount, float fadeAmount, vec2 norm) {
 
 	vec2 texSize = texcoordRange.zw - texcoordRange.xy;
 
@@ -303,7 +311,7 @@ float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoor
 	float currentLayerDepth = shadowTexcoord.z;
 	vec2 texcoord = shadowTexcoord.xy;
 	
-	float currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, lod);
+	float currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, dFdXY);
 	float lastDepthMapValue = currentDepthMapValue;
 
 	bool onSurface = (currentLayerDepth - currentDepthMapValue) < layerDepth;
@@ -325,7 +333,7 @@ float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoor
 
 		// get depthmap value at current texture coordinates
 		lastDepthMapValue = currentDepthMapValue;
-		currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, lod);
+		currentDepthMapValue = sampleHeigth(texcoord, texcoordRange, dFdXY);
 
 		// onSurface = (currentLayerDepth - currentDepthMapValue) < layerDepth;
 
@@ -348,11 +356,11 @@ float parallaxShadows(vec3 shadowTexcoord, mat3 tbn, vec3 lightDir, vec4 texcoor
 }
 
 // calculates POM and calculates and returns new screen space depth, to be stored in gl_FragDepth
-float parallaxDepthOffset(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float fadeAmount, out vec2 norm) {
+float parallaxDepthOffset(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, mat2 dFdXY, float fadeAmount, out vec2 norm) {
 	// Calculates POM and stores texture alligned depth from POM
 	vec3 shadowTexcoord = vec3(-1.0);
 	bool onEdge = false;
-	float zOffset = parallaxMapping(texcoord, pos, tbn, texcoordRange, texWorldSize, lod, POM_Layers, fadeAmount, shadowTexcoord, onEdge, norm);
+	float zOffset = parallaxMapping(texcoord, pos, tbn, texcoordRange, texWorldSize, dFdXY, POM_Layers, fadeAmount, shadowTexcoord, onEdge, norm);
 
 	// Calculate new screen screenspace position from original view space position and POM depth difference
 	vec3 texDir = normalize(pos) * tbn;
@@ -382,15 +390,15 @@ float parallaxDepthOffset(inout vec2 texcoord, vec3 pos, mat3 tbn, vec4 texcoord
 
 
 // calculates POM and calculates and returns new screen space depth, to be stored in gl_FragDepth
-float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, vec3 lightDir, out float shadow, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, float lod, float fadeAmount, out bool onEdge, out vec2 norm) {
+float parallaxShadowDepthOffset(inout vec2 texcoord, vec3 pos, vec3 lightDir, out float shadow, mat3 tbn, vec4 texcoordRange, vec2 texWorldSize, mat2 dFdXY, float fadeAmount, out bool onEdge, out vec2 norm) {
 	
 	// Calculates POM and stores texture alligned depth from POM
 	vec3 shadowTexcoord = vec3(-1.0);
 	onEdge = false;
-	float zOffset = parallaxMapping(texcoord, pos, tbn, texcoordRange, texWorldSize, lod, POM_Layers, fadeAmount, shadowTexcoord, onEdge, norm);
+	float zOffset = parallaxMapping(texcoord, pos, tbn, texcoordRange, texWorldSize, dFdXY, POM_Layers, fadeAmount, shadowTexcoord, onEdge, norm);
 
 	// Calculate shadow
-	shadow = parallaxShadows(shadowTexcoord, tbn, lightDir, texcoordRange, texWorldSize, lod, POM_Shadow_Layers, fadeAmount, norm);
+	shadow = parallaxShadows(shadowTexcoord, tbn, lightDir, texcoordRange, texWorldSize, dFdXY, POM_Shadow_Layers, fadeAmount, norm);
 	// shadow = parallaxShadows(texcoord, zOffset, tbn, texcoordRange, texWorldSize, lod, POM_Shadow_Layers);
 
 	// Calculate new screen screenspace position from original view space position and POM depth difference

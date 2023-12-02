@@ -1,5 +1,9 @@
 #version 430 compatibility
 
+/*
+const bool colortex0MipmapEnabled = true;
+*/
+
 uniform sampler2D colortex0;
 uniform float viewWidth;
 uniform float viewHeight;

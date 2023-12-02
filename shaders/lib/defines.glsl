@@ -6,7 +6,6 @@
 
 const int colortex0Format = RGBA16F;
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-const bool colortex0MipmapEnabled = true;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex2Format  = RGB32UI;
 const int colortex3Format  = RGB8;
@@ -102,6 +101,7 @@ const bool colortex15Clear = false;
 	#define Water_Refraction				// Enables refraction effect for underwater geometry
 	// #define Water_Refraction_Strength	// Strength of refraction effect [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 	#define Water_TotalInternalReflection	// Use accurate refraction, which results in total internal reflection, but also some artifacts
+	// #define Water_VanillaTexture			// Use vanilla texture for water color
 
 
 // Volumetric Effects

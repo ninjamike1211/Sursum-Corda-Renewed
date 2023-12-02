@@ -240,7 +240,7 @@ void main() {
 
 // ---------------- Texture and Material Handling ---------------
 	// Calculate lod beforehand
-	float lod = textureQueryLod(tex, texcoord).x;
+	mat2 dFdXY = mat2(dFdx(texcoord), dFdy(texcoord));
 
 	vec2 texcoordFinal = texcoord;
 	pomOut = vec4(0.0, 1.0, 0.0, 1.0);
@@ -300,12 +300,12 @@ void main() {
 				if(pomFade < 1.0) {
 					vec3 tangentPos = vec3(-1.0);
 
-					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, texWorldSize, lod, POM_Layers, 1.0-pomFade, tangentPos, onEdge, slopeNormal);
+					float pomOffset = parallaxMapping(texcoordFinal, scenePos, tbn, textureBounds, texWorldSize, dFdXY, POM_Layers, 1.0-pomFade, tangentPos, onEdge, slopeNormal);
 					pomOut.b = pomOffset;
 
 					#ifdef POM_Shadow
 					if(dot(lightDir, glNormal) > 0.0)
-						pomOut.g = parallaxShadows(tangentPos, tbn, lightDir, textureBounds, texWorldSize, lod, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
+						pomOut.g = parallaxShadows(tangentPos, tbn, lightDir, textureBounds, texWorldSize, dFdXY, POM_Shadow_Layers, 1.0-pomFade, slopeNormal);
 					else
 						pomOut.g = 0.0;
 					#endif
@@ -338,29 +338,29 @@ void main() {
 						geomNormal = normalVal;
 					}
 					else
-						normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
+						normalVal = tbn * extractNormalZ(textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).rg * 2.0 - 1.0);
 				#else
-					normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
+					normalVal = tbn * extractNormalZ(textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).rg * 2.0 - 1.0);
 				#endif
 			}
 			else {
 				// #ifdef POM_PDO
 				// 	gl_FragDepth = gl_FragCoord.z;
 				// #endif
-				normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
+				normalVal = tbn * extractNormalZ(textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).rg * 2.0 - 1.0);
 			}
 		#else
-			vec3 normalVal = tbn * extractNormalZ(textureLod(normals, texcoordFinal, lod).rg * 2.0 - 1.0);
+			vec3 normalVal = tbn * extractNormalZ(textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).rg * 2.0 - 1.0);
 		#endif
 
-		vec4 specMap = textureLod(specular, texcoordFinal, lod);
+		vec4 specMap = textureGrad(specular, texcoordFinal, dFdXY[0], dFdXY[1]);
 	#else
 		vec3 normalVal = glNormal;
 		vec4 specMap = vec4(0.0, 0.0, 0.0, 1.0);
 	#endif
 
 	// Read texture values
-	vec4 albedo = textureLod(tex, texcoordFinal, lod) * glColor;
+	vec4 albedo = textureGrad(tex, texcoordFinal, dFdXY[0], dFdXY[1]) * glColor;
 	if (albedo.a < alphaTestRef) discard;
 
 	#ifdef hand
@@ -397,7 +397,7 @@ void main() {
 	#ifdef entities
 		albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
 
-		if(all(lessThanEqual(textureLod(normals, texcoordFinal, lod).rg, vec2(EPS)))) {
+		if(all(lessThanEqual(textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).rg, vec2(EPS)))) {
 			specMap.a = 0.4;
 			// albedo.rgb *= 5.0;
 			normalVal = lightDir;
@@ -428,7 +428,10 @@ void main() {
 
 		albedo.a = isEyeInWater == 0 ? 0.5 : 0.5;
 		// albedo.rgb = vec3(0.0);
-		albedo.rgb = 0.3 * glColor.rgb;
+
+		#ifndef Water_VanillaTexture
+			albedo.rgb = 0.3 * glColor.rgb;
+		#endif
 
 		albedo.a = 0.1;
 

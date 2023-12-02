@@ -130,7 +130,10 @@
             // caustics += 1.0;
             // caustics *= 2.0;
 
-            shadowColor.rgb = glColor.rgb * caustics;
+            #ifndef Water_VanillaTexture
+                shadowColor.rgb = glColor.rgb;
+            #endif
+            shadowColor.rgb *= caustics;
         }
     }
 
