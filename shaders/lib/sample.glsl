@@ -1,6 +1,20 @@
 #ifndef SAMPLE
 #define SAMPLE
 
+
+// Interleaved Gradient Noise, from LowellCamp#8190 with optimization from SixthSurge#3922
+const ivec2 interleave_vec = ivec2(1125928, 97931);
+const float interleaved_z = 52.9829189;
+const float fixed2float = 1.0 / exp2(24.0);
+const int ref_fixed_point = int(exp2(24.0));
+
+float interleaved_gradient(ivec2 seed, int t) {
+    ivec2 components = ivec2(seed + 5.588238 * t) * interleave_vec;
+    int internal_modulus = (components.x + components.y) & (ref_fixed_point - 1);
+    return fract(float(internal_modulus) * (fixed2float * interleaved_z));
+}
+
+
 // Vogel Disk sample function, from Tech#2594 (https://www.shadertoy.com/view/NdBGDR)
 vec2 GetVogelDiskSample(int sampleIndex, int sampleCount, float phi) 
 {

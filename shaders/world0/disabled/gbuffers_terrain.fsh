@@ -1,9 +1,6 @@
 #version 400 compatibility
 
-#include "/lib/defines.glsl"
-#include "/lib/functions.glsl"
 #include "/lib/material.glsl"
-#include "/lib/spaceConvert.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -14,8 +11,7 @@ uniform float alphaTestRef;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
-flat in vec3 glNormal;
-flat in vec4 tangent;
+flat in mat3 tbn;
 flat in uint mcEntity;
 
 /* RENDERTARGETS: 2,3,4,5,6 */
@@ -27,24 +23,15 @@ layout(location = 4) out uint maskOut;
 
 void main() {
 	albedoOut = texture(gtexture, texcoord) * glcolor;
-	if (albedoOut.a < 0.9) discard;
-
-	// albedoOut.rgb = sRGBToLinear3(albedoOut.rgb);
+	if (albedoOut.a < alphaTestRef) discard;
 
 	specularOut = texture(specular, texcoord);
 	lightmapOut = lmcoord;
 
+	vec3 texNormal = extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
+	vec3 normal = tbn * texNormal;
 
-	vec3 normal = glNormal;
-	if(!gl_FrontFacing)
-		normal *= -1.0;
-	
-	mat3 tbn = tbnNormalTangent(normal, tangent);
-
-
-	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
-
-	normalOut.rg = packNormalVec2(texNormal);
+	normalOut.rg = packNormalVec2(normal);
 	normalOut.ba = packNormalVec2(tbn[2]);
 
 	maskOut = mcEntityMask(mcEntity);

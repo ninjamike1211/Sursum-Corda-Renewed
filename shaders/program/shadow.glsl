@@ -3,9 +3,12 @@
     // uniform sampler2D colortex12;
 
     uniform mat4  shadowModelViewInverse;
+    uniform vec3  cameraPosition;
     uniform float rainStrength;
     uniform float frameTimeCounter;
-    uniform vec3  cameraPosition;
+    uniform int   renderStage;
+
+    layout (r8ui) uniform uimage3D voxelImage;
 
 
     // ------------------------ File Contents -----------------------
@@ -17,18 +20,14 @@
     out vec2 texcoord;
     out vec4 glColor;
     out vec3 worldPosVertex;
-    out vec2 clipXY;
     out vec3 glNormal;
     flat out int entity;
 
     #define shadowGbuffer
 
-    #include "/lib/SSBO.glsl"
     #include "/lib/defines.glsl"
-    #include "/lib/functions.glsl"
-    #include "/lib/TAA.glsl"
     #include "/lib/shadows.glsl"
-    #include "/lib/waving.glsl"
+    #include "/lib/voxel.glsl"
 
     void main() {
 
@@ -45,18 +44,18 @@
         vec4 modelPos = gl_Vertex;
 
         // Fix for water inside cauldron incorrectly self-shadowing
-        if(entity == 10030 && glColor.r < 0.5) {
-            modelPos.y -= 0.2;
-        }
+        // if(entity == 10030 && glColor.r < 0.5) {
+        //     modelPos.y -= 0.2;
+        // }
 
         // Apply waving geometry
-        #ifdef wavingPlants
-        if(entity > 10000) {
-            vec3 worldPos = modelPos.xyz + cameraPosition;
+        // #ifdef wavingPlants
+        // if(entity > 10000) {
+        //     vec3 worldPos = modelPos.xyz + cameraPosition;
             
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
-        }
-        #endif
+        //     modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
+        // }
+        // #endif
 
         // Calculate world positions
         vec3 shadowViewPos = (gl_ModelViewMatrix * modelPos).xyz;
@@ -65,14 +64,34 @@
 
         // Calculate clip position and shadow distortion
         gl_Position = gl_ProjectionMatrix * vec4(shadowViewPos, 1.0);
-        // float clipLen = length(gl_Position.xy);
-        clipXY = gl_Position.xy;
 
         gl_Position.xyz = distort(gl_Position.xyz);
         // gl_Position.xyz = shadowDistortion(gl_Position.xyz);
 
         // float bias = getShadowBias(glNormal.z, clipLen);
         // gl_Position.z += bias;
+
+        #ifdef UseVoxelization
+            bool isBlock = renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
+                renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED ||
+                renderStage == MC_RENDER_STAGE_TERRAIN_CUTOUT ||
+                renderStage == MC_RENDER_STAGE_TERRAIN_TRANSLUCENT;
+            
+            if (isBlock && gl_VertexID % 4 == 0) {
+                vec3 centerPos = gl_Vertex.xyz + at_midBlock / 64.0;
+                ivec3 voxelPos = sceneToVoxel(centerPos, cameraPosition);
+
+                if(clamp(voxelPos.xz, ivec2(0), ivec2(512)) == voxelPos.xz) {
+                    uint blockID = uint(mc_Entity.x + 0.5);
+
+                    if(blockID == 0) {
+                        blockID = 64;
+                    }
+
+                    imageStore(voxelImage, voxelPos, uvec4(blockID));
+                }
+            }
+        #endif
 
     }
 
@@ -86,10 +105,10 @@
     uniform float alphaTestRef;
     uniform float frameTimeCounter;
 
-    #include "/lib/functions.glsl"
+    // #include "/lib/functions.glsl"
     #include "/lib/defines.glsl"
-    #include "/lib/noise.glsl"
-    #include "/lib/water.glsl"
+    // #include "/lib/noise.glsl"
+    // #include "/lib/water.glsl"
     #include "/lib/shadows.glsl"
 
 
@@ -101,40 +120,38 @@
     in vec2 texcoord;
     in vec4 glColor;
     in vec3 worldPosVertex;
-    in vec2 clipXY;
     in vec3 glNormal;
     flat in int entity;
 
-    // layout(depth_greater) out float gl_FragDepth;
-    layout(location = 0)  out vec4  shadowColor;
+    #if Shadow_Transparent > 0
+        /* RENDERTARGETS: 0 */
+        layout(location = 0)  out vec4  shadowColor;
+    #endif
 
     void main() {
 
-        vec2 texcoordFinal = texcoord;
+        #if Shadow_Transparent > 0
+            shadowColor = texture(tex, texcoord) * glColor;
+            if (shadowColor.a < alphaTestRef) discard;
+        #else
+            float shadowAlpha = texture(tex, texcoord).a;
+            if (shadowAlpha < alphaTestRef) discard;
+        #endif
 
-        shadowColor = texture(tex, texcoordFinal) * glColor;
-        if (shadowColor.a < alphaTestRef) discard;
+        // if(entity == 10010) {
+        //     shadowColor.a = 0.0;
 
-        // float clipLen = length(clipXY);
-        // float bias = getShadowBias(glNormal.z, clipLen);
-        // gl_FragDepth += bias;
+        //     float waterHeight = 1.0 - abs(waterHeightFuncSimple(worldPosVertex.xz, frameTimeCounter));
+        //     float caustics = Water_Depth * pow(waterHeight, 3.0) + 0.5*(1 - Water_Depth) * 0.8 + 0.2;
 
-        shadowColor.rgb = shadowColor.rgb;
+        //     // caustics += 1.0;
+        //     // caustics *= 2.0;
 
-        if(entity == 10010) {
-            shadowColor.a = 0.0;
-
-            float waterHeight = 1.0 - abs(waterHeightFuncSimple(worldPosVertex.xz, frameTimeCounter));
-            float caustics = Water_Depth * pow(waterHeight, 3.0) + 0.5*(1 - Water_Depth) * 0.8 + 0.2;
-
-            // caustics += 1.0;
-            // caustics *= 2.0;
-
-            #ifndef Water_VanillaTexture
-                shadowColor.rgb = glColor.rgb;
-            #endif
-            shadowColor.rgb *= caustics;
-        }
+        //     #ifndef Water_VanillaTexture
+        //         shadowColor.rgb = glColor.rgb;
+        //     #endif
+        //     shadowColor.rgb *= caustics;
+        // }
     }
 
 #endif

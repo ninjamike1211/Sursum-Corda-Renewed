@@ -1,29 +1,24 @@
 #ifndef DEFINES
 #define DEFINES
 
-/*
-		Buffer Constants
 
-const int colortex0Format = RGBA16F;
+// Buffer formats
+
+/*
+const int colortex0Format = RGB16F;
 const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const int colortex1Format  = RGBA16F;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-const int colortex2Format  = RGB32UI;
-const int colortex3Format  = RGB8;
-const int colortex3Format  = RGB10_A2;
-const int colortex5Format  = R32F;
-const int colortex6Format  = RG16_SNORM;
-const int colortex7Format  = RGB16F;
+const int colortex4Format  = RGBA16;
+const int colortex5Format  = RG8;
+const int colortex6Format  = R8UI;
+const int colortex7Format  = RG16_SNORM;
 const int colortex8Format  = RGB8;
-const int colortex9Format  = R8;
 const int colortex10Format = RGB16F;
 const int colortex11Format = RGB16F;
-const bool colortex12Clear = false;
-const int colortex14Format = R16F;
-const bool colortex14Clear = false;
 const int colortex15Format = RGBA16F;
 const bool colortex15Clear = false;
 */
-
 
 // Constants
 	#define EPS	1e-4
@@ -38,235 +33,51 @@ const bool colortex15Clear = false;
 	#define GOLDEN_ANGLE 2.39996322
 
 
-// Dimension defiens
-	#if !defined inNether && !defined inEnd
-		#define inOverworld
-	#endif
-
-	#ifndef inNether
-		#define dimHasShadows
-	#endif
-
-	#ifndef inNether
-		#define dimHasWater
-	#endif
-
-
-	#define worldColorMode 0 	// Overrides all textures with a color, for debug/artists but also just looks cool [0 1 2 3]
-
-
-// Lighting Constants
-	#define netherAmbientLight 	vec3(0.4, 0.02, 0.01)
-	#define netherDirectLight 	(fogColor * 5.0)
-	#define endAmbientLight 	vec3(1.0, 0.8, 1.1)
-	#define endDirectLight 		vec3(0.15, 0.08, 0.3)
-
-
-#define ExposureSpeed 2.0
-
-
-// Temporal Anti-aliasing
-	#define TAA // Temporal anti-alliasing, smooths edges and improves visual quality, sometimes causes ghosting
-	#define TAA_NEIGHBORHOOD_SIZE 1
-
-
 // Shadows
-	const int 	shadowMapResolution = 	2048;	// Resolution of shadow map, higher resolution means sharper shadows but less performance [512 1024 2048 4096]
-	const float shadowDistance = 		120;	// Distance to render shadows at, higher numbers mean farther shadows but lower quality overall [90 120 160 200 240]
+	#define Shadow_Type 3					// Type of shadow mapping. 0 = off. 1 = no filtering. 2 = pcf. 3 = pcss [0 1 2 3]
+	#define Shadow_Transparent 0			// Controls shadows for transparent shadows. 0 = off. 1 = full shadow. 2 = colored shadow [0 1 2]
 
-	#define Use_ShadowMap					// Enables or disables the shadow map, large performance impact
-	#define Shadow_Distort_Factor 	0.1
-	#define Shadow_Bias 			0.0001
-	#define ShadowSamples 			32 		// Number of samples used calculating shadow blur [4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64 72 80 88 96 112 128]
-	#define ShadowBlockSamples 		16 		// Number of samples used for PCSS blocking [2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64]
-	#define ShadowBlurScale 		0.20 	// Scale of shadow blur [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75]
-	#define ShadowMinBlur 			0.00020 // Maximum shadow blur with PCSS [0.00000 0.00002 0.00004 0.00006 0.00008 0.00010 0.00012 0.00014 0.00016 0.00018 0.00020 0.00025 0.00030 0.00040 0.00050]
-	#define ShadowMaxBlur 			0.020 	// Maximum shadow blur with PCSS [0.00 0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050]
-	#define ShadowNoiseAnimated 			// When enabled move noise with each frame, allowing for lower shadow samples at the cost of noise "moving"
-	#define Shadow_LeakFix
+    const int shadowMapResolution =	2048;	// Resolution of shadow map, higher resolution means sharper shadows but less performance [512 1024 2048 4096]
+    #define Shadow_Distort_Factor 0.10      // Distortion factor for the shadow map. Has no effect when shadow distortion is disabled. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.20 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.30 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.40 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.50 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.60 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.70 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.80 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.90 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.00]
+    #define Shadow_Bias 5.0                	// Increase this if you get shadow acne. Decrease this if you get peter panning. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00 6.00 7.00 8.00 9.00 10.00]
+    #define Shadow_NormalBias               // Offsets the shadow sample position by the surface normal instead of towards the sun
+	#define Shadow_PCF_Samples 16			// Number of samples used calculating shadow blur [4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64 72 80 88 96 112 128]
+	#define Shadow_PCF_BlurRadius 0.0005
+	#define Shadow_PCSS_BlurScale 0.05 		// Scale of shadow blur [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75]
+	#define Shadow_PCSS_MinBlur 0.000020	// Maximum shadow blur with PCSS [0.00000 0.00002 0.00004 0.00006 0.00008 0.00010 0.00012 0.00014 0.00016 0.00018 0.00020 0.00025 0.00030 0.00040 0.00050]
+	#define Shadow_PCSS_MaxBlur 0.0050		// Maximum shadow blur with PCSS [0.00 0.005 0.010 0.015 0.020 0.025 0.030 0.035 0.040 0.045 0.050]
+	#define Shadow_PCSS_BlockSamples 16		// Number of samples used for PCSS blocking [2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64]
+	#define Shadow_PCSS_BlockRadius 0.015
+	#define Shadow_NoiseAnimated 			// When enabled move noise with each frame, allowing for lower shadow samples at the cost of noise "moving"
 
-	#define SHADOW_SCALE 1.0
-	#define SHADOW_ZSCALE 0.5
-	#define SHADOW_DISTORSION 0.05
-	#define SHADOW_BIAS 0.00004
+	const float ambientOcclusionLevel = 0.0;
+	#define Texture_AO
+	#define Texture_AO_Strength 1.0			// Strength of labPBR texture AO, applies only to ambient lighting [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
-	#ifdef Use_ShadowMap
-	#endif
+	const float sunPathRotation = -20;
 
-// Water
-	// #define Water_Flat
-	// #define Water_Noise
-	#define Water_Direction  0
-	#define Water_Depth 	 0.4			// Maximum depth of water waves into the water block, in block units [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-	#define Water_Refraction				// Enables refraction effect for underwater geometry
-	// #define Water_Refraction_Strength	// Strength of refraction effect [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-	#define Water_TotalInternalReflection	// Use accurate refraction, which results in total internal reflection, but also some artifacts
-	// #define Water_VanillaTexture			// Use vanilla texture for water color
+// Parallax
+	#define Parallax
+	#define Parallax_Shadows
+	#define Parallax_TraceToEdge
+	#define Parallax_EdgeNormals
+	#define Parallax_DepthOffset
+	#define Parallax_DiscardEdge
+	#define Parallax_Depth 1.0				// Parallax Depth multiplier (default is 1.0 which is 1/4 block depth) [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
+// Voxelization
+	#define UseVoxelization
 
-// Volumetric Effects
-	#define VolFog								// Volumetric fog, fog that is affected by lighting and shadows, large performance impact
-	// #define VolFog_Colored
-	// #define VolFog_SmoothShadows				// Uses smooth shadows for fog, large performance impact
-	#define VolFog_Steps 				16 		// Number of samples used for volumetric fog [8 12 16 20 24 32 48 64 96 128]
-	#define VolFog_SmoothShadowSamples 	4 		// Number of samples used for smooth shadows in volumetric fog [1 2 4 6 8 10 12 14 16 20 24 32]
-	#define VolFog_SmoothShadowBlur 	0.002 	// Amount of blur applied ot shadows in volumetric fog [0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.010 0.015 0.020]
+// MCEntity
+	#define MCEntity_Water 10010
 
-	#define VolFog_Nether						// Volumetric nether fog effect, significant performance impact
-	#define VolFog_Nether_Steps		 	16		// Steps in volumetric nether fog effect. Larger values allow longer fog or higher quality, with significant performance impact [8 12 16 32 48 64 96 128]
-	#define VolFog_Nether_MaxDistance 	25.0	// Max distance of volumetric effect in fog in blocks, larger values require higher VolFog_Nehter_Steps to look good [5.0 10.0 15.0 20.0 25.0 30.0 35.0 40.0 50.0 60.0 70.0 80.0 90.0 100.0]
+// BitMask
+	#define Mask_Water 128
+	#define Mask_Hand 64
 
-	#define VolWater						// Volumetric fog in water, looks good but large performance impact
-	#define VolWater_Steps 		16			// Number of samples in fog [4 6 8 12 16 20 24 28 32 48 64]
-	#define VolWater_LightSteps 8			// Number of samples in light [2 4 6 8 10 12 16 20 24 28 32]
-	#define VolWater_Colored
-	// #define VolWater_SmoothShadows		// Uses smooth shadows for fog, large performance impact
-	#define VolWater_SmoothShadowSamples 4 	// Number of samples used for smooth shadows in volumetric water [1 2 4 6 8 10 12 14 16 20 24 32]
-	#define VolWater_SmoothShadowBlur 0.003 // Amount of blur applied ot shadows in volumetric water [0.000 0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.010 0.015 0.020]
-
-	#ifdef VolFog
-	#endif
-	#ifdef VolWater
-	#endif
-
-// Ambient Occlusion
-	const float ambientOcclusionLevel = 0.0f;
-
-	#define SSAO				// Screen space ambient occlusion, adds shadows between blocks and entites, medium performance impact
-	#define SSAO_Radius 	0.5 // Radius of SSAO. Higher values causes ao to be more spread out. Lower values will concentrate shadows more in corners. [0.125 0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 3.0 4.0 5.0]
-	#define SSAO_Strength 	1.0 // Strength of ambient shadows. 0 means no shadows. Higher numbers mean darker shadows. [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-
-
-// Screen Space Reflections
-	#define SSR						// Screen space reflections, adds reflections to shiney surfaces, including water
-	#define SSR_RoughReflections	// Makes reflections or rougher surfaces look more blurred, requires TAA to remove noise, low performance impact
-	#define SSR_Steps 		64		// Steps to use in main SSR loop [16 20 24 28 32 40 48 64 72]
-	#define SSR_BinarySteps 4		// Binary refinement steps in SSR loop [1 2 4 6 8 12 16]
-
-	#define SSR_LowThreshold		0.0
-	#define SSR_HighThreshold		0.55
-	#define SSR_LowRoughThreshold	0.0
-	#define SSR_HighRoughThreshold	0.55
-
-
-#define SSS	// Sub-surface scattering
-
-
-// Clouds
-	#define cloudsEnable				// Enables flat clouds in sky
-	#define lowCloudHeight 		1000	// Lower cloud layer height
-	#define highCloudHeight		3000	// Upper cloud layer height
-	#define lowCloudRadius 		100000	// Lower cloud layer curve radius
-	#define highCloudRadius		500000	// Upper cloud layer curve radius
-	#define lowCloudNormalMult 	0.5		// Lower cloud layer normal multiplier
-	#define highCloudNormalMult 0.004	// Upper cloud layer normal multiplier
-	// #define cloudDualLayer			// Uses second layer for lower clouds to create parallax effect
-	#ifdef cloudDualLayer
-		#define lowCloud2Height 1050	// Dual cloud layer height
-		#define lowCloud2Radius 100000	// Dual cloud layer curve radius
-	#endif
-
-	#define netherCloudHeight 1000		// Nether cloud height
-	#define netherCloudRadius 100000	// Nether cloud curve radius
-
-
-// Parallax Mapping
-	#define POM
-	#define POM_TexSizeFix				// Accounts for textures that are different sizes and aspect ratios to a full block, slightly more expensive with some uncommon visual artifacts
-	// #define POM_Variable_Layer		// Uses a variable number of layers when calculating POM based on view direction
-	#define POM_SlopeNormals			// Overwrites normals on the edges of POM with direction the edge faces instead of the texture normal
-	#define POM_Shadow					// POM self shadowing, fairly expensive.
-	#define POM_PDO						// POM pixel depth offset, writes to the depth buffer to after POM for slightly more accurate depth information at a slight performance cost (sometimes breaks resource packs)
-	#define POM_Depth 			1.0 	// Depth of POM in blocks. Lower values decreases effect. Appealing values may depend on resource pack [0.2 0.4 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.6 1.8 2.0 3.0 4.0]
-	#define POM_Layers 			50 		// Quality of POM. Higher values are better quality with more performance cost [5 10 20 30 40 50 75 100 200]
-	#define POM_Shadow_Layers 	50 		// Quality of POM shadows. Higher values are better quality with more performance cost [5 10 20 30 40 50 75 100 200]
-	#define POM_Distance 		16.0	// Distance at which POM stops rendering, lower values increase performance [8.0 12.0 16.0 24.0 32.0 36.0 40.0 44.0 48.0 56.0 64.0 96.0]
-	#define POM_FadeWidth 		8.0		// Width of the blend at the edge of POM rendering
-	#define POM_Filter			0		// POM Heightmap interpolation type. nearest neightbor : blocky, fastest. bilinear : smooth, very fast. bicubic : smoothest, slow. [0 1 2]
-
-	#define Water_POM
-	#define Water_POM_Layers 30
-
-
-// Bloom
-	#define Bloom				// A light-blurring effect that makes bright objects appear more visually bright
-	#define Bloom_Bicubic		// Uses bicubic filtering when sampling bloom, higher quality with only a slight performance hit
-	#define Bloom_Strength 	1.0 // Strength of Bloom [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-	#define Bloom_Tiles		6	// Number of bloom tiles, more means higher quality at higher performance cost
- 
-
-#define LensFlare	// A lens flare effect caused by looking at the sun
-
-
-// Directional and Hand lighting
-	#define AmbientMetalAlbedoMult 0.15			// Multiplier for albedo applied to metallics through ambient lighting (higher values show albedo texture but look less metalic) [0.0 0.05 0.10 0.15 0.20 0.25 0.30 0.40 0.50 0.60 0.70 0.80 0.90 1.00]
-	// #define AmbientMetalHardcodeAlbedo		// Uses hardcoded metal values for ambient lighting instead of albedo texture, can make metals look more metallic and realistic, but completely removes albedo texture from lighting
-
-	#define DirectionalLightmap
-	#define DirectionalLightmap_Strength 0.5	// Strength of directional lightmap [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-
-	#define HandLight
-	#define HandLight_Colors
-	#define HandLight_Shadows
-
-	#define LightningLight
-	// #define LightningLight_Shadows
-
-
-// Motion Blur
-	// #define MotionBlur
-	#define MotionBlur_Samples 16
-	#define MotionBlur_Strength 1.0		// Strength of motion blur [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
-
-
-// Depth of Field
-	// #define DOF							// Depth of Field effect, makes very close or far objects appear blurry
-	#define DOF_HandBlur				// Enables blurring of handheld items, which can sometimes looks strange
-	#define DOF_NearBlur				// Enables blurring of objects closer than the point of focus
-	#define DOF_VariableSampleCount		// Enables variable sample count, where the number of samples depends on the size of the blur
-	#define DOF_NearTransitionBlur		// Blurs the DOF CoC buffer so that near objects blur better onto in-focus objects
-	#define DOF_ConstSamples 	128		// The sample count used when DOF_VariableSampleCount is disabled [8 12 16 24 32 48 64 96 128 192 256 320 384 448 512]
-	#define DOF_SampleDensity 	1.0		// The density (roughly samples/pixel) used when DOF_VariableSampleCount is enabled [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
-	#define DOF_MaxSamples 		512		// Maximum samples when DOF_VariableSampleCount is enabled [16 24 32 48 64 96 128 192 256 320 384 448 512 640 768 1024]
-	#define DOF_MinSamples 		32		// Minimum samples when DOF_VariableSampleCount is enabled [4 6 8 12 16 20 24 32 38 64 72 80 88 96 112 128]
-	#define DOF_BlurAmount		1.0		// Mutliplier for DOF blur radius, effectively a DOF amount slider [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-	#define DOF_FocusSpeed		7.5		// Speed of focus change [-1.0 1.0 2.0 3.0 4.0 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0 11.5 12.0 13.0 14.0 15.0]
-	#define DOF_MaxRadius		0.05	// Maximum radius of blur
-	#define DOF_ImageDistance 	0.01	// Internal value, distance between image plane and lens
-
-
-#define EmissiveStrength 1.0 // Strength of texture emissives [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0 2.2 2.4 2.6 2.8 3.0 3.5 4.0]
-
-// Waving objects and wind
-	#define wavingPlants
-
-	#define Wind_AngleSpeed			0.05
-	#define Wind_AmplitudeSpeed		0.2
-	#define Wind_MinAmp				0.1
-	#define Wind_MaxAmp				0.25
-	#define Wind_MinAmpRain			0.5
-	#define Wind_MaxAmpRain			1.0
-	#define Wind_Phase_Slope 		15.0
-	#define Wind_Phase_Offset		0.0
-
-	#define Wind_Leaf_YFactor		0.5
-	#define Wind_Leaf_Wavelength   	0.75
-	#define Wind_Leaf_Offset 		0.1
-	#define Wind_Leaf_WaveStrength	0.07
-
-	#define Wind_Plant_Wavelength 	2.0
-	#define Wind_Plant_Offset		0.3
-	#define Wind_Plant_Wavestrength	0.1
-
-	#define Wind_Vine_YWavelength 	1.0
-	#define Wind_Vine_XZWavelength 	0.25
-	#define Wind_Vine_Offset		0.1
-	#define Wind_Vine_Wavestrength 	0.1
-
-
-// Nether settings
-#ifdef inNether
-	// #define Nether_CloudFog
+#ifdef Parallax_EdgeNormals
+#endif
+#ifdef Shadow_Transparent
 #endif
 
 #endif

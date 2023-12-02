@@ -33,6 +33,39 @@ vec3 screenToView(vec2 texcoord, float depth, int frameCounter, vec2 screenSize,
 	return projectAndDivide(inverseProjectionMatrix, ndcPos);
 }
 
+vec3 screenToViewHand(vec2 texcoord, float depth, mat4 inverseProjectionMatrix) {
+	depth *= 1.67;
+
+	vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
+
+	vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
+	return homoPos.xyz / homoPos.w;
+
+
+
+	// vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
+
+	// vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
+
+	// depth *= 14.9 / homoPos.w;
+	// ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
+
+	// homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
+	// return homoPos.xyz / homoPos.w;
+
+
+
+	// vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
+
+	// vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
+
+	// depth *= 1.67 / (-homoPos.z);
+	// ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
+
+	// homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
+	// return homoPos.xyz / homoPos.w;
+}
+
 vec3 viewToScreen(vec3 viewPos, int frameCounter, vec2 screenSize, mat4 projectionMatrix) {
 	vec3 ndcPos = projectAndDivide(projectionMatrix, viewPos);
 	
@@ -73,6 +106,13 @@ mat3 tbnNormalTangent(vec3 normal, vec3 tangent) {
     // For DirectX normal mapping you want to switch the order of these 
     vec3 bitangent = cross(normal, tangent);
     return mat3(tangent, bitangent, normal);
+}
+
+// Creates a TBN matrix from a normal and a tangent
+mat3 tbnNormalTangent(vec3 normal, vec4 tangent) {
+    // For DirectX normal mapping you want to switch the order of these 
+    vec3 bitangent = cross(normal, tangent.xyz) * -sign(tangent.w);
+    return mat3(tangent.xyz, bitangent, normal);
 }
 
 // Creates a TBN matrix from just a normal

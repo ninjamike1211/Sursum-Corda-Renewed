@@ -1,0 +1,3 @@
+Exposure:
+    https://bruop.github.io/exposure/
+    https://www.alextardif.com/HistogramLuminance.html

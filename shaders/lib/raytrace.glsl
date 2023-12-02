@@ -1,17 +1,57 @@
-#ifndef RAYTRACE
-#define RAYTRACE
+#include "/lib/functions.glsl"
+#include "/lib/spaceConvert.glsl"
 
-// Code by Belmu (https://gist.github.com/BelmuTM/af0fe99ee5aab386b149a53775fe94a3#file-raytracer-glsl)
+void binarySearch(inout vec3 screenPos, vec3 rayStep, sampler2D depthtex, int stepCount) {
+    for(int i = 0; i < stepCount; i++) {
+        float depthDiff = texture(depthtex, screenPos.xy).r - screenPos.z;
+        screenPos += sign(depthDiff) * rayStep;
+        rayStep *= 0.5;
+    }
+}
 
-// #include "/defines.glsl"
-// #include "/spaceConvert.glsl"
+bool screenspaceRaymarch(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binStepCount, float jitter, out vec3 hitPos, int frameCounter, vec2 screenSize, float near, float far, sampler2D depthtex, mat4 projectionMatrix) {
+    
+    // Exit if SSR has no chance of hitting
+    if (viewRayDir.z > 0.0 && viewRayDir.z >= -viewPos.z)
+        return false;
 
-/* Dependencies:
-uniform sampler2D depthtex1;
-*/
+    // Calculate screen space ray direction
+    vec3 screenRayDir = viewToScreen(viewPos + viewRayDir, frameCounter, screenSize, projectionMatrix) - screenPos;
+
+    // Scale the ray to reach the edge of the screen, and scale by the step count
+    // Pre-scales the ray to reach from the current position to the nearest screen edge
+    vec3 screenDelta = screenRayDir * min3((sign(screenRayDir) - screenPos) / screenRayDir) * 0.9999 / (stepCount+jitter);
+    // vec3 screenDelta = screenRayDir * 0.9999 / (stepCount+jitter);
+
+    screenPos += screenDelta * jitter;
+
+    // Iterate over the ray in equal lengthed increments
+    for(int i = 0; i < stepCount; i++, screenPos += screenDelta) {
+
+        // if(i < 10)
+        //     continue;
+
+        // Check that we haven't exited the sceenspace bounds
+        if(clamp(screenPos.xyz, 0.0, 1.0) != screenPos.xyz) return false;
+
+        // Sample the depth map at the current position
+        float depth = texture(depthtex, screenPos.xy).r;
+
+        // DrDesten's depth lenience factor, it's used as a "threshold" for our intersection's depth
+        float depthLenience = max(abs(screenDelta.z) * 3.0, 0.02 / pow(viewPos.z, 2.0));
+
+        if(abs(depthLenience - (screenPos.z - depth)) < depthLenience && depth >= 0.56) {
+            binarySearch(screenPos, screenDelta, depthtex, binStepCount);
+            hitPos = screenPos;
+            return true;
+        }
+    }
+
+    return false;
+}
 
 
-#define SSR_THICKNESS 10.0
+#define SSR_BinarySteps 16
 
 vec3 diag3(mat4 mat) { return vec3(mat[0].x, mat[1].y, mat[2].z);      }
 vec3 projMAD3(mat4 mat, vec3 v) { return diag3(mat) * v + mat[3].xyz;  }
@@ -84,58 +124,3 @@ bool raytrace(vec3 viewPos, vec3 viewRayDir, int stepCount, float jitter, int fr
     return intersect;
     // Outputting the boolean
 }
-
-
-
-// Modified version of raytrace for screen space shadows (contact shadows)
-bool shadowRaytrace(vec3 viewPos, vec3 rayDir, int stepCount, float jitter, int frameCounter, vec2 screenSize, sampler2D depthtex, mat4 projectionMatrix) {
-
-    vec3 rayPos  = viewToScreen(viewPos, frameCounter, screenSize, projectionMatrix);
-    // Starting position in screen space, it's better to perform space conversions OUTSIDE of the loop to increase performance
-    rayDir  = viewToScreen(viewPos + rayDir, frameCounter, screenSize, projectionMatrix) - rayPos;
-    rayDir *= minOf3((sign(rayDir) - rayPos) / rayDir) * (0.1 / (stepCount+jitter));
-    // Calculating the ray's direction in screen space, we multiply it by a "step size" that depends on a few factors from the DDA algorithm
-
-    bool intersect = false;
-    // Our intersection isn't found by default
-
-    rayPos += rayDir * jitter;
-    // We settle the ray's starting point and jitter it
-    // Jittering reduces the banding caused by a low amount of steps, it's basically multiplying the direction by a random value (like noise)
-    for(int i = 0; i <= stepCount && !intersect; i++, rayPos += rayDir) {
-        // Loop until we reach the max amount of steps OR if an intersection is found, add 1 at each iteration AND march the ray (position += direction)
-
-        if(clamp(rayPos.xy, 0.0, 1.0) != rayPos.xy) return false;
-        // Checking if the ray goes outside of the screen (if clamping the coordinates to [0;1] returns a different value, then we're outside)
-        // There's no need to continue ray marching if the ray goes outside of the screen
-
-        float depth         = (texture(depthtex, rayPos.xy).r);
-        // Sampling the depth at the ray's position
-        // We use depthtex to get the depth of all blocks EXCEPT translucents, it's useful for refractions
-        float depthLenience = max(abs(rayDir.z) * 3.0, 0.02 / pow(viewPos.z, 2.0));
-
-        intersect = abs(depthLenience - (rayPos.z - depth)) < depthLenience && depth >= 0.56;
-        // Comparing depths to see if we hit something AND checking if the depth is above 0.56 (= if we didn't intersect the player's hand)
-
-        if(intersect) {
-            binarySearch(rayPos, rayDir, depthtex);
-
-            float depth         = (texture(depthtex, rayPos.xy).r);
-            // Sampling the depth at the ray's position
-            // We use depthtex to get the depth of all blocks EXCEPT translucents, it's useful for refractions
-            // float depthLenience = max(abs(rayDir.z) * 3.0, 0.02 / pow(viewPos.z, 2.0));
-
-            // intersect = abs(depthLenience - (rayPos.z - depth)) < depthLenience && depth >= 0.56;
-            // Comparing depths to see if we hit something AND checking if the depth is above 0.56 (= if we didn't intersect the player's hand)
-
-            intersect = abs((rayPos.z - depth)) < 0.001;
-        }
-
-
-    }
-
-    return intersect;
-    // Outputting the boolean
-}
-
-#endif

@@ -1,3 +1,3 @@
 #version 430 compatibility
 
-#include "/lib/final.glsl"
+#include "/program/final.glsl"

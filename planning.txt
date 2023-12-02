@@ -1,49 +1,16 @@
-RGBA16F     colortex0:  rgba: main hdr color
-RGB8        colortex1:  rgb: albedo
-RGB32UI     colortex2:  r: texture normals, g: geometry normals, b: specular map
-RGB10_A2    colortex3:  rg: lmcoord, b: 1=hand
-RGBA8       colortex4:  
-R32F        colortex5:  r: water depth
-RG16_SNORM  colortex6:  rg: velocity
-RGB16F      colortex7:  rgb: deferred output
-RGB8        colortex8:  r: pom shadow direction offset, g: pom shadow (if self shadowing), b: pom offset into block
-R8          colortex9:  r: SSAO, DOF CoC
+RGB16F      colortex0:  rgb: main hdr color
+RGBA16F     colortex1:  rgba: forward transparent hdr color
+RGBA8       colortex2:  rgba: albedo
+RGBA16      colortex3:  rg: texture normals, ba: geometry normals
+RGBA8       colortex4:  rgba: specular map
+RG8         colortex5:  rg: lightmap
+R8UI        colortex6:  mask: WHxxxxxx: W = water, H = hand
+RG16_SNORM  colortex7:  rg: velocity
+RGB8        colortex8:  r: pom shadow (if self shadowing), g: pom shadow direction offset, b: pom offset into block
+RGBA8       colortex9:
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
-RGBA8       colortex12: rgba: temporal variables (see below)
-RGBA8       colortex13: rgba: lens flare texture
-R16F        colortex14: r: auto exposure
+RGBA8       colortex12:
+RGBA8       colortex13:
+RGBA8       colortex14:
 RGBA16F     colortex15: rgba: history buffer
-
-Temporal Variables (colortex12)
-    (0,0): r: previous mood, g: velocity, b: accumulator, a: smoothed shadow multiplier from mood
-    (0,1): r: wind amplitude, g: wind angle, b: wind phase
-    (1,0): rg: smooth center depth depthtex0, ba: smooth center depth depthtex2 (without hand)
-
-To do list:
-    Fix major performance problems
-    Fix/tweak volumetric fog (espeically rain and rain to clear transition)
-    Fix water volumetric fog (especially in caves)
-    Add support for darkness/blindness/nausia effects
-    Either find credits for atmosphere or recreate
-    Improve TAA (possibly with depth/normal accumulation)
-    Fix Nether lighting/specular breaking under entities that are lit by blocklight
-    Fix/change flowing water
-    Improve bloom handling
-    Fix some line weirdness, especially with depth writing
-
-New Ideas / Future Features:
-    Add support for varialbe pre-frame sample count for rough reflections
-    use temporal variables to create a more complex weather system
-        Possibly also based on world time / world day
-
-Voxelization ideas:
-    Proper POM edge handling (discard on edge, transition between POM of different blocks)
-    Proper POM texture size handling
-    Smarter waving objects:
-        vines that wave based on if they're floating or attached to a wall
-        waving nether vines (top vine block doesn't wave)
-
-
-Things to look into:
-    2D with analytical height falloff for volumetric fog noise effect

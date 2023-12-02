@@ -1,22 +1,17 @@
-#version 430 compatibility
+#version 120
 
-uniform sampler2D tex;
+#include "/lib/functions.glsl"
 
-#include "/lib/defines.glsl"
-#include "/lib/material.glsl"
+uniform sampler2D texture;
 
-in vec2 texcoord;
-in vec4 glcolor;
-
-/* RENDERTARGETS: 1,2 */
-layout(location = 0) out vec4  albedo;
-layout(location = 1) out uvec3 specMapOut;
+varying vec2 texcoord;
+varying vec4 glcolor;
 
 void main() {
+	vec4 color = texture2D(texture, texcoord) * glcolor;
 
-	albedo = texture(tex, texcoord) * glcolor;
+	// color.rgb = sRGBToLinear3(color.rgb);
 
-	albedo.rgb = vec3(albedo.r);
-
-	specMapOut = uvec3(0, 0, SpecularEncode(vec4(0.0, 0.0, 0.0, 0.5)));
+/* DRAWBUFFERS:2 */
+	gl_FragData[0] = color; //gcolor
 }
