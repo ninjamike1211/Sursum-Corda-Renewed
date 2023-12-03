@@ -126,14 +126,13 @@ float computeBias(vec3 pos) {
         return shadowVal / samples;
     }
 
-    // Calculates the PCSS penumbra size given shadow pos in clip space, and a dither value
-    float PCSSPenumbraSize(vec3 shadowClipPos, float ditherAngle) {
+    float PCSSBlockerDist(vec3 shadowClipPos, float NdotL, float ditherAngle) {
         float avgBlockerDepth = 0.0;
         float blockerCount = 0.0;
         for(int i = 0; i < Shadow_PCSS_BlockSamples; i++) {
             vec3 shadowPosBlocker = shadowClipPos;
             shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * 0.2 * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
-            distortShadowPos(shadowPosBlocker);
+            distortShadowPosBias(shadowPosBlocker, NdotL);
 
             float blockerDepth = texture(shadowtex0, shadowPosBlocker.xy).r;
             if(blockerDepth < shadowPosBlocker.z) {
@@ -147,13 +146,42 @@ float computeBias(vec3 pos) {
         else
             avgBlockerDepth = 0.0;
         
+        return avgBlockerDepth;
+    }
+
+    float PCSSBlockerDistNormalBias(vec3 shadowClipPos, vec3 worldNormal, float ditherAngle) {
+        float avgBlockerDepth = 0.0;
+        float blockerCount = 0.0;
+        for(int i = 0; i < Shadow_PCSS_BlockSamples; i++) {
+            vec3 shadowPosBlocker = shadowClipPos;
+            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * 0.2 * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
+            distortShadowPosNormalBias(shadowPosBlocker, worldNormal);
+
+            float blockerDepth = texture(shadowtex0, shadowPosBlocker.xy).r;
+            if(blockerDepth < shadowPosBlocker.z) {
+                avgBlockerDepth += blockerDepth;
+                blockerCount++;
+            }
+        }
+
+        if(blockerCount > 0.0)
+            avgBlockerDepth /= blockerCount;
+        else
+            avgBlockerDepth = 0.0;
+        
+        return avgBlockerDepth;
+    }
+
+    // Calculates the PCSS penumbra size given shadow pos in clip space, and a dither value
+    float PCSSPenumbraSize(vec3 shadowClipPos, float avgBlockerDepth) {
         return clamp(Shadow_PCSS_BlurScale * ((shadowClipPos.z * 0.25 + 0.5) - avgBlockerDepth) / avgBlockerDepth, Shadow_PCSS_MinBlur, Shadow_PCSS_MaxBlur);
     }
 
     // Samples the shadow map using PCSS filtering, applying distortion and bias
     vec3 sampleShadowPCSS(vec3 shadowClipPos, float NdotL, float ditherAngle) {
 
-        float penumbra = PCSSPenumbraSize(shadowClipPos, ditherAngle);
+        float avgBlockerDepth = PCSSBlockerDist(shadowClipPos, NdotL, ditherAngle);
+        float penumbra = PCSSPenumbraSize(shadowClipPos, avgBlockerDepth);
 
         return sampleShadowPCF(shadowClipPos, NdotL, penumbra, Shadow_PCF_Samples, ditherAngle);
     }
@@ -161,7 +189,8 @@ float computeBias(vec3 pos) {
     // Samples the shadow map using PCSS filtering, applying distortion and normal offset bias
     vec3 sampleShadowPCSSNormalBias(vec3 shadowClipPos, vec3 worldNormal, float ditherAngle) {
 
-        float penumbra = PCSSPenumbraSize(shadowClipPos, ditherAngle);
+        float avgBlockerDepth = PCSSBlockerDistNormalBias(shadowClipPos, worldNormal, ditherAngle);
+        float penumbra = PCSSPenumbraSize(shadowClipPos, avgBlockerDepth);
 
         return sampleShadowPCFNormalBias(shadowClipPos, worldNormal, penumbra, Shadow_PCF_Samples, ditherAngle);
     }

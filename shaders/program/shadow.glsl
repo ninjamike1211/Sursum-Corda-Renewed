@@ -19,8 +19,8 @@
 
     out vec2 texcoord;
     out vec4 glColor;
-    out vec3 worldPosVertex;
-    out vec3 glNormal;
+    // out vec3 worldPosVertex;
+    // out vec3 glNormal;
     flat out int entity;
 
     #define shadowGbuffer
@@ -35,15 +35,15 @@
 
         glColor = gl_Color;
         entity = int(mc_Entity.x);
-        glNormal = normalize(gl_NormalMatrix * gl_Normal);
+        // glNormal = normalize(gl_NormalMatrix * gl_Normal);
 
         // float NdotL = dot(glNormal, vec3(0.0, 0.0, 1.0));
 
 
     // -------------------- Position Calculations -------------------
-        vec4 modelPos = gl_Vertex;
+        // vec4 modelPos = gl_Vertex;
 
-        // Fix for water inside cauldron incorrectly self-shadowing
+        // // Fix for water inside cauldron incorrectly self-shadowing
         // if(entity == 10030 && glColor.r < 0.5) {
         //     modelPos.y -= 0.2;
         // }
@@ -57,19 +57,16 @@
         // }
         // #endif
 
-        // Calculate world positions
-        vec3 shadowViewPos = (gl_ModelViewMatrix * modelPos).xyz;
-        vec3 scenePos = (shadowModelViewInverse * vec4(shadowViewPos, 1.0)).xyz;
-        worldPosVertex = scenePos + cameraPosition;
+        // // Calculate world positions
+        // vec3 shadowViewPos = (gl_ModelViewMatrix * modelPos).xyz;
+        // vec3 scenePos = (shadowModelViewInverse * vec4(shadowViewPos, 1.0)).xyz;
+        // worldPosVertex = scenePos + cameraPosition;
 
-        // Calculate clip position and shadow distortion
-        gl_Position = gl_ProjectionMatrix * vec4(shadowViewPos, 1.0);
+        // // Calculate clip position and shadow distortion
+        // gl_Position = gl_ProjectionMatrix * vec4(shadowViewPos, 1.0);
 
+        gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
         gl_Position.xyz = distort(gl_Position.xyz);
-        // gl_Position.xyz = shadowDistortion(gl_Position.xyz);
-
-        // float bias = getShadowBias(glNormal.z, clipLen);
-        // gl_Position.z += bias;
 
         #ifdef UseVoxelization
             bool isBlock = renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
