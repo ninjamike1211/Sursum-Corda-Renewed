@@ -42,7 +42,7 @@ float horizonFadeFactor(vec3 sceneDir) {
 }
 
 void applySunDisk(inout vec3 sceneColor, vec3 sceneDir, vec3 sunDir) {
-    float mixFactor = smoothstep(0.9997, 0.9998, dot(sceneDir, sunDir)) * horizonFadeFactor(sceneDir);
+    float mixFactor = smoothstep(0.9997, 0.9999, dot(sceneDir, sunDir)) * horizonFadeFactor(sceneDir);
     sceneColor *= mix(1.0, 100.0, mixFactor);
 }
 
@@ -52,8 +52,6 @@ void applySunDisk(inout vec3 sceneColor, vec3 sceneDir, vec3 sunDir) {
 struct sky_data {
     float planetRadius;
     float atmosphereRadius;
-
-    float sunStrength;
 
     float gMie;
     float aMie;
@@ -109,10 +107,10 @@ float getMieDensity(float height, sky_data skyData) {
     return exp(-height / skyData.scaleHeightM);
 }
 
-vec3 lightTransmittance(vec3 rayPos, vec3 sunDir, sky_data skyData) {
-    float dist = ray_sphere_intersection(rayPos, sunDir, skyData.atmosphereRadius).y;
+vec3 lightTransmittance(vec3 rayPos, vec3 lightDir, sky_data skyData) {
+    float dist = ray_sphere_intersection(rayPos, lightDir, skyData.atmosphereRadius).y;
     float stepSize = dist / Atmospheric_LightSamples;
-    vec3 rayIncrement = stepSize * sunDir;
+    vec3 rayIncrement = stepSize * lightDir;
     rayPos += 0.5 * rayIncrement;
 
     vec3 transmittance = vec3(1.0);
@@ -137,9 +135,8 @@ vec3 lightTransmittance(vec3 rayPos, vec3 sunDir, sky_data skyData) {
     return transmittance;
 }
 
-vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 sunDir, sky_data skyData) {
+vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 lightDir, sky_data skyData) {
 
-    // float dist = skyData.atmosphereRadius - skyData.planetRadius;
     float atmosphereDist = ray_sphere_intersection(origin, viewDir, skyData.atmosphereRadius).y;
     float planetDist = ray_sphere_intersection(origin, viewDir, skyData.planetRadius).x;
     float dist = (planetDist < 0.0) ? atmosphereDist : planetDist;
@@ -148,7 +145,7 @@ vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 sunDir, sky_data skyD
     vec3 rayIncrement = stepSize * viewDir;
     vec3 rayPos = origin + 0.5 * rayIncrement;
 
-    float lightAngle = dot(viewDir, sunDir);
+    float lightAngle = dot(viewDir, lightDir);
     float phaseR = phaseRayleight(lightAngle);
     float phaseM = phaseMie(lightAngle, skyData.gMie);
 
@@ -168,7 +165,7 @@ vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 sunDir, sky_data skyD
         vec3 opticalDepth = (skyData.kRayleight * massR) + (skyData.kMie / skyData.aMie * massM);
         vec3 stepTransmittance = exp(-opticalDepth);
 
-        vec3 lightTransmittance = lightTransmittance(rayPos, sunDir, skyData);
+        vec3 lightTransmittance = lightTransmittance(rayPos, lightDir, skyData);
 
         vec3 scatteringR = skyData.kRayleight * phaseR * massR * lightTransmittance;
         vec3 scatteringM = skyData.kMie       * phaseM * massM * lightTransmittance;
@@ -180,15 +177,14 @@ vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 sunDir, sky_data skyD
         rayPos += rayIncrement;
     }
 
-    return vec3(skyData.sunStrength * inScattering);
+    return inScattering;
 }
 
-vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir) {
+vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir) {
     sky_data skyData;
 
     skyData.planetRadius = 6370e3;
     skyData.atmosphereRadius = 6471e3;
-    skyData.sunStrength = 10.5;
     
     skyData.gMie = 0.8;
     skyData.aMie = 0.9;
@@ -199,5 +195,8 @@ vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir) {
     skyData.scaleHeightR = 8e3;
     skyData.scaleHeightM = 1.9e3;
 
-    return atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
+    vec3 sunScattering = 10.5 * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
+    vec3 moonScattering = 0.25 * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, moonDir, skyData);
+
+    return sunScattering + moonScattering;
 }
