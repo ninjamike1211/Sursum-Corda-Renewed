@@ -131,11 +131,11 @@ void main() {
     }
     #endif
 
-    ivec2 samplePos = ivec2(gl_FragCoord.xy / 16.0);
-    if(clamp(samplePos, 0, 15) == samplePos) {
-        // gl_FragData[0] = vec4(HistogramGlobal[samplePos.x % 16, samplePos.y / 16] / (2.0 * viewWidth * viewHeight));
-        gl_FragData[0] = vec4(averageLum);
-    }
+    // ivec2 samplePos = ivec2(gl_FragCoord.xy / 16.0);
+    // if(clamp(samplePos, 0, 15) == samplePos) {
+    //     // gl_FragData[0] = vec4(HistogramGlobal[samplePos.x % 16, samplePos.y / 16] / (2.0 * viewWidth * viewHeight));
+    //     gl_FragData[0] = vec4(averageLum);
+    // }
 
     // if(texcoord.x > 0.8)
     //     gl_FragData[0] = vec4(screenToViewHand(texcoord, texture(depthtex0, texcoord).r, gbufferProjectionInverse), 1.0);

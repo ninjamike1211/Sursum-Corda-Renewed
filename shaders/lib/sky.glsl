@@ -37,6 +37,15 @@ vec3 getSkyColor(vec3 sceneDir, vec3 sunPosition, float sunAngle, mat4 modelView
     return color;
 }
 
+float horizonFadeFactor(vec3 sceneDir) {
+    return smoothstep(-0.034, 0.05, sceneDir.y);
+}
+
+void applySunDisk(inout vec3 sceneColor, vec3 sceneDir, vec3 sunDir) {
+    float mixFactor = smoothstep(0.9997, 0.9998, dot(sceneDir, sunDir)) * horizonFadeFactor(sceneDir);
+    sceneColor *= mix(1.0, 100.0, mixFactor);
+}
+
 #define Atmospheric_Samples 16
 #define Atmospheric_LightSamples 8
 
@@ -130,7 +139,11 @@ vec3 lightTransmittance(vec3 rayPos, vec3 sunDir, sky_data skyData) {
 
 vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 sunDir, sky_data skyData) {
 
-    float dist = skyData.atmosphereRadius - skyData.planetRadius;
+    // float dist = skyData.atmosphereRadius - skyData.planetRadius;
+    float atmosphereDist = ray_sphere_intersection(origin, viewDir, skyData.atmosphereRadius).y;
+    float planetDist = ray_sphere_intersection(origin, viewDir, skyData.planetRadius).x;
+    float dist = (planetDist < 0.0) ? atmosphereDist : planetDist;
+
     float stepSize = dist / Atmospheric_Samples;
     vec3 rayIncrement = stepSize * viewDir;
     vec3 rayPos = origin + 0.5 * rayIncrement;
@@ -186,5 +199,5 @@ vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir) {
     skyData.scaleHeightR = 8e3;
     skyData.scaleHeightM = 1.9e3;
 
-    return atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 5000, 0.0), sceneDir, sunDir, skyData);
+    return atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
 }

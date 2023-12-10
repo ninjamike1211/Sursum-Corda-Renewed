@@ -25,6 +25,7 @@ uniform sampler2D  colortex10;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
+uniform vec3 sunPosition;
 uniform vec3 shadowLightPosition;
 uniform float viewWidth;
 uniform float viewHeight;
@@ -116,8 +117,13 @@ void main() {
 		gl_FragData[0] = vec4(color, 1.0);
 	}
 	else {
-		vec2 skySamplePos = projectSphere(normalize(scenePos));
-		albedo.rgb += texture(colortex10, skySamplePos).rgb;
+		vec3 sceneDir = normalize(scenePos);
+		vec3 sunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+		vec2 skySamplePos = projectSphere(sceneDir);
+		vec3 skyColor = texture(colortex10, skySamplePos).rgb;
+		applySunDisk(skyColor, sceneDir, sunDir);
+		albedo.rgb *= horizonFadeFactor(sceneDir);
+		albedo.rgb += skyColor;
 		gl_FragData[0] = vec4(albedo, 1.0);
 	}
 }
