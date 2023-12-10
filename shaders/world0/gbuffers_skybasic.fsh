@@ -14,6 +14,7 @@ uniform vec3 fogColor;
 uniform vec3 skyColor;
 uniform vec3 sunPosition;
 uniform float sunAngle;
+uniform float eyeAltitude;
 
 varying vec4 starData; //rgb = star color, a = flag for weather or not this pixel is a star.
 
@@ -43,7 +44,10 @@ void main() {
 	vec3 viewPos = projectAndDivide(gbufferProjectionInverse, ndcPos);
 	vec3 scenePos = mat3(gbufferModelViewInverse) * viewPos;
 
-	color.rgb += getSkyColor(normalize(scenePos), sunPosition, sunAngle, gbufferModelViewInverse);
+	// color.rgb += getSkyColor(normalize(scenePos), sunPosition, sunAngle, gbufferModelViewInverse);
+
+	vec3 sunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+	// color.rgb += getSkyColor(eyeAltitude, normalize(scenePos), sunDir);
 
 /* DRAWBUFFERS:2 */
 	gl_FragData[0] = vec4(color, 1.0); //gcolor

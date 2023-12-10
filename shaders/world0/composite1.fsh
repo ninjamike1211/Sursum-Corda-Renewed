@@ -11,6 +11,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
@@ -61,7 +62,9 @@ void main() {
 		}
 		else {
 			vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
-			reflectColor = /* fresnel * specular.r *  */getSkyColor(sceneReflectDir, sunPosition, sunAngle, gbufferModelViewInverse);
+			// reflectColor = /* fresnel * specular.r *  */getSkyColor(sceneReflectDir, sunPosition, sunAngle, gbufferModelViewInverse);
+			vec2 skySamplePos = projectSphere(sceneReflectDir);
+			reflectColor = texture(colortex10, skySamplePos).rgb;
 		}
 
 		linearColor.rgb += fresnel * specular.r * reflectColor;
