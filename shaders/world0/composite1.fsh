@@ -11,6 +11,7 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
+uniform sampler2D colortex5;
 uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
 uniform mat4 gbufferModelView;
@@ -33,7 +34,7 @@ layout(std430, binding = 0) buffer Histogram {
 };
 
 
-/* DRAWBUFFERS:09 */
+/* DRAWBUFFERS:0 */
 
 void main() {
 
@@ -58,29 +59,26 @@ void main() {
 		vec3 reflectColor = vec3(0.0);
 
 		if(hit) {
-			reflectColor = /* fresnel * specular.r *  */texture(colortex0, hitPos.xy).rgb;
+			reflectColor = texture(colortex0, hitPos.xy).rgb;
 		}
 		else {
+			float skyLightmap = texture(colortex5, texcoord).g;
 			vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
-			// reflectColor = /* fresnel * specular.r *  */getSkyColor(sceneReflectDir, sunPosition, sunAngle, gbufferModelViewInverse);
 			vec2 skySamplePos = projectSphere(sceneReflectDir);
 			reflectColor = texture(colortex10, skySamplePos).rgb;
+			reflectColor *= linstep(0.0, 0.5, skyLightmap);
 		}
 
 		linearColor.rgb += fresnel * specular.r * reflectColor;
 		// linearColor.rgb += cookTorrancePBRReflection(albedo, -viewDir, normal, specular, reflectColor, reflectDir);
 		// linearColor.rgb = cookTorrancePBRLighting(vec3(0.0), -viewDir, normal, specular, reflectColor, reflectDir);
-
-		gl_FragData[1] = vec4(fresnel, 1.0);
-
-		// gl_FragData[1] = vec4(reflectDir, 1.0);
 	}
 
-	linearColor /= 9.6 * averageLum;
+	linearColor /= 9.6 * averageLum * 0.5;
 
 
 	// linearColor = ACESFilm(linearColor);
-	vec3 sRGB = ACESFitted(linearToSRGB3(linearColor) * 2.0);
+	vec3 sRGB = ACESFitted(linearToSRGB3(linearColor));
 
-	gl_FragData[0] = vec4(sRGB, 1.0); //gcolor
+	gl_FragData[0] = vec4(sRGB, 1.0);
 }

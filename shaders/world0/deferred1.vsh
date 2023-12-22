@@ -1,5 +1,6 @@
-#version 400 compatibility
+#version 430 compatibility
 
+#include "/lib/functions.glsl"
 #include "/lib/spaceConvert.glsl"
 
 uniform int frameCounter;
@@ -13,6 +14,5 @@ out vec3 viewVector;
 void main() {
 	gl_Position = ftransform();
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-
 	viewVector = calcViewVector(texcoord, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
 }

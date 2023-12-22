@@ -2,8 +2,8 @@
 #define Local_Size_X 16
 #define Local_Size_Y 16
 
-#define Min_Log_Lum (-2.0)
-#define Max_Log_Lum 20.0
+#define Min_Log_Lum (-9.9)
+#define Max_Log_Lum 10.0
 
 #define Exposure_Scale 1.0
 

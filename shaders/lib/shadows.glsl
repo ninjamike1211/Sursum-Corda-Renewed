@@ -1,6 +1,10 @@
 
 #include "/lib/sample.glsl"
 
+#ifdef Shadow_HardwareSampler
+    uniform sampler2DShadow shadowtex0HW;
+    uniform sampler2DShadow shadowtex1HW;
+#endif
 
 // Shadow Distortion taken from Shadow Tutorial pack by builderb0y
 
@@ -71,18 +75,34 @@ float computeBias(vec3 pos) {
 
     // Calculates the unfiltered colored shadow value from a given shadowScreenPos
     vec3 shadowVisibility(vec3 shadowScreenPos) {
-        #if Shadow_Transparent == 0
-            return vec3(step(shadowScreenPos.z, texture(shadowtex0, shadowScreenPos.xy)));
-        #elif Shadow_Transparent == 1
-            return vec3(step(shadowScreenPos.z, texture(shadowtex0, shadowScreenPos.xy)));
+        #ifdef Shadow_HardwareSampler
+            #if Shadow_Transparent == 0
+                return vec3(texture(shadowtex0HW, shadowScreenPos));
+            #elif Shadow_Transparent == 1
+                return vec3(texture(shadowtex0HW, shadowScreenPos));
+            #else
+                vec4 shadowColor = texture2D(shadowcolor0, shadowScreenPos.xy);
+                shadowColor.rgb = shadowColor.rgb * (1.0 - shadowColor.a);
+
+                float visibility0 = texture(shadowtex0HW, shadowScreenPos);
+                float visibility1 = texture(shadowtex1HW, shadowScreenPos);
+
+                return mix(shadowColor.rgb * visibility1, vec3(1.0), visibility0);
+            #endif
         #else
-            vec4 shadowColor = texture2D(shadowcolor0, shadowScreenPos.xy);
-            shadowColor.rgb = shadowColor.rgb * (1.0 - shadowColor.a);
+            #if Shadow_Transparent == 0
+                return vec3(step(shadowScreenPos.z, texture(shadowtex0, shadowScreenPos.xy)));
+            #elif Shadow_Transparent == 1
+                return vec3(step(shadowScreenPos.z, texture(shadowtex0, shadowScreenPos.xy)));
+            #else
+                vec4 shadowColor = texture2D(shadowcolor0, shadowScreenPos.xy);
+                shadowColor.rgb = shadowColor.rgb * (1.0 - shadowColor.a);
 
-            float visibility0 = step(shadowScreenPos.z, texture2D(shadowtex0, shadowScreenPos.xy).r);
-            float visibility1 = step(shadowScreenPos.z, texture2D(shadowtex1, shadowScreenPos.xy).r);
+                float visibility0 = step(shadowScreenPos.z, texture2D(shadowtex0, shadowScreenPos.xy).r);
+                float visibility1 = step(shadowScreenPos.z, texture2D(shadowtex1, shadowScreenPos.xy).r);
 
-            return mix(shadowColor.rgb * visibility1, vec3(1.0), visibility0);
+                return mix(shadowColor.rgb * visibility1, vec3(1.0), visibility0);
+            #endif
         #endif
     }
 
@@ -131,7 +151,7 @@ float computeBias(vec3 pos) {
         float blockerCount = 0.0;
         for(int i = 0; i < Shadow_PCSS_BlockSamples; i++) {
             vec3 shadowPosBlocker = shadowClipPos;
-            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * 0.2 * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
+            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
             distortShadowPosBias(shadowPosBlocker, NdotL);
 
             float blockerDepth = texture(shadowtex0, shadowPosBlocker.xy).r;
@@ -154,7 +174,7 @@ float computeBias(vec3 pos) {
         float blockerCount = 0.0;
         for(int i = 0; i < Shadow_PCSS_BlockSamples; i++) {
             vec3 shadowPosBlocker = shadowClipPos;
-            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * 0.2 * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
+            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
             distortShadowPosNormalBias(shadowPosBlocker, worldNormal);
 
             float blockerDepth = texture(shadowtex0, shadowPosBlocker.xy).r;

@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 430 compatibility
 
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
@@ -67,7 +67,7 @@ void main() {
 		vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
 		vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 		float NGdotL = dot(normalGeom, lightDir);
-		vec3 directLight = vec3(4.0) * pomShadow.r;
+		vec3 directLight = skyLight.skyDirect * pomShadow.r;
 
         #ifdef Shadow_NoiseAnimated
             float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
@@ -94,9 +94,9 @@ void main() {
 			vec3 shadowPos = calcShadowPosScene(scenePos);
 
 			#ifdef Shadow_NormalBias
-				directLight *= sampleShadowPCFNormalBias(shadowPos, normalGeom, Shadow_PCF_BlurRadius, 32, randomAngle);
+				directLight *= sampleShadowPCFNormalBias(shadowPos, normalGeom, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 			#else
-				directLight *= sampleShadowPCF(shadowPos, NGdotL, Shadow_PCF_BlurRadius, 32, randomAngle);
+				directLight *= sampleShadowPCF(shadowPos, NGdotL, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 			#endif
 
 		// PCSS shadows
@@ -112,7 +112,7 @@ void main() {
 
 		vec3 color = cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specular, directLight, lightDir);
 
-		color += albedo * calcLightmap(lmcoord, vec3(0.2));
+		color += albedo * calcLightmap(lmcoord, skyLight.skyAmbient);
 
 		gl_FragData[0] = vec4(color, 1.0);
 	}

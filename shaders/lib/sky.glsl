@@ -1,5 +1,13 @@
 #include "/lib/defines.glsl"
 
+const vec3 sunLightColor = 50.0 * vec3(1.0, 0.85, 0.8);
+const vec3 moonLightColor = vec3(0.1, 0.2, 0.4) * 0.025;
+
+layout(std430, binding = 1) buffer ssbo_sky {
+    vec3 skyDirect;
+    vec3 skyAmbient;
+} skyLight;
+
 /*
     Projection functions
     Thx Belmu/Kneemund
@@ -15,6 +23,58 @@ vec3 unprojectSphere(in vec2 coord) {
     float longitude = coord.x * TAU;
     float latitude  = coord.y * PI;
     return vec3(vec2(sin(longitude), cos(longitude)) * sin(latitude), cos(latitude)).xzy;
+}
+
+const vec3 hemisphereDirs[16] = vec3[](
+   vec3( 0     ,    1.0000,    0),
+   vec3(-0.2606,    0.9355,    0.2387),
+   vec3( 0.0430,    0.8710,   -0.4895),
+   vec3( 0.3598,    0.8065,    0.4693),
+   vec3(-0.6602,    0.7419,   -0.1168),
+   vec3( 0.6207,    0.6774,   -0.3948),
+   vec3(-0.2051,    0.6129,    0.7631),
+   vec3(-0.3854,    0.5484,   -0.7421),
+   vec3( 0.8220,    0.4839,    0.3002),
+   vec3(-0.8391,    0.4194,    0.3464),
+   vec3( 0.3963,    0.3548,   -0.8468),
+   vec3( 0.2864,    0.2903,    0.9131),
+   vec3(-0.8429,    0.2258,   -0.4885),
+   vec3( 0.9639,    0.1613,   -0.2119),
+   vec3(-0.5724,    0.0968,    0.8142),
+   vec3(-0.1284,    0.0323,   -0.9912)
+);
+
+float moonPhaseMultiplier(int moonPhase) {
+    // return cos(0.25 * PI * moonPhase) * 0.25 + 0.75;
+    return smoothstep(0.0, 4.0, abs(moonPhase-4.0)) * 0.5 + 0.5;
+    // return smootherstep(0.0, 4.0, abs(moonPhase-4.0)) * 0.5 + 0.5;
+}
+
+vec3 skyLightSample(sampler2D skySampler) {
+    vec3 skyColor = vec3(0.0);
+
+	for(int i = 0; i < 16; i++) {
+        skyColor += texture(skySampler, projectSphere(hemisphereDirs[i])).rgb;
+    }
+
+    return skyColor / 16.0;
+}
+
+vec3 sunLightSample(float sunAngle, float rainStrength, int moonPhase) {
+
+    vec3 color;
+    float shadowHeight = abs(sin(TAU * sunAngle));
+
+    if(sunAngle < 0.5) {
+        color = mix(sunLightColor * vec3(1.0, 0.45, 0.2), sunLightColor, smoothstep(0.0, 0.4, shadowHeight)) * smoothstep(0.0, 0.1, shadowHeight);
+        color *= mix(1.0, 0.1, rainStrength);
+    }
+    else {
+        color = moonLightColor * moonPhaseMultiplier(moonPhase) * smoothstep(0.0, 0.1, shadowHeight);
+        color *= mix(1.0, 0.3, rainStrength);
+    }
+
+    return color;
 }
 
 vec3 getSkyColor(vec3 sceneDir, vec3 sunPosition, float sunAngle, mat4 modelViewInverseMatrix) {
@@ -180,7 +240,7 @@ vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 lightDir, sky_data sk
     return inScattering;
 }
 
-vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir) {
+vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir, int moonPhase) {
     sky_data skyData;
 
     skyData.planetRadius = 6370e3;
@@ -195,8 +255,8 @@ vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir)
     skyData.scaleHeightR = 8e3;
     skyData.scaleHeightM = 1.9e3;
 
-    vec3 sunScattering = 10.5 * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
-    vec3 moonScattering = 0.25 * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, moonDir, skyData);
+    vec3 sunScattering = 10.0 * sunLightColor * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
+    vec3 moonScattering = 2.0 * moonLightColor * moonPhaseMultiplier(moonPhase) * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, moonDir, skyData);
 
     return sunScattering + moonScattering;
 }

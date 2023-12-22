@@ -3,7 +3,7 @@ RGBA16F     colortex1:  rgba: forward transparent hdr color
 RGBA8       colortex2:  rgba: albedo
 RGBA16      colortex3:  rg: texture normals, ba: geometry normals
 RGBA8       colortex4:  rgba: specular map
-RG8         colortex5:  rg: lightmap
+RG16        colortex5:  rg: lightmap
 R8UI        colortex6:  mask: WHxxxxxx: W = water, H = hand
 RG16_SNORM  colortex7:  rg: velocity
 RGB8        colortex8:  r: pom shadow (if self shadowing), g: pom shadow direction offset, b: pom offset into block
@@ -14,3 +14,6 @@ RGBA8       colortex12:
 RGBA8       colortex13:
 RGBA8       colortex14:
 RGBA16F     colortex15: rgba: history buffer
+
+
+look into Hammon diffuse

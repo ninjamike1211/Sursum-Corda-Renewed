@@ -141,8 +141,8 @@ void hardcodeMetalValue(int index, out vec3 F0, out vec3 F82) {
 }
 
 vec3 calcLightmap(vec2 lmcoord, vec3 skyAmbientLight) {
-    vec3 blockAmbient = mix(vec3(0.0), vec3(0.8, 0.6, 0.2), lmcoord.x);
-    vec3 skyAmbient   = mix(vec3(0.05), skyAmbientLight, lmcoord.y);
+    vec3 blockAmbient = mix(vec3(0.0), vec3(0.8, 0.5, 0.2), lmcoord.x);
+    vec3 skyAmbient   = mix(vec3(0.0005), skyAmbientLight, lmcoord.y);
 
     return blockAmbient + skyAmbient;
 }

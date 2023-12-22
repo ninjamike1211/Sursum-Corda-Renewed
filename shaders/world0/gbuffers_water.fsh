@@ -1,4 +1,4 @@
-#version 400 compatibility
+#version 430 compatibility
 
 uniform sampler2D shadowtex0;
 uniform sampler2D shadowtex1;
@@ -11,6 +11,7 @@ uniform mat4 shadowProjection;
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
+#include "/lib/sky.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -67,7 +68,7 @@ void main() {
 
 	vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 	float NGdotL = dot(glNormal, lightDir);
-	vec3 directLight = vec3(4.0);
+	vec3 directLight = skyLight.skyDirect;
 
 	#ifdef Shadow_NoiseAnimated
 		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
@@ -91,9 +92,9 @@ void main() {
 		vec3 shadowPos = calcShadowPosScene(scenePos);
 
 		#ifdef Shadow_NormalBias
-			directLight *= sampleShadowPCFNormalBias(shadowPos, tbn[2], Shadow_PCF_BlurRadius, 32, randomAngle);
+			directLight *= sampleShadowPCFNormalBias(shadowPos, tbn[2], Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 		#else
-			directLight *= sampleShadowPCF(shadowPos, NGdotL, Shadow_PCF_BlurRadius, 32, randomAngle);
+			directLight *= sampleShadowPCF(shadowPos, NGdotL, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 		#endif
 
 	#elif Shadow_Type == 3
@@ -107,6 +108,6 @@ void main() {
 	#endif
 
 	colorOut.rgb = cookTorrancePBRLighting(albedo.rgb, normalize(-scenePos), texNormal, specularOut, directLight, lightDir);
-	colorOut.rgb += albedo.rgb * calcLightmap(lmcoord, vec3(0.3));
+	colorOut.rgb += albedo.rgb * calcLightmap(lmcoord, skyLight.skyAmbient);
 	colorOut.a = albedo.a;
 }

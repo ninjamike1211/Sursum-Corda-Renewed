@@ -1,12 +1,16 @@
 #version 430 compatibility
 
 layout (r8ui) uniform uimage3D voxelImage;
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
+uniform float frameTimeCounter;
+uniform float rainStrength;
 uniform int renderStage;
 
 #include "/lib/defines.glsl"
 #include "/lib/voxel.glsl"
+#include "/lib/weather.glsl"
 
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -28,8 +32,21 @@ flat out uint mcEntity;
 #endif
 
 void main() {
-	gl_Position = ftransform();
-	scenePos = (mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * gl_Vertex).xyz).xyz;
+	mcEntity = uint(mc_Entity + 0.5);
+
+	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
+	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
+
+	// gl_Position = ftransform();
+	vec4 modelPos = gl_Vertex;
+	scenePos = (mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * modelPos).xyz).xyz;
+
+	#ifdef wavingPlants
+		vec3 worldPos = scenePos + cameraPosition;
+		scenePos += wavingOffset(worldPos, mcEntity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
+	#endif
+
+	gl_Position = gl_ProjectionMatrix * vec4(mat3(gbufferModelView) * scenePos, 1.0);
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = gl_MultiTexCoord1.xy / 240.0;
@@ -37,11 +54,6 @@ void main() {
 
 	vec2 halfSize = abs(texcoord - mc_midTexCoord);
 	textureBounds = vec4(mc_midTexCoord - halfSize, mc_midTexCoord + halfSize);
-
-	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
-	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
-
-	mcEntity = uint(mc_Entity + 0.5);
 
 
 	#if defined UseVoxelization && defined Parallax_DiscardEdge

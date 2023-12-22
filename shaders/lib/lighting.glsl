@@ -1,16 +1,6 @@
 #include "/lib/functions.glsl"
 
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
-}
-
-// Hardcoded metals fresnel function by Jessie#7257
-vec3 Lazanyi2019(float cosTheta, in vec3 f0, in vec3 f82) {
-    vec3 a = 17.6513846 * (f0 - f82) + 8.16666667 * (1.0 - f0);
-    return clamp(f0 + (1.0 - f0) * pow(1.0 - cosTheta, 5.0) - a * cosTheta * pow(1.0 - cosTheta, 6.0), 0.0, 1.0);
-}
-
 float DistributionGGX(vec3 normal, vec3 halfwayDir, float roughness) {
     float a2 = roughness*roughness;
     float NdotH = max(dot(normal, halfwayDir), 0.0);
@@ -36,6 +26,16 @@ float GeometrySmith(vec3 normal, vec3 viewDir, vec3 lightDir, float roughness) {
     float ggx1  = GeometrySchlickGGX(NdotL, roughness);
 	
     return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
+}
+
+// Hardcoded metals fresnel function by Jessie#7257
+vec3 Lazanyi2019(float cosTheta, in vec3 f0, in vec3 f82) {
+    vec3 a = 17.6513846 * (f0 - f82) + 8.16666667 * (1.0 - f0);
+    return clamp(f0 + (1.0 - f0) * pow(1.0 - cosTheta, 5.0) - a * cosTheta * pow(1.0 - cosTheta, 6.0), 0.0, 1.0);
 }
 
 // Hardcoded metal values by Jessie#7257

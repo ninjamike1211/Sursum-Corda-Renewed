@@ -107,15 +107,60 @@ void main() {
 	vec3 texNormal = tbn * extractNormalZ(rawTexNormal.xy * 2.0 - 1.0);
 
 	#if defined Parallax && defined Parallax_EdgeNormals
-		geomNormal = tbn * pomNormal;
+		vec3 pomNormalScene = tbn * pomNormal;
 		if(pomNormal != vec3(0.0, 0.0, 1.0)) {
-			texNormal = geomNormal;
+			texNormal = pomNormalScene;
 		}
 	#endif
 
 	#ifdef Texture_AO
 		lightmapOut *= (rawTexNormal.z * Texture_AO_Strength) + (1.0 - Texture_AO_Strength);
 	#endif
+
+	lightmapOut *= lightmapOut;
+
+	#ifdef DirectionalLightmap
+
+		vec3 dFdSceneposX = dFdx(scenePos);
+		vec3 dFdSceneposY = dFdy(scenePos);
+		
+		vec2 dBlockLight = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
+		vec2 dSkyLight = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
+
+		vec3 blockLightDir = (length(dBlockLight) > 1e-6) ? normalize(dFdSceneposX * dBlockLight.x + dFdSceneposY * dBlockLight.y) : glNormal;
+		vec3 skyLightDir   = (length( dSkyLight ) > 1e-6) ? normalize(dFdSceneposX *  dSkyLight.x  + dFdSceneposY *  dSkyLight.y ) : vec3(0.0, 1.0, 0.0);
+
+		if(length(blockLightDir) > 0.0) {
+			
+			float NdotL  = dot(blockLightDir, texNormal);
+			float NGdotL = dot(blockLightDir, geomNormal);
+			
+			lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
+		}
+		else {
+			float NdotL = 0.9 - dot(geomNormal, texNormal);
+			lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
+		}
+
+
+		if(length(skyLightDir) > 0.0) {
+			
+			float NdotL  = dot(skyLightDir, texNormal);
+			float NGdotL = dot(skyLightDir, geomNormal);
+			
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		}
+		else {
+			float NdotL  = dot(vec3(0.0, 1.0, 0.0), texNormal);
+			float NGdotL = dot(vec3(0.0, 1.0, 0.0), geomNormal);
+			
+			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
+		}
+
+	#endif
+
+	// lightmapOut = clamp(lightmapOut, 0.0, 1.0);
+	// lightmapOut.g = 0.0;
 
 	normalOut.rg = packNormalVec2(texNormal);
 	normalOut.ba = packNormalVec2(geomNormal);
