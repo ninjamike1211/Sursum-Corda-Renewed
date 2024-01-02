@@ -12,6 +12,7 @@ uniform sampler2D colortex2;
 uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
+uniform usampler2D colortex6;
 uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
 uniform mat4 gbufferModelView;
@@ -39,7 +40,13 @@ layout(std430, binding = 0) buffer Histogram {
 void main() {
 
 	float depth = texture(depthtex0, texcoord).r;
+	uint mask = texture(colortex6, texcoord).r;
 	vec3 linearColor = texture(colortex0, texcoord).rgb;
+
+	// Hand depth fix
+	if((mask & Mask_Hand) != 0) {
+		depth = convertHandDepth(depth);
+	}
 
 	if(depth < 1.0) {
 		vec3 albedo = texture(colortex2, texcoord).rgb;

@@ -123,7 +123,6 @@ void main() {
             gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r, near, far)), 1.0);
         #endif
 
-        gl_FragData[0] = vec4(playerBodyVector, 1.0);
     #if viewBuffer != 0
     }
     else {

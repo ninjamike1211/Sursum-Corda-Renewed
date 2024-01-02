@@ -33,37 +33,10 @@ vec3 screenToView(vec2 texcoord, float depth, int frameCounter, vec2 screenSize,
 	return projectAndDivide(inverseProjectionMatrix, ndcPos);
 }
 
-vec3 screenToViewHand(vec2 texcoord, float depth, mat4 inverseProjectionMatrix) {
-	depth *= 1.67;
-
-	vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
-
-	vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-	return homoPos.xyz / homoPos.w;
-
-
-
-	// vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
-
-	// vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-
-	// depth *= 14.9 / homoPos.w;
-	// ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
-
-	// homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-	// return homoPos.xyz / homoPos.w;
-
-
-
-	// vec3 ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
-
-	// vec4 homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-
-	// depth *= 1.67 / (-homoPos.z);
-	// ndcPos = vec3(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0);
-
-	// homoPos = inverseProjectionMatrix * vec4(ndcPos, 1.0);
-	// return homoPos.xyz / homoPos.w;
+float convertHandDepth(float depth) {
+	float ndcDepth = depth * 2.0 - 1.0;
+	ndcDepth /= MC_HAND_DEPTH;
+	return ndcDepth * 0.5 + 0.5;
 }
 
 vec3 viewToScreen(vec3 viewPos, int frameCounter, vec2 screenSize, mat4 projectionMatrix) {

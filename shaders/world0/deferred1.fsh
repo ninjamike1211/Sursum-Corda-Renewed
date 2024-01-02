@@ -38,8 +38,14 @@ in vec3 viewVector;
 
 void main() {
 	float depth = texture(depthtex0, texcoord).r;
+	uint mask = texture(colortex6, texcoord).r;
 	vec3 albedo = texture(colortex2, texcoord).rgb;
 	albedo.rgb = sRGBToLinear3(albedo.rgb);
+
+	// Hand depth fix
+	if((mask & Mask_Hand) != 0) {
+		depth = convertHandDepth(depth);
+	}
 
 	vec3 viewPos = calcViewPos(viewVector, depth, gbufferProjection);
 	vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
@@ -48,20 +54,7 @@ void main() {
 		vec4 rawNormal = texture(colortex3, texcoord);
 		vec4 specular = texture(colortex4, texcoord);
 		vec2 lmcoord = texture(colortex5, texcoord).rg;
-		uint mask = texture(colortex6, texcoord).r;
 		vec2 pomShadow = texture(colortex8, texcoord).rg;
-
-
-		// Hand depth fix, not perfect, doesn't properly account for perspective
-		if((mask & Mask_Hand) != 0) {
-			// depth = texture(depthtex2, texcoord).r;
-			// depth = 0.9;
-			// depth += MC_HAND_DEPTH / depth * 100.0;
-			// viewPos = screenToViewHand(texcoord, depth, gbufferProjectionInverse);
-			
-			// depth *= 1.67;
-			depth *= 0.208 / MC_HAND_DEPTH;
-		}
 
 		vec3 normal = unpackNormalVec2(rawNormal.xy);
 		vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
