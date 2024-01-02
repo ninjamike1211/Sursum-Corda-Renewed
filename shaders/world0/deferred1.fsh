@@ -105,7 +105,7 @@ void main() {
 
 		vec3 color = cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specular, directLight, lightDir);
 
-		color += albedo * calcLightmap(lmcoord, skyLight.skyAmbient);
+		color += albedo * (calcLightmap(lmcoord, skyLight.skyAmbient) + getEmissiveStrength(specular));
 
 		gl_FragData[0] = vec4(color, 1.0);
 	}

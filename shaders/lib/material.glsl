@@ -59,8 +59,8 @@ float getSubsurface(vec4 specMap) {
     return specMap.b > 64.5/255.0 ? (specMap.b - 65.0/255.0) * 255.0/190.0 : 0.0;
 }
 
-float getEmissiveness(vec4 specMap) {
-	return specMap.a > 254.5/255.0 ? 0.0 : specMap.a /* * EmissiveStrength */;
+float getEmissiveStrength(vec4 specMap) {
+	return specMap.a > 254.5/255.0 ? 0.0 : specMap.a * EmissiveStrength;
 }
 
 // Returns whether a material is metallic or not, 0 means non-metallic, 1 means hardcoded metal, 2 means albedo based metal

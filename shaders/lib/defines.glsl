@@ -63,6 +63,9 @@ const bool colortex15Clear = false;
 
 	const float sunPathRotation = -20;
 
+// Lighting
+	#define EmissiveStrength 10.0
+
 // Parallax
 	#define Parallax
 	#define Parallax_Shadows
