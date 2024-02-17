@@ -27,7 +27,7 @@ flat in vec4 tangent;
 flat in vec4 textureBounds;
 flat in uint mcEntity;
 
-/* RENDERTARGETS: 2,3,4,5,6,8 */
+/* RENDERTARGETS: 2,3,4,5,6,7 */
 layout(location = 0) out vec4 albedoOut;
 layout(location = 1) out vec4 normalOut;
 layout(location = 2) out vec4 specularOut;

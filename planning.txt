@@ -5,15 +5,16 @@ RGBA16      colortex3:  rg: texture normals, ba: geometry normals
 RGBA8       colortex4:  rgba: specular map
 RG16        colortex5:  rg: lightmap
 R8UI        colortex6:  mask: WHxxxxxx: W = water, H = hand
-RG16_SNORM  colortex7:  rg: velocity
-RGB8        colortex8:  r: pom shadow (if self shadowing), g: pom shadow direction offset, b: pom offset into block
+RGB8        colortex7:  r: pom shadow (if self shadowing), g: pom shadow direction offset, b: pom offset into block
+RGBA8       colortex8:
 RGBA8       colortex9:
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
-RGBA8       colortex12:
+R8_SNORM    colortex12:
 RGBA8       colortex13:
 RGBA8       colortex14:
 RGBA16F     colortex15: rgba: history buffer
 
 
-look into Hammon diffuse
+look into Hammon or Oren-Nayar diffuse
+look into AGX tonemap

@@ -2,7 +2,7 @@
 #define SPACECONVERT
 
 // #include "/lib/kernels.glsl"
-// #include "/lib/TAA.glsl"
+#include "/lib/TAA.glsl"
 
 
 float linearizeDepthFast(float depth, float near, float far) {

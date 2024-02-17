@@ -6,6 +6,7 @@
 #include "/lib/spaceConvert.glsl"
 #include "/lib/raytrace.glsl"
 #include "/lib/sky.glsl"
+#include "/lib/DOF.glsl"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex2;
@@ -22,6 +23,7 @@ uniform vec3 sunPosition;
 uniform float sunAngle;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float centerDepthSmooth;
 uniform float near;
 uniform float far;
 uniform int frameCounter;
@@ -35,7 +37,9 @@ layout(std430, binding = 0) buffer Histogram {
 };
 
 
-/* DRAWBUFFERS:0 */
+/* RENDERTARGETS: 0,12 */
+layout(location = 0) out vec4 colorOut;
+layout(location = 1) out float cocOut;
 
 void main() {
 
@@ -85,7 +89,12 @@ void main() {
 
 
 	// linearColor = ACESFilm(linearColor);
-	vec3 sRGB = ACESFitted(linearToSRGB3(linearColor));
+	colorOut = vec4(ACESFitted(linearToSRGB3(linearColor)), 1.0);
 
-	gl_FragData[0] = vec4(sRGB, 1.0);
+	#ifdef DOF
+		float depthLinear = linearizeDepthFast(depth, near, far);
+		float centerDepthLinear = linearizeDepthFast(centerDepthSmooth, near, far);
+
+		cocOut = getCoCFromDepth(depthLinear, centerDepthLinear);
+	#endif
 }

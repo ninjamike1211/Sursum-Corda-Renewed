@@ -12,10 +12,10 @@ const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex4Format  = RGBA16;
 const int colortex5Format  = RG16;
 const int colortex6Format  = R8UI;
-const int colortex7Format  = RG16_SNORM;
-const int colortex8Format  = RGB8;
+const int colortex7Format  = RGB8;
 const int colortex10Format = RGB16F;
 const int colortex11Format = RGB16F;
+const int colortex12Format = R8_SNORM;
 const int colortex15Format = RGBA16F;
 const bool colortex15Clear = false;
 */
@@ -62,6 +62,12 @@ const bool colortex15Clear = false;
 	#define Texture_AO_Strength 1.0			// Strength of labPBR texture AO, applies only to ambient lighting [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
 	const float sunPathRotation = -20;
+
+// DOF
+	// #define DOF
+
+// TAA
+	#define TAA
 
 // Lighting
 	#define EmissiveStrength 10.0

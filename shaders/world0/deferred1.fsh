@@ -19,7 +19,7 @@ uniform sampler2D  colortex3;
 uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
 uniform usampler2D colortex6;
-uniform sampler2D  colortex8;
+uniform sampler2D  colortex7;
 uniform sampler2D  colortex10;
 
 uniform mat4 gbufferModelViewInverse;
@@ -35,6 +35,7 @@ in vec2 texcoord;
 in vec3 viewVector;
 
 /* RENDERTARGETS: 0 */
+layout(location = 0) out vec4 colorOut;
 
 void main() {
 	float depth = texture(depthtex0, texcoord).r;
@@ -54,7 +55,7 @@ void main() {
 		vec4 rawNormal = texture(colortex3, texcoord);
 		vec4 specular = texture(colortex4, texcoord);
 		vec2 lmcoord = texture(colortex5, texcoord).rg;
-		vec2 pomShadow = texture(colortex8, texcoord).rg;
+		vec2 pomShadow = texture(colortex7, texcoord).rg;
 
 		vec3 normal = unpackNormalVec2(rawNormal.xy);
 		vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
@@ -107,7 +108,7 @@ void main() {
 
 		color += albedo * (calcLightmap(lmcoord, skyLight.skyAmbient) + getEmissiveStrength(specular));
 
-		gl_FragData[0] = vec4(color, 1.0);
+		colorOut = vec4(color, 1.0);
 	}
 	else {
 		vec3 sceneDir = normalize(scenePos);
@@ -117,6 +118,6 @@ void main() {
 		applySunDisk(skyColor, sceneDir, sunDir);
 		albedo.rgb *= horizonFadeFactor(sceneDir);
 		albedo.rgb += skyColor;
-		gl_FragData[0] = vec4(albedo, 1.0);
+		colorOut= vec4(albedo, 1.0);
 	}
 }

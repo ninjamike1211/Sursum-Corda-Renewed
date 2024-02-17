@@ -28,7 +28,7 @@ flat in uint mcEntity;
 	flat in ivec4 pomDiscardEdges;
 #endif
 
-/* RENDERTARGETS: 2,3,4,5,6,8,9 */
+/* RENDERTARGETS: 2,3,4,5,6,7,9 */
 layout(location = 0) out vec4 albedoOut;
 layout(location = 1) out vec4 normalOut;
 layout(location = 2) out vec4 specularOut;

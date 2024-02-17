@@ -6,11 +6,15 @@ uniform mat4 gbufferModelViewInverse;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
 uniform float rainStrength;
+uniform float viewWidth;
+uniform float viewHeight;
 uniform int renderStage;
+uniform int frameCounter;
 
 #include "/lib/defines.glsl"
 #include "/lib/voxel.glsl"
 #include "/lib/weather.glsl"
+#include "/lib/TAA.glsl"
 
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -47,6 +51,8 @@ void main() {
 	#endif
 
 	gl_Position = gl_ProjectionMatrix * vec4(mat3(gbufferModelView) * scenePos, 1.0);
+
+	gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = gl_MultiTexCoord1.xy / 240.0;
