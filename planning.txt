@@ -10,7 +10,7 @@ RGBA8       colortex8:
 RGBA8       colortex9:
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
-R8_SNORM    colortex12:
+R8_SNORM    colortex12: r: dof coc
 RGBA8       colortex13:
 RGBA8       colortex14:
 RGBA16F     colortex15: rgba: history buffer

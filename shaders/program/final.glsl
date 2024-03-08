@@ -1,6 +1,6 @@
 // #version 430 compatibility
 
-#define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104 105 106]
+#define viewBuffer 0 //[0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 -1 -2 -3 -4 -5 -6 -7 100 101 102 103 104]
 #define viewBufferSweep 0.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 #define lightMeeter
 #define lightMeeter_Width 50.0
@@ -111,15 +111,11 @@ void main() {
             gl_FragData[0] = vec4(unpackNormalVec2(texture(colortex3, texcoord).rg) * 0.5 + 0.5, 1.0);
         #elif viewBuffer == 101
             gl_FragData[0] = vec4(unpackNormalVec2(texture(colortex3, texcoord).ba) * 0.5 + 0.5, 1.0);
-        // #elif viewBuffer == 102
-        //     gl_FragData[0] = SpecularDecode(texture(colortex2, texcoord).b);
-        // #elif viewBuffer == 103
-        //     gl_FragData[0] = vec4(SpecularDecode(texture(colortex2, texcoord).b).a);
-        #elif viewBuffer == 104
+        #elif viewBuffer == 102
             gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex0, texcoord).r, near, far)), 1.0);
-        #elif viewBuffer == 105
+        #elif viewBuffer == 103
             gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex1, texcoord).r, near, far)), 1.0);
-        #elif viewBuffer == 106
+        #elif viewBuffer == 104
             gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r, near, far)), 1.0);
         #endif
 
