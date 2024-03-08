@@ -70,11 +70,31 @@ vec2 taaOffset(int frameCounter, vec2 screenSize) {
         return clipAABB(prevColor, minColor, maxColor);
     }
 
-    void applyTAA(inout vec4 colorOut, out vec4 historyColor, vec2 texcoord, sampler2D colorBuffer, sampler2D historyBuffer) {
+    uniform mat4 gbufferPreviousProjection;
+    uniform mat4 gbufferPreviousModelView;
+    uniform mat4 gbufferProjectionInverse;
+    uniform mat4 gbufferModelViewInverse;
+    uniform vec3 cameraPosition;
+    uniform vec3 previousCameraPosition;
+    // Fast screen reprojection by Eldeston#3590 with reference from Chocapic13 and Jessie#7257
+    // Source: https://discord.com/channels/237199950235041794/525510804494221312/955506913834070016
+    vec2 reprojectScreenPos(vec2 currScreenPos, float depth){
+        vec3 currViewPos = vec3(vec2(gbufferProjectionInverse[0].x, gbufferProjectionInverse[1].y) * (currScreenPos.xy * 2.0 - 1.0) + gbufferProjectionInverse[3].xy, gbufferProjectionInverse[3].z);
+        currViewPos /= (gbufferProjectionInverse[2].w * (depth * 2.0 - 1.0) + gbufferProjectionInverse[3].w);
+        vec3 currFeetPlayerPos = mat3(gbufferModelViewInverse) * currViewPos + gbufferModelViewInverse[3].xyz;
+
+        vec3 prevFeetPlayerPos = depth > 0.56 ? currFeetPlayerPos + cameraPosition - previousCameraPosition : currFeetPlayerPos;
+        vec3 prevViewPos = mat3(gbufferPreviousModelView) * prevFeetPlayerPos + gbufferPreviousModelView[3].xyz;
+        vec2 finalPos = vec2(gbufferPreviousProjection[0].x, gbufferPreviousProjection[1].y) * prevViewPos.xy + gbufferPreviousProjection[3].xy;
+        return (finalPos / -prevViewPos.z) * 0.5 + 0.5;
+    }
+
+    void applyTAA(inout vec4 colorOut, out vec4 historyColor, vec2 texcoord, float depth, sampler2D colorBuffer, sampler2D historyBuffer) {
         // vec2 velocity = texture2D(velocityBuffer, texcoord).xy;
-        vec2 velocity = vec2(0);
+        // vec2 velocity = vec2(0);
+        vec2 historPos = reprojectScreenPos(texcoord, depth);
         
-        historyColor = texture2D(historyBuffer, texcoord - velocity);
+        historyColor = texture2D(historyBuffer, historPos);
         // historyColor.rgb = colorOut.rgb;
         // colorOut.rgb = texture2D(historyBuffer, texcoord - velocity).rgb;
 
@@ -94,7 +114,7 @@ vec2 taaOffset(int frameCounter, vec2 screenSize) {
 
         historyColor.rgb = neighbourhoodClipping(colorBuffer, historyColor.rgb);
 
-        if(clamp(texcoord - velocity, 0.0, 1.0) != texcoord - velocity || historyColor.a < 0.1) {
+        if(clamp(historPos, 0.0, 1.0) != historPos || historyColor.a < 0.1) {
             historyColor.a = 0.5;
             // colorOut.rgb = vec3(0.0, 0.0, 1.0);
         }
@@ -125,26 +145,4 @@ vec2 taaOffset(int frameCounter, vec2 screenSize) {
     }
 
 #endif
-
-#ifdef reprojectFunc
-    uniform mat4 gbufferPreviousProjection;
-    uniform mat4 gbufferPreviousModelView;
-    uniform mat4 gbufferProjectionInverse;
-    uniform mat4 gbufferModelViewInverse;
-    uniform vec3 cameraPosition;
-    uniform vec3 previousCameraPosition;
-    // Fast screen reprojection by Eldeston#3590 with reference from Chocapic13 and Jessie#7257
-    // Source: https://discord.com/channels/237199950235041794/525510804494221312/955506913834070016
-    vec2 reprojectScreenPos(vec2 currScreenPos, float depth){
-        vec3 currViewPos = vec3(vec2(gbufferProjectionInverse[0].x, gbufferProjectionInverse[1].y) * (currScreenPos.xy * 2.0 - 1.0) + gbufferProjectionInverse[3].xy, gbufferProjectionInverse[3].z);
-        currViewPos /= (gbufferProjectionInverse[2].w * (depth * 2.0 - 1.0) + gbufferProjectionInverse[3].w);
-        vec3 currFeetPlayerPos = mat3(gbufferModelViewInverse) * currViewPos + gbufferModelViewInverse[3].xyz;
-
-        vec3 prevFeetPlayerPos = depth > 0.56 ? currFeetPlayerPos + cameraPosition - previousCameraPosition : currFeetPlayerPos;
-        vec3 prevViewPos = mat3(gbufferPreviousModelView) * prevFeetPlayerPos + gbufferPreviousModelView[3].xyz;
-        vec2 finalPos = vec2(gbufferPreviousProjection[0].x, gbufferPreviousProjection[1].y) * prevViewPos.xy + gbufferPreviousProjection[3].xy;
-        return (finalPos / -prevViewPos.z) * 0.5 + 0.5;
-    }
-#endif
-
 #endif

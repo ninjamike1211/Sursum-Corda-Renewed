@@ -8,6 +8,7 @@
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex15;
+uniform sampler2D depthtex0;
 
 in vec2 texcoord;
 
@@ -19,6 +20,7 @@ void main() {
 	colorOut = texture(colortex0, texcoord);
 
 	#ifdef TAA
-		applyTAA(colorOut, historyOut, texcoord, colortex0, colortex15);
+		float depth = texture(depthtex0, texcoord).r;
+		applyTAA(colorOut, historyOut, texcoord, depth, colortex0, colortex15);
 	#endif
 }
