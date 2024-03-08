@@ -260,3 +260,64 @@ vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir,
 
     return sunScattering + moonScattering;
 }
+
+vec3 atmosphericFog(vec3 scenePos, vec3 lightDir, vec3 sceneColor, sky_data skyData) {
+
+    vec3 viewDir = normalize(scenePos);
+    float stepSize = 1000000000.0*length(scenePos) / Atmospheric_Samples;
+    vec3 rayIncrement = -stepSize * normalize(scenePos);
+    vec3 rayPos = scenePos + vec3(0.0, skyData.planetRadius + 4000, 0.0) + 0.5 * rayIncrement;
+
+    float lightAngle = dot(viewDir, lightDir);
+    float phaseR = phaseRayleight(lightAngle);
+    float phaseM = phaseMie(lightAngle, skyData.gMie);
+
+    vec3 inScattering = sceneColor;
+    vec3 transmittance = vec3(1.0);
+
+    for(int i = 0; i < Atmospheric_Samples; i++) {
+
+        float height = length(rayPos) - skyData.planetRadius;
+
+        float densityR = getRayleightDensity(height, skyData);
+        float densityM = getMieDensity(height, skyData);
+
+        float massR = densityR * stepSize;
+        float massM = densityM * stepSize;
+
+        vec3 opticalDepth = (skyData.kRayleight * massR) + (skyData.kMie / skyData.aMie * massM);
+        vec3 stepTransmittance = exp(-opticalDepth);
+
+        vec3 scatteringR = skyData.kRayleight * phaseR * massR;
+        vec3 scatteringM = skyData.kMie       * phaseM * massM;
+
+        vec3 scatteringIntegral = (scatteringR + scatteringM) * (1 - stepTransmittance) / max(vec3(1e-8), opticalDepth);
+        inScattering += scatteringIntegral * transmittance;
+        transmittance *= stepTransmittance;
+
+        rayPos += rayIncrement;
+    }
+
+    return inScattering;
+}
+
+vec3 getFogColor(vec3 sceneColor, float playerAltitude, vec3 scenePos, vec3 sunDir, vec3 moonDir, int moonPhase) {
+    sky_data skyData;
+
+    skyData.planetRadius = 6370e3;
+    skyData.atmosphereRadius = 6471e3;
+    
+    skyData.gMie = 0.8;
+    skyData.aMie = 0.9;
+
+    skyData.kRayleight = vec3(5.8e-6, 13.3e-6, 33.31e-6);;
+    skyData.kMie = vec3(21e-6);
+
+    skyData.scaleHeightR = 8e3;
+    skyData.scaleHeightM = 1.9e3;
+
+    vec3 sunScattering = atmosphericFog(scenePos, sunDir, sceneColor, skyData);
+    // vec3 moonScattering = 2.0 * moonLightColor * moonPhaseMultiplier(moonPhase) * atmosphericScattering(scenePos, moonDir, sceneColor, skyData);
+
+    return sunScattering /* + moonScattering */;
+}

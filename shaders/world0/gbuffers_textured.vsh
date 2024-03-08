@@ -41,7 +41,6 @@ void main() {
 	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
 	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
 
-	// gl_Position = ftransform();
 	vec4 modelPos = gl_Vertex;
 	scenePos = (mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * modelPos).xyz).xyz;
 
@@ -52,7 +51,9 @@ void main() {
 
 	gl_Position = gl_ProjectionMatrix * vec4(mat3(gbufferModelView) * scenePos, 1.0);
 
-	gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
+	#ifdef TAA
+		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
+	#endif
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = gl_MultiTexCoord1.xy / 240.0;

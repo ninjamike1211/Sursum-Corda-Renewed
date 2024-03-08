@@ -26,10 +26,13 @@ uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
 uniform mat4 gbufferProjectionInverse;
 uniform vec3 sunPosition;
+uniform vec3 moonPosition;
+uniform int moonPhase;
 uniform vec3 shadowLightPosition;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int frameCounter;
+uniform float playerAltitude;
 
 in vec2 texcoord;
 in vec3 viewVector;
@@ -107,6 +110,15 @@ void main() {
 		vec3 color = cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specular, directLight, lightDir);
 
 		color += albedo * (calcLightmap(lmcoord, skyLight.skyAmbient) + getEmissiveStrength(specular));
+
+		// vec3 fogSampleDir = normalize(scenePos.xz).xxy;
+		// fogSampleDir.y = 0.0;
+		// vec3 fogColor = texture(colortex10, projectSphere(fogSampleDir) - vec2(0.0, 0.02)).rgb;
+
+		// float fogFactor = exp(-0.001 * length(scenePos));
+		// color = mix(fogColor, color, fogFactor);
+
+		color = getFogColor(color, playerAltitude, normalize(scenePos), mat3(gbufferModelViewInverse) * normalize(sunPosition), mat3(gbufferModelViewInverse) * normalize(moonPosition), moonPhase);
 
 		colorOut = vec4(color, 1.0);
 	}
