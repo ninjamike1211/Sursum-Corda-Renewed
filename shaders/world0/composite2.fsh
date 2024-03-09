@@ -41,9 +41,4 @@ void main() {
 
 		colorOut.rgb /= samplesUsed;
 	}
-
-	// gl_FragData[0] = vec4(colorVal / samplesUsed, 1.0);
-	// gl_FragData[0] = vec4(colorVal, 1.0);
-
-	// gl_FragData[0] = vec4(coc);
 }
