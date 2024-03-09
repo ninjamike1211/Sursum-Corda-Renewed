@@ -35,3 +35,7 @@ value.Shadow_Type.3=PCSS
 value.Shadow_Transparent.0=none
 value.Shadow_Transparent.1=solid
 value.Shadow_Transparent.2=colored
+
+value.Reflections.0=off
+value.Reflections.1=sky only
+value.Reflections.2=SSR

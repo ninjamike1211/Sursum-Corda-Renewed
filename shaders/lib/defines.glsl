@@ -69,6 +69,9 @@ const bool colortex15Clear = false;
 // TAA
 	#define TAA
 
+// Reflections
+	#define Reflections 2					// The type of reflections used [0 1 2]
+
 // Lighting
 	#define EmissiveStrength 10.0
 
@@ -106,6 +109,8 @@ const bool colortex15Clear = false;
 #ifdef Parallax_EdgeNormals
 #endif
 #ifdef Shadow_Transparent
+#endif
+#ifdef Reflections
 #endif
 
 #endif

@@ -36,6 +36,15 @@ layout(std430, binding = 0) buffer Histogram {
     float averageLum;
 };
 
+vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
+	float skyLightmap = texture(colortex5, texcoord).g;
+	vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
+	vec2 skySamplePos = projectSphere(sceneReflectDir);
+	vec3 reflectColor = texture(colortex10, skySamplePos).rgb;
+	reflectColor *= linstep(0.0, 0.5, skyLightmap);
+	return reflectColor;
+}
+
 
 /* RENDERTARGETS: 0,12 */
 layout(location = 0) out vec4 colorOut;
@@ -52,6 +61,7 @@ void main() {
 		depth = convertHandDepth(depth);
 	}
 
+	#if Reflections > 0
 	if(depth < 1.0) {
 		vec3 albedo = texture(colortex2, texcoord).rgb;
 		vec4 rawNormal = texture(colortex3, texcoord);
@@ -65,25 +75,21 @@ void main() {
 
 		vec3 reflectDir = reflect(viewDir, normal);
 		vec3 hitPos;
-		bool hit = screenspaceRaymarch(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, 1.0, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
-		// bool hit = raytrace(viewPos, reflectDir, 64, 1.0, frameCounter, vec2(viewWidth, viewHeight), hitPos, depthtex0, gbufferProjection);
 		vec3 reflectColor = vec3(0.0);
 
-		if(hit) {
-			reflectColor = texture(colortex0, hitPos.xy).rgb;
-		}
-		else {
-			float skyLightmap = texture(colortex5, texcoord).g;
-			vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
-			vec2 skySamplePos = projectSphere(sceneReflectDir);
-			reflectColor = texture(colortex10, skySamplePos).rgb;
-			reflectColor *= linstep(0.0, 0.5, skyLightmap);
-		}
+		#if Reflections == 2
+			bool hit = screenspaceRaymarch(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, 1.0, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
+			if(hit) {
+				reflectColor = texture(colortex0, hitPos.xy).rgb;
+			}
+			else 
+		#endif
+			reflectColor = getSkyReflection(reflectDir, texcoord);
+
 
 		linearColor.rgb += fresnel * specular.r * reflectColor;
-		// linearColor.rgb += cookTorrancePBRReflection(albedo, -viewDir, normal, specular, reflectColor, reflectDir);
-		// linearColor.rgb = cookTorrancePBRLighting(vec3(0.0), -viewDir, normal, specular, reflectColor, reflectDir);
 	}
+	#endif
 
 	linearColor /= 9.6 * averageLum * 0.5;
 
