@@ -1,5 +1,5 @@
 #version 430 compatibility
-#extension GL_ARB_conservative_depth : enable
+// #extension GL_ARB_conservative_depth : enable
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -81,12 +81,12 @@ void main() {
 	// 	}
 	// }
 
-	pomOut = vec4(1.0, 0.0, 0.0, 1.0);
 	vec3 geomNormal = tbn[2];
 
 	#ifdef Parallax
+		pomOut = vec4(0.0, 0.0, 0.0, 1.0);
 		vec3 pomNormal;
-		pomOut.r = parallax(tangentPos, texcoordFinal, pomNormal, scenePos, lightDir, tbn, textureBounds, atlasSize, dFdXY);
+		pomOut.r = 1.0 - parallax(tangentPos, texcoordFinal, pomNormal, scenePos, lightDir, tbn, textureBounds, atlasSize, dFdXY);
 
 		#ifdef Parallax_DepthOffset
 			parallaxApplyDepthOffset(tangentPos, scenePos, texcoord, tbn, gbufferModelView, gbufferProjection);

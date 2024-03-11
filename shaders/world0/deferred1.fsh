@@ -64,7 +64,7 @@ void main() {
 		vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
 		vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 		float NGdotL = dot(normalGeom, lightDir);
-		vec3 directLight = skyLight.skyDirect * pomShadow.r;
+		vec3 directLight = skyLight.skyDirect * (1.0-pomShadow.r);
 
         #ifdef Shadow_NoiseAnimated
             float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
