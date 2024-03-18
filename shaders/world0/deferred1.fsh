@@ -61,7 +61,8 @@ void main() {
 		vec2 pomShadow = texture(colortex7, texcoord).rg;
 
 		vec3 normal = unpackNormalVec2(rawNormal.xy);
-		vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
+		// vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
+		vec3 normalGeom = normal;
 		vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 		float NGdotL = dot(normalGeom, lightDir);
 		vec3 directLight = skyLight.skyDirect * (1.0-pomShadow.r);

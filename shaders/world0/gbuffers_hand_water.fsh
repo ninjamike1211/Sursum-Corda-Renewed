@@ -34,14 +34,13 @@ flat in vec3 glNormal;
 flat in vec4 tangent;
 flat in uint mcEntity;
 
-/* RENDERTARGETS: 1,2,3,4,5,6,14*/
+/* RENDERTARGETS: 1,2,3,4,5,6*/
 layout(location = 0) out vec4 colorOut;
 layout(location = 1) out vec4 albedoOut;
-layout(location = 2) out vec4 normalOut;
+layout(location = 2) out vec2 normalOut;
 layout(location = 3) out vec4 specularOut;
 layout(location = 4) out vec2 lightmapOut;
 layout(location = 5) out uint maskOut;
-layout(location = 6) out vec4 testOut;
 
 void main() {
 	vec4 albedo = texture(gtexture, texcoord) * glcolor;
@@ -64,7 +63,7 @@ void main() {
 	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
 
 	normalOut.rg = packNormalVec2(texNormal);
-	normalOut.ba = packNormalVec2(tbn[2]);
+	// normalOut.ba = packNormalVec2(tbn[2]);
 
 	maskOut = mcEntityMask(mcEntity) | Mask_Hand;
 
@@ -114,5 +113,5 @@ void main() {
 	colorOut.rgb += albedo.rgb * calcLightmap(lmcoord, skyLight.skyAmbient);
 	colorOut.a = albedo.a;
 
-	testOut = vec4((gbufferModelView * vec4(scenePos, 1.0)).xyz, 1.0);
+	// testOut = vec4((gbufferModelView * vec4(scenePos, 1.0)).xyz, 1.0);
 }

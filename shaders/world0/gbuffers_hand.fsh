@@ -29,12 +29,11 @@ flat in uint mcEntity;
 
 /* RENDERTARGETS: 2,3,4,5,6,7 */
 layout(location = 0) out vec4 albedoOut;
-layout(location = 1) out vec4 normalOut;
+layout(location = 1) out vec2 normalOut;
 layout(location = 2) out vec4 specularOut;
 layout(location = 3) out vec2 lightmapOut;
 layout(location = 4) out uint maskOut;
 layout(location = 5) out vec4 pomOut;
-// layout(location = 6) out vec4 testOut;
 
 void main() {
 	// vec3 normal = glNormal;
@@ -143,7 +142,7 @@ void main() {
 	#endif
 
 	normalOut.rg = packNormalVec2(texNormal);
-	normalOut.ba = packNormalVec2(geomNormal);
+	// normalOut.ba = packNormalVec2(geomNormal);
 
 	maskOut = mcEntityMask(mcEntity) | Mask_Hand;
 }

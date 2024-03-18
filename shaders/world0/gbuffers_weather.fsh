@@ -35,7 +35,7 @@ flat in uint mcEntity;
 /* RENDERTARGETS: 1,2,3,4,5,6 */
 layout(location = 0) out vec4 colorOut;
 layout(location = 1) out vec4 albedoOut;
-layout(location = 2) out vec4 normalOut;
+layout(location = 2) out vec2 normalOut;
 layout(location = 3) out vec4 specularOut;
 layout(location = 4) out vec2 lightmapOut;
 layout(location = 5) out uint maskOut;
@@ -61,7 +61,7 @@ void main() {
 	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
 
 	normalOut.rg = packNormalVec2(texNormal);
-	normalOut.ba = packNormalVec2(tbn[2]);
+	// normalOut.ba = packNormalVec2(tbn[2]);
 
 	maskOut = mcEntityMask(mcEntity);
 

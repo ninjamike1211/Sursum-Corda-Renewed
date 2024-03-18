@@ -28,14 +28,13 @@ flat in uint mcEntity;
 	flat in ivec4 pomDiscardEdges;
 #endif
 
-/* RENDERTARGETS: 2,3,4,5,6,7,9 */
+/* RENDERTARGETS: 2,3,4,5,6,7 */
 layout(location = 0) out vec4 albedoOut;
-layout(location = 1) out vec4 normalOut;
+layout(location = 1) out vec2 normalOut;
 layout(location = 2) out vec4 specularOut;
 layout(location = 3) out vec2 lightmapOut;
 layout(location = 4) out uint maskOut;
 layout(location = 5) out vec4 pomOut;
-layout(location = 6) out vec4 testOut;
 
 #define gbuffersTextured
 
@@ -81,8 +80,6 @@ void main() {
 	// 	}
 	// }
 
-	vec3 geomNormal = tbn[2];
-
 	#ifdef Parallax
 		pomOut = vec4(0.0, 0.0, 0.0, 1.0);
 		vec3 pomNormal;
@@ -117,7 +114,7 @@ void main() {
 		lightmapOut *= (rawTexNormal.z * Texture_AO_Strength) + (1.0 - Texture_AO_Strength);
 	#endif
 
-	lightmapOut *= lightmapOut;
+	lightmapOut *= lightmapOut*lightmapOut;
 
 	#ifdef DirectionalLightmap
 
@@ -133,12 +130,12 @@ void main() {
 		if(length(blockLightDir) > 0.0) {
 			
 			float NdotL  = dot(blockLightDir, texNormal);
-			float NGdotL = dot(blockLightDir, geomNormal);
+			float NGdotL = dot(blockLightDir, tbn[2]);
 			
 			lightmapOut.r += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.r;
 		}
 		else {
-			float NdotL = 0.9 - dot(geomNormal, texNormal);
+			float NdotL = 0.9 - dot(tbn[2], texNormal);
 			lightmapOut.r -= DirectionalLightmap_Strength * NdotL * lightmapOut.r;
 		}
 
@@ -146,13 +143,13 @@ void main() {
 		if(length(skyLightDir) > 0.0) {
 			
 			float NdotL  = dot(skyLightDir, texNormal);
-			float NGdotL = dot(skyLightDir, geomNormal);
+			float NGdotL = dot(skyLightDir, tbn[2]);
 			
 			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
 		}
 		else {
 			float NdotL  = dot(vec3(0.0, 1.0, 0.0), texNormal);
-			float NGdotL = dot(vec3(0.0, 1.0, 0.0), geomNormal);
+			float NGdotL = dot(vec3(0.0, 1.0, 0.0), tbn[2]);
 			
 			lightmapOut.g += DirectionalLightmap_Strength * (NdotL - NGdotL) * lightmapOut.g;
 		}
@@ -163,7 +160,7 @@ void main() {
 	// lightmapOut.g = 0.0;
 
 	normalOut.rg = packNormalVec2(texNormal);
-	normalOut.ba = packNormalVec2(geomNormal);
+	// normalOut.ba = packNormalVec2(geomNormal);
 
 	maskOut = mcEntityMask(mcEntity);
 

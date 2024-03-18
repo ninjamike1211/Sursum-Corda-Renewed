@@ -1,7 +1,7 @@
 RGB16F      colortex0:  rgb: main hdr color
 RGBA16F     colortex1:  rgba: forward transparent hdr color
 RGBA8       colortex2:  rgba: albedo
-RGBA16      colortex3:  rg: texture normals, ba: geometry normals
+RG16        colortex3:  rg: texture normals
 RGBA8       colortex4:  rgba: specular map
 RG16        colortex5:  rg: lightmap
 R8UI        colortex6:  mask: WHxxxxxx: W = water, H = hand
