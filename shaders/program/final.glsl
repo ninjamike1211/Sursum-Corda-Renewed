@@ -42,6 +42,8 @@ uniform sampler2D  colortex15;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
 uniform sampler2D  depthtex2;
+uniform sampler2D noisetex;
+const int noiseTextureResolution = 256;
 
 uniform float sunAngle;
 uniform float viewWidth;
@@ -123,8 +125,12 @@ void main() {
     }
     else {
         gl_FragData[0] = texture(colortex0, texcoord);
+        gl_FragData[0] += (texture2D(noisetex, fract(gl_FragCoord.xy / noiseTextureResolution)).r * 2.0 - 1.0) / 255.0;
     }
+    #else
+        gl_FragData[0] += (texture2D(noisetex, fract(gl_FragCoord.xy / noiseTextureResolution)).r * 2.0 - 1.0) / 255.0;
     #endif
+
 
     #ifdef lightMeeter
         if(gl_FragCoord.x < lightMeeter_Width+1.0 && gl_FragCoord.y < lightMeeter_Height+1.0) {
