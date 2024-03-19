@@ -28,9 +28,6 @@ const vec2 TAAOffsets[16] = vec2[] (
 */
 
 vec2 taaOffset(int frameCounter, vec2 screenSize) {
-	// if(cameraMoved)
-	// 	return vec2(0.0);
-	
 	int taaIndex = frameCounter % 16;
 	return vec2((TAAOffsets[taaIndex] * 2.0 - 1.0) / screenSize);
 }

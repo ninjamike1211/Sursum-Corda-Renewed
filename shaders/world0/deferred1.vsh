@@ -1,5 +1,6 @@
 #version 430 compatibility
 
+#include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/spaceConvert.glsl"
 
