@@ -194,7 +194,7 @@ float computeBias(vec3 pos) {
 
     // Calculates the PCSS penumbra size given shadow pos in clip space, and a dither value
     float PCSSPenumbraSize(vec3 shadowClipPos, float avgBlockerDepth) {
-        return clamp(Shadow_PCSS_BlurScale * ((shadowClipPos.z * 0.25 + 0.5) - avgBlockerDepth) / avgBlockerDepth, Shadow_PCSS_MinBlur, Shadow_PCSS_MaxBlur);
+        return min(Shadow_PCSS_BlurScale * ((shadowClipPos.z * 0.25 + 0.5) - avgBlockerDepth) / avgBlockerDepth, Shadow_PCSS_MaxBlur);
     }
 
     // Samples the shadow map using PCSS filtering, applying distortion and bias
