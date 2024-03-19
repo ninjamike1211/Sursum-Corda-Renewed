@@ -198,7 +198,7 @@ vec3 lightTransmittance(vec3 rayPos, vec3 lightDir, sky_data skyData) {
 vec3 atmosphericScattering(vec3 origin, vec3 viewDir, vec3 lightDir, sky_data skyData) {
 
     float atmosphereDist = ray_sphere_intersection(origin, viewDir, skyData.atmosphereRadius).y;
-    float planetDist = ray_sphere_intersection(origin, viewDir, skyData.planetRadius).x;
+    float planetDist = ray_sphere_intersection(origin, viewDir, skyData.planetRadius - 4000).x;
     float dist = (planetDist < 0.0) ? atmosphereDist : planetDist;
 
     float stepSize = dist / Atmospheric_Samples;
@@ -255,8 +255,8 @@ vec3 getSkyColor(float playerAltitude, vec3 sceneDir, vec3 sunDir, vec3 moonDir,
     skyData.scaleHeightR = 8e3;
     skyData.scaleHeightM = 1.9e3;
 
-    vec3 sunScattering = 10.0 * sunLightColor * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, sunDir, skyData);
-    vec3 moonScattering = 2.0 * moonLightColor * moonPhaseMultiplier(moonPhase) * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude + 4000, 0.0), sceneDir, moonDir, skyData);
+    vec3 sunScattering = 10.0 * sunLightColor * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude, 0.0), sceneDir, sunDir, skyData);
+    vec3 moonScattering = 2.0 * moonLightColor * moonPhaseMultiplier(moonPhase) * atmosphericScattering(vec3(0.0, skyData.planetRadius + playerAltitude, 0.0), sceneDir, moonDir, skyData);
 
     return sunScattering + moonScattering;
 }
