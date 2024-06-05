@@ -31,7 +31,7 @@ uniform sampler2D  colortex4;
 uniform sampler2D  colortex5;
 uniform usampler2D colortex6;
 uniform sampler2D  colortex7;
-uniform sampler2D  colortex8;
+uniform isampler2D  colortex8;
 uniform sampler2D  colortex9;
 uniform sampler2D  colortex10;
 uniform sampler2D  colortex11;
@@ -120,6 +120,8 @@ void main() {
         #elif viewBuffer == 104
             gl_FragData[0] = vec4(vec3(linearizeDepthNorm(texture(depthtex2, texcoord).r, near, far)), 1.0);
         #endif
+
+        // gl_FragData[0] = textureLod(colortex0, texcoord, 4);
 
     #if viewBuffer != 0
     }

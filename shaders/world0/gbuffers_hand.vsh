@@ -6,7 +6,7 @@ uniform float viewHeight;
 uniform int frameCounter;
 
 #include "/lib/defines.glsl"
-#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 in vec4 at_tangent;
 in vec2 mc_midTexCoord;

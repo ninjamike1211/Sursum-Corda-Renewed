@@ -1,10 +1,6 @@
 #ifndef SPACECONVERT
 #define SPACECONVERT
 
-// #include "/lib/kernels.glsl"
-#include "/lib/TAA.glsl"
-
-
 float linearizeDepthFast(float depth, float near, float far) {
 	return (near * far) / (depth * (near - far) + far);
 }
@@ -17,6 +13,25 @@ vec3 projectAndDivide(mat4 projectionMatrix, vec3 position) {
 	vec4 homoPos = projectionMatrix * vec4(position, 1.0);
 	return homoPos.xyz / homoPos.w;
 }
+
+float convertHandDepth(float depth) {
+	float ndcDepth = depth * 2.0 - 1.0;
+	ndcDepth /= MC_HAND_DEPTH;
+	return ndcDepth * 0.5 + 0.5;
+}
+
+vec3 YCoCg2RGB(vec3 YCoCg) {
+	YCoCg.gb -= 0.5;
+	return mat3(1.0, 1.0, -1.0, 1.0, 0.0, 1.0, 1.0, -1.0, -1.0) * YCoCg;
+}
+
+vec3 RGB2YCoCg(vec3 rgb) {
+	return mat3(0.25, 0.5, 0.25, 0.5, 0.0, -0.5, -0.25, 0.5, -0.25) * rgb + vec3(0.0, 0.5, 0.5);
+}
+
+// #include "/lib/kernels.glsl"
+#include "/lib/TAA.glsl"
+
 
 vec3 calcViewPos(vec3 viewVector, float depth, mat4 projectionMatrix) {
 	float viewZ = -projectionMatrix[3][2] / ((depth * 2.0 - 1.0) + projectionMatrix[2][2]);
@@ -31,12 +46,6 @@ vec3 screenToView(vec2 texcoord, float depth, int frameCounter, vec2 screenSize,
 	#endif
 
 	return projectAndDivide(inverseProjectionMatrix, ndcPos);
-}
-
-float convertHandDepth(float depth) {
-	float ndcDepth = depth * 2.0 - 1.0;
-	ndcDepth /= MC_HAND_DEPTH;
-	return ndcDepth * 0.5 + 0.5;
 }
 
 vec3 viewToScreen(vec3 viewPos, int frameCounter, vec2 screenSize, mat4 projectionMatrix) {

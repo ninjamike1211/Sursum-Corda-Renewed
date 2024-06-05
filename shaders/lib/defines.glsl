@@ -10,10 +10,12 @@ const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex1Format  = RGBA16F;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const int colortex3Format  = RG16;
+const vec2 colortex3ClearColor = vec2(1.0, 0.0);
 const int colortex5Format  = RG16;
 const int colortex6Format  = R8UI;
 const int colortex7Format  = RGB8;
 const int colortex10Format = RGB16F;
+const int colortex11Format = RGB16F;
 const int colortex12Format = R8_SNORM;
 const int colortex15Format = RGBA16F;
 const bool colortex15Clear = false;
@@ -64,6 +66,9 @@ const bool colortex15Clear = false;
 // DOF
 	// #define DOF
 
+// Bloom
+	#define Bloom_Levels 6					// Levels of bloom, larger numbers create larger bloom but is more expensive, 0 disables bloom. [0 1 2 3 4 5 6]
+
 // TAA
 	#define TAA
 
@@ -71,7 +76,7 @@ const bool colortex15Clear = false;
 	#define Reflections 2					// The type of reflections used [0 1 2]
 
 // Lighting
-	#define EmissiveStrength 10.0
+	#define EmissiveStrength 1.0
 
 // Parallax
 	#define Parallax
@@ -109,6 +114,8 @@ const bool colortex15Clear = false;
 #ifdef Shadow_Transparent
 #endif
 #ifdef Reflections
+#endif
+#ifdef Bloom_Levels
 #endif
 
 #endif

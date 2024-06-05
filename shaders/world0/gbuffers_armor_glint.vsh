@@ -5,7 +5,7 @@ uniform float viewHeight;
 uniform int frameCounter;
 
 #include "/lib/defines.glsl"
-#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 varying vec2 lmcoord;
 varying vec2 texcoord;

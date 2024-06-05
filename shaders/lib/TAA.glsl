@@ -35,15 +35,6 @@ vec2 taaOffset(int frameCounter, vec2 screenSize) {
 #ifdef taaFragment
 #define reprojectFunc
 
-    vec3 YCoCg2RGB(vec3 YCoCg) {
-        YCoCg.gb -= 0.5;
-        return mat3(1.0, 1.0, -1.0, 1.0, 0.0, 1.0, 1.0, -1.0, -1.0) * YCoCg;
-    }
-
-    vec3 RGB2YCoCg(vec3 rgb) {
-        return mat3(0.25, 0.5, 0.25, 0.5, 0.0, -0.5, -0.25, 0.5, -0.25) * rgb + vec3(0.0, 0.5, 0.5);
-    }
-
     vec3 clipAABB(vec3 prevColor, vec3 minColor, vec3 maxColor) {
         vec3 pClip = 0.5 * (maxColor + minColor); // Center
         vec3 eClip = 0.5 * (maxColor - minColor); // Size
@@ -86,59 +77,59 @@ vec2 taaOffset(int frameCounter, vec2 screenSize) {
         return (finalPos / -prevViewPos.z) * 0.5 + 0.5;
     }
 
-    void applyTAA(inout vec4 colorOut, out vec4 historyColor, vec2 texcoord, float depth, sampler2D colorBuffer, sampler2D historyBuffer) {
-        // vec2 velocity = texture2D(velocityBuffer, texcoord).xy;
-        // vec2 velocity = vec2(0);
-        vec2 historPos = reprojectScreenPos(texcoord, depth);
+    vec3 reprojectDepth(vec3 screenPos) {
+        vec3 currViewPos = projectAndDivide(gbufferProjectionInverse, screenPos * 2.0 - 1.0);
+        vec4 currPlayerPos = gbufferModelViewInverse * vec4(currViewPos, 1.0);
+        vec3 prevViewPos = (gbufferPreviousModelView * currPlayerPos).xyz;
+        vec3 prevScreenPos = (projectAndDivide(gbufferPreviousProjection, prevViewPos)) * 0.5 + 0.5;
+        return prevScreenPos;
+    }
+
+    void applyTAA(vec2 texcoord, inout vec3 sceneColor, out float outputDepth, sampler2D colorBuffer, sampler2D historyBuffer, sampler2D depthtex) {
+
+        float depth = texture(depthtex, texcoord).r;
+        bool isHand = depth < 0.56;
+        if(isHand) {
+            depth = convertHandDepth(depth);
+        }
+
+        // Reproject to find previous frame's position
+        vec3 historPos = reprojectDepth(vec3(texcoord, depth));
         
-        historyColor = texture2D(historyBuffer, historPos);
-        // historyColor.rgb = colorOut.rgb;
-        // colorOut.rgb = texture2D(historyBuffer, texcoord - velocity).rgb;
+        // If the previous frame's position was off frame, kill the history
+        if(clamp(historPos.xy, 0.0, 1.0) != historPos.xy) {
+            // outputDepth = 0.0;
+            outputDepth = depth;
+            // sceneColor = vec3(0.0, 0.0, 1.0);
+            return;
+        }
 
-        if(any(isnan(historyColor)))
-            historyColor = vec4(0.0);
+        vec4 historyColor = texture2D(historyBuffer, historPos.xy);
 
-        // vec2 pixel = 1.0 / vec2(viewWidth, viewHeight);
-        // vec3 nearColor0 = texture2D(colortex0, texcoord + vec2(pixel.x, 0.0)).rgb;
-        // vec3 nearColor1 = texture2D(colortex0, texcoord + vec2(0.0, pixel.y)).rgb;
-        // vec3 nearColor2 = texture2D(colortex0, texcoord - vec2(pixel.x, 0.0)).rgb;
-        // vec3 nearColor3 = texture2D(colortex0, texcoord - vec2(0.0, pixel.y)).rgb;
+        for (int x = -1; x <= 1; ++x) {
+            for (int y = -1; y <= 1; ++y) {
+                float depthVal = texelFetch(depthtex, ivec2(gl_FragCoord.xy) + ivec2(x, y), 0).x;
+                depth = min(depth, isHand ? convertHandDepth(depthVal) : depthVal);
+            }
+        }
 
-        // vec3 boxMin = min(albedo.rgb, min(nearColor0, min(nearColor1, min(nearColor2, nearColor3))));
-        // vec3 boxMax = max(albedo.rgb, max(nearColor0, max(nearColor1, max(nearColor2, nearColor3))));
 
-        // history.rgb = clamp(history.rgb, boxMin.rgb, boxMax);
+        // if(depth-historyColor.a > 0.005) {
+        //     // outputDepth = 0.0;
+        //     outputDepth = depth;
+        //     // sceneColor = vec3(1.0, 0.0, 0.0);
+        //     return;
+        // }
 
         historyColor.rgb = neighbourhoodClipping(colorBuffer, historyColor.rgb);
 
-        if(clamp(historPos, 0.0, 1.0) != historPos || historyColor.a < 0.1) {
-            historyColor.a = 0.5;
-            // colorOut.rgb = vec3(0.0, 0.0, 1.0);
-        }
-        else /* if(clamp(texcoord - velocity, 0.0, 1.0) == texcoord - velocity) */ {
-            // albedo.rgb = mix(albedo.rgb, history, 0.9);
-            // albedo.rgb = mix(albedo.rgb, history, frameCount / (frameCount + 1));
+        // float currentFrame = (historyColor.a == 0) ? 1.0 : (1.0 / (1.0/historyColor.a - 1.0) + 1.0);
+        // float currentBlend = currentFrame / (currentFrame+1.0);
+        // sceneColor = mix(sceneColor, historyColor.rgb, currentBlend);
+        // outputDepth = currentBlend;
 
-            float currentFrame = (historyColor.a == 0) ? 1.0 : (1.0 / (1.0/historyColor.a - 1.0) + 1.0);
-            float currentBlend = currentFrame / (currentFrame+1.0);
-
-            colorOut.rgb = mix(colorOut.rgb, historyColor.rgb, currentBlend);
-            historyColor.a = currentBlend;
-        }
-        // else {
-        // 	historyOut.a = 0.0;
-        // }
-        // if(clamp(history.rgb, boxMin.rgb, boxMax) != history.rgb) {
-        // 	historyOut.a = 0.0;
-        // }
-
-
-        // albedo.rgb = neighbourhoodClipping(colortex0, history);
-
-        // albedo.rgb = vec3(frameCount != 0);
-
-        // frameCountOut = frameCount + 1;
-        historyColor.rgb = colorOut.rgb;
+        sceneColor = mix(sceneColor, historyColor.rgb, 0.85);
+        outputDepth = depth;
     }
 
 #endif

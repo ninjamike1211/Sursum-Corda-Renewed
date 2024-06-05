@@ -115,6 +115,8 @@ void main() {
 	#endif
 
 	lightmapOut *= lightmapOut*lightmapOut;
+	// lightmapOut = (exp2(6*lightmapOut) - 1.0) / 63.0;
+	// lightmapOut = 0.28125 / pow(1.5 - lightmapOut, vec2(2.0)) - 0.125;
 
 	#ifdef DirectionalLightmap
 

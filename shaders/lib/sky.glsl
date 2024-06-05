@@ -103,7 +103,7 @@ float horizonFadeFactor(vec3 sceneDir) {
 
 void applySunDisk(inout vec3 sceneColor, vec3 sceneDir, vec3 sunDir) {
     float mixFactor = smoothstep(0.9997, 0.9999, dot(sceneDir, sunDir)) * horizonFadeFactor(sceneDir);
-    sceneColor *= mix(1.0, 100.0, mixFactor);
+    sceneColor *= mix(1.0, 1000000.0, mixFactor);
 }
 
 #define Atmospheric_Samples 16

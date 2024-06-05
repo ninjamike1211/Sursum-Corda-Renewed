@@ -4,6 +4,7 @@
 #include "/lib/functions.glsl"
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/sample.glsl"
 #include "/lib/raytrace.glsl"
 #include "/lib/sky.glsl"
 #include "/lib/DOF.glsl"
@@ -16,6 +17,7 @@ uniform sampler2D colortex5;
 uniform usampler2D colortex6;
 uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
+uniform sampler2D depthtex1;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjection;
@@ -45,16 +47,51 @@ vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
 	return reflectColor;
 }
 
+void binSearch(inout vec3 screenPos, vec3 rayStep, sampler2D depthtex, int stepCount) {
+    for(int i = 0; i < stepCount; i++) {
+        float depthDiff = texture(depthtex, screenPos.xy).r - screenPos.z;
+        screenPos += sign(depthDiff) * rayStep;
+        rayStep *= 0.5;
+    }
+}
+
+bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binStepCount, float jitter, out vec3 hitPos, int frameCounter, vec2 screenSize, float near, float far, sampler2D depthtex, mat4 projectionMatrix) {
+	if (viewRayDir.z > 0.0 && viewRayDir.z >= -viewPos.z)
+        return false;
+	
+	vec3 screenRayDir = (projectAndDivide(projectionMatrix, viewPos + viewRayDir) * 0.5 + 0.5) - screenPos;
+	// vec3 rayStep = 10.0 * screenRayDir / stepCount;
+	vec3 rayStep = screenRayDir * min3((sign(screenRayDir) - screenPos) / screenRayDir) * 0.9999 / (stepCount);
+
+	screenPos += rayStep * jitter;
+
+	for(int i = 0; i < stepCount; i++) {
+		screenPos += rayStep;
+		float depth = texture(depthtex, screenPos.xy).r;
+
+		if(clamp(screenPos, 0.0, 1.0) != screenPos) {
+			return false;
+		}
+		else if(screenPos.z - depth > -0.00001) {
+			hitPos = screenPos;
+			binSearch(hitPos, rayStep, depthtex, binStepCount);
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 
 /* RENDERTARGETS: 0,12 */
-layout(location = 0) out vec4 colorOut;
+layout(location = 0) out vec3 colorOut;
 layout(location = 1) out float cocOut;
 
 void main() {
 
 	float depth = texture(depthtex0, texcoord).r;
 	uint mask = texture(colortex6, texcoord).r;
-	vec3 linearColor = texture(colortex0, texcoord).rgb;
+	colorOut = texture(colortex0, texcoord).rgb;
 
 	// Hand depth fix
 	if((mask & Mask_Hand) != 0) {
@@ -77,8 +114,10 @@ void main() {
 		vec3 hitPos;
 		vec3 reflectColor = vec3(0.0);
 
+		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
+
 		#if Reflections == 2
-			bool hit = screenspaceRaymarch(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, 1.0, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
+			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, randomAngle, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
 			if(hit) {
 				reflectColor = texture(colortex0, hitPos.xy).rgb;
 			}
@@ -87,15 +126,9 @@ void main() {
 			reflectColor = getSkyReflection(reflectDir, texcoord);
 
 
-		linearColor.rgb += fresnel * specular.r * reflectColor;
+		colorOut.rgb += fresnel * specular.r * reflectColor;
 	}
 	#endif
-
-	linearColor /= 9.6 * averageLum * 0.5;
-
-
-	// linearColor = ACESFilm(linearColor);
-	colorOut = vec4(ACESFitted(linearToSRGB3(linearColor)), 1.0);
 
 	#ifdef DOF
 		float depthLinear = linearizeDepthFast(depth, near, far);

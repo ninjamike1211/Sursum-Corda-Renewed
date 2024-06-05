@@ -65,6 +65,11 @@ void main() {
 
 	maskOut = mcEntityMask(mcEntity);
 
+	if(mcEntity == MCEntity_Water) {
+		specularOut.r = 1.0;
+		specularOut.g = 229.0/255.0;
+	}
+
 
 	vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);
 	float NGdotL = dot(glNormal, lightDir);

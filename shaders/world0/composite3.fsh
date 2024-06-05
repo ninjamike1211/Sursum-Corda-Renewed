@@ -4,7 +4,7 @@
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
-#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 uniform sampler2D colortex0;
 uniform sampler2D colortex15;
@@ -20,7 +20,8 @@ void main() {
 	colorOut = texture(colortex0, texcoord);
 
 	#ifdef TAA
-		float depth = texture(depthtex0, texcoord).r;
-		applyTAA(colorOut, historyOut, texcoord, depth, colortex0, colortex15);
+		float outputDepth;
+		applyTAA(texcoord, colorOut.rgb, outputDepth, colortex0, colortex15, depthtex0);
+		historyOut = vec4(colorOut.rgb, outputDepth);
 	#endif
 }

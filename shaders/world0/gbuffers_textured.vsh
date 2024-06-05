@@ -14,7 +14,7 @@ uniform int frameCounter;
 #include "/lib/defines.glsl"
 #include "/lib/voxel.glsl"
 #include "/lib/weather.glsl"
-#include "/lib/TAA.glsl"
+#include "/lib/spaceConvert.glsl"
 
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -54,6 +54,8 @@ void main() {
 	#ifdef TAA
 		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
 	#endif
+
+	gl_FogFragCoord;
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	lmcoord = gl_MultiTexCoord1.xy / 240.0;

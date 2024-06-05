@@ -9,7 +9,7 @@ RGB8        colortex7:  r: pom shadow (if self shadowing), g: pom shadow directi
 RGBA8       colortex8:
 RGBA8       colortex9:
 RGB16F      colortex10: rgb: sky
-RGBA8       colortex11:
+RGB16F      colortex11: rgb: bloom
 R8_SNORM    colortex12: r: dof coc
 RGBA8       colortex13:
 RGBA8       colortex14:
