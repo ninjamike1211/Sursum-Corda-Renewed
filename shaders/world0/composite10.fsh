@@ -14,5 +14,5 @@ in vec2 texcoord;
 layout(location = 0) out vec4 colorOut;
 
 void main() {
-	colorOut = vec4(bloomUpscale(texcoord*0.015625 + vec2(0.125, 0.5), colortex11, vec2(viewWidth, viewHeight), vec4(0.125, 0.5, 0.140625, 0.515625)), 1.0);
+	colorOut = vec4(bloomUpscale(texcoord*0.015625 + vec2(0.46875, 0.5), colortex11, vec2(viewWidth, viewHeight), vec4(0.46875, 0.5, 0.484375, 0.515625)), 1.0);
 }
