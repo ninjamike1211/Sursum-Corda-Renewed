@@ -5,6 +5,7 @@
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/sample.glsl"
+#include "/lib/noise.glsl"
 #include "/lib/raytrace.glsl"
 #include "/lib/sky.glsl"
 #include "/lib/DOF.glsl"
@@ -110,11 +111,21 @@ void main() {
 
 		vec3 fresnel = calcFresnel(max(dot(normal, normalize(-viewPos)), 0.0), specular, albedo);
 
+		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
+
+		#ifdef Reflections_Rough
+			float roughReflectionAmount = getRoughness(specular);
+            
+            if(roughReflectionAmount > 0.0) {
+                vec2 offset = blue_noise_disk[int(randomAngle * 63.99)] * 0.1 * roughReflectionAmount;
+                mat3 tbn    = tbnNormal(normal);
+                normal      = normalize(normal + tbn * vec3(offset, 0.0));
+            }
+		#endif
+
 		vec3 reflectDir = reflect(viewDir, normal);
 		vec3 hitPos;
 		vec3 reflectColor = vec3(0.0);
-
-		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter);
 
 		#if Reflections == 2
 			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, randomAngle, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
