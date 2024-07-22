@@ -3,18 +3,20 @@ RGBA16F     colortex1:  rgba: forward transparent hdr color
 RGBA8       colortex2:  rgba: albedo
 RG16        colortex3:  rg: texture normals
 RGBA8       colortex4:  rgba: specular map
-RG16        colortex5:  rg: lightmap
+RGBA16      colortex5:  rg: lightmap
 R8UI        colortex6:  mask: WHxxxxxx: W = water, H = hand
 RGB8        colortex7:  r: pom shadow (if self shadowing), g: pom shadow direction offset, b: pom offset into block
-RGBA8       colortex8:
+RGB16_SNORM colortex8:  rgb: shadow pos xyz
 RGBA8       colortex9:
 RGB16F      colortex10: rgb: sky
 RGB16F      colortex11: rgb: bloom
 R8_SNORM    colortex12: r: dof coc
-RGBA8       colortex13:
+RGB16F      colortex13: rgb: dof foreground
 RGBA8       colortex14:
 RGBA16F     colortex15: rgba: history buffer
 
 
 look into Hammon or Oren-Nayar diffuse
 look into AGX tonemap
+For calculating sunlight/sundisk, only use transmittance not in-scattering
+look into SH (sperical harmonics) for ambient light, gives directionality to ambient light (and maybe also this: https://learnopengl.com/PBR/IBL/Diffuse-irradiance)

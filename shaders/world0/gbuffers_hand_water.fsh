@@ -30,6 +30,7 @@ in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in vec3 scenePos;
+in vec4 shadowPos;
 flat in vec3 glNormal;
 flat in vec4 tangent;
 flat in uint mcEntity;
@@ -81,31 +82,19 @@ void main() {
 	#if Shadow_Type == 0
 		directLight *= lmcoord.g;
 
-	#elif Shadow_Type == 1
-		vec3 shadowPos = calcShadowPosScene(scenePos);
+	#else
+		vec3 shadowPosScreen = shadowPos.xyz;
+		shadowPosScreen.z -= computeBias(shadowPos.w, NGdotL);
+		
+		#if Shadow_Type == 1
+			directLight *= shadowVisibility(shadowPosScreen);
 
-		#ifdef Shadow_NormalBias
-			directLight *= sampleShadowNormalBias(shadowPos, tbn[2]);
-		#else
-			directLight *= sampleShadow(shadowPos, NGdotL);
-		#endif
+		#elif Shadow_Type == 2
+			directLight *= sampleShadowPCF(shadowPosScreen, shadowPos.w, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 
-	#elif Shadow_Type == 2
-		vec3 shadowPos = calcShadowPosScene(scenePos);
+		#elif Shadow_Type == 3
+			directLight *= sampleShadowPCSS(shadowPosScreen, shadowPos.w, randomAngle);
 
-		#ifdef Shadow_NormalBias
-			directLight *= sampleShadowPCFNormalBias(shadowPos, tbn[2], Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
-		#else
-			directLight *= sampleShadowPCF(shadowPos, NGdotL, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
-		#endif
-
-	#elif Shadow_Type == 3
-		vec3 shadowPos = calcShadowPosScene(scenePos);
-
-		#ifdef Shadow_NormalBias
-			directLight *= sampleShadowPCSSNormalBias(shadowPos, tbn[2], randomAngle);
-		#else
-			directLight *= sampleShadowPCSS(shadowPos, NGdotL, randomAngle);
 		#endif
 	#endif
 

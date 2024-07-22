@@ -3,6 +3,8 @@
 layout (r8ui) uniform uimage3D voxelImage;
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
+uniform mat4 shadowModelView;
+uniform mat4 shadowProjection;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
 uniform float rainStrength;
@@ -11,10 +13,13 @@ uniform float viewHeight;
 uniform int renderStage;
 uniform int frameCounter;
 
+#define shadowGbuffer
+
 #include "/lib/defines.glsl"
 #include "/lib/voxel.glsl"
 #include "/lib/weather.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/shadows.glsl"
 
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -30,6 +35,10 @@ flat out vec4 tangent;
 flat out vec4 textureBounds;
 flat out uint mcEntity;
 
+#ifdef Shadow_PerVertexDistortion
+	out vec3 shadowPos;
+#endif
+
 #if defined UseVoxelization && defined Parallax_DiscardEdge
 	flat out ivec3 voxelPos;
 	flat out ivec4 pomDiscardEdges;
@@ -42,14 +51,20 @@ void main() {
 	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
 
 	vec4 modelPos = gl_Vertex;
-	scenePos = (mat3(gbufferModelViewInverse) * (gl_ModelViewMatrix * modelPos).xyz).xyz;
+	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * modelPos)).xyz;
 
 	#ifdef wavingPlants
 		vec3 worldPos = scenePos + cameraPosition;
 		scenePos += wavingOffset(worldPos, mcEntity, at_midBlock, glNormal, frameTimeCounter, rainStrength);
 	#endif
 
-	gl_Position = gl_ProjectionMatrix * vec4(mat3(gbufferModelView) * scenePos, 1.0);
+	gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(scenePos, 1.0));
+
+	#ifdef Shadow_PerVertexDistortion
+		shadowPos = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
+		shadowPos.z = length(shadowPos.xy) / length(vec2(1.0));
+		shadowPos.xy = distort(shadowPos).xy * 0.5 + 0.5;
+	#endif
 
 	#ifdef TAA
 		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;

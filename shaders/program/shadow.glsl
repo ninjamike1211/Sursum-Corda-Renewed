@@ -19,9 +19,6 @@
 
     out vec2 texcoord;
     out vec4 glColor;
-    // out vec3 worldPosVertex;
-    // out vec3 glNormal;
-    flat out int entity;
 
     #define shadowGbuffer
 
@@ -33,11 +30,7 @@
     void main() {
 
         texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-
         glColor = gl_Color;
-        entity = int(mc_Entity.x);
-
-        // float NdotL = dot(glNormal, vec3(0.0, 0.0, 1.0));
 
 
     // -------------------- Position Calculations -------------------
@@ -50,24 +43,20 @@
 
         // Apply waving geometry
         #ifdef wavingPlants
-        if(entity > 10000) {
-            vec3 viewNormal = normalize(gl_Normal);
-            vec3 worldPos = modelPos.xyz + cameraPosition;
-            
-            modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, viewNormal, frameTimeCounter, rainStrength);
-        }
+            int entity = int(mc_Entity.x + 0.5);
+            if(entity > 10000) {
+                vec3 viewNormal = normalize(gl_Normal);
+                vec3 worldPos = modelPos.xyz + cameraPosition;
+                
+                modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, viewNormal, frameTimeCounter, rainStrength);
+            }
         #endif
 
-        // // Calculate world positions
-        // vec3 shadowViewPos = (gl_ModelViewMatrix * modelPos).xyz;
-        // vec3 scenePos = (shadowModelViewInverse * vec4(shadowViewPos, 1.0)).xyz;
-        // worldPosVertex = scenePos + cameraPosition;
-
-        // // Calculate clip position and shadow distortion
-        // gl_Position = gl_ProjectionMatrix * vec4(shadowViewPos, 1.0);
-
         gl_Position = gl_ModelViewProjectionMatrix * modelPos;
-        gl_Position.xyz = distort(gl_Position.xyz);
+
+        // #ifndef TESSELLATION_SHADERS
+            gl_Position.xyz = distort(gl_Position.xyz);
+        // #endif
 
         #ifdef UseVoxelization
             bool isBlock = renderStage == MC_RENDER_STAGE_TERRAIN_SOLID ||
@@ -94,20 +83,78 @@
     }
 
 #else
+#ifdef Shadow_TCS
+
+    #define shadowGbuffer
+    #include "/lib/defines.glsl"
+    #include "/lib/shadows.glsl"
+
+    layout (vertices=3) out;
+
+    in vec2 texcoord[];
+    in vec4 glColor[];
+
+    out vec2 texcoord_tes[];
+    out vec4 glColor_tes[];
+
+    float getTessLevel(float dist) {
+        float denominator = dist + Shadow_Distort_Factor;
+        float factor = Shadow_Distort_Factor / (denominator * denominator);
+        return clamp(mix(Shadow_Max_Tessellation, 1.0, 0.01*factor), 1.0, Shadow_Max_Tessellation);
+    }
+
+    void main() {
+        gl_TessLevelOuter[0] = getTessLevel(0.5*length(gl_in[1].gl_Position.xyz + gl_in[2].gl_Position.xyz));
+		gl_TessLevelOuter[1] = getTessLevel(0.5*length(gl_in[2].gl_Position.xyz + gl_in[0].gl_Position.xyz));
+		gl_TessLevelOuter[2] = getTessLevel(0.5*length(gl_in[0].gl_Position.xyz + gl_in[1].gl_Position.xyz));
+		gl_TessLevelInner[0] = getTessLevel(0.33333333333333*length(gl_in[0].gl_Position.xyz + gl_in[1].gl_Position.xyz + gl_in[2].gl_Position.xyz));
+
+        gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+        texcoord_tes[gl_InvocationID] = texcoord[gl_InvocationID];
+        glColor_tes[gl_InvocationID] = glColor[gl_InvocationID];
+    }
+
+#else
+#ifdef Shadow_TES
+
+    #define shadowGbuffer
+    #include "/lib/defines.glsl"
+    #include "/lib/shadows.glsl"
+
+    layout (triangles, fractional_odd_spacing, ccw) in;
+
+    in vec2 texcoord_tes[];
+    in vec4 glColor_tes[];
+    
+    out vec2 texcoord;
+    out vec4 glColor;
+
+    vec2 interpolate2D(vec2 v0, vec2 v1, vec2 v2) {
+        return vec2(gl_TessCoord.x) * v0 + vec2(gl_TessCoord.y) * v1 + vec2(gl_TessCoord.z) * v2;
+    }
+
+    vec4 interpolate4D(vec4 v0, vec4 v1, vec4 v2) {
+        return vec4(gl_TessCoord.x) * v0 + vec4(gl_TessCoord.y) * v1 + vec4(gl_TessCoord.z) * v2;
+    } 
+
+    void main() {
+        texcoord = interpolate2D(texcoord_tes[0], texcoord_tes[1], texcoord_tes[2]);
+        glColor = interpolate4D(glColor_tes[0], glColor_tes[1], glColor_tes[2]);
+
+        gl_Position = interpolate4D(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position);
+        gl_Position.xyz = distort(gl_Position.xyz);
+    }
+
+#else
 
     // #extension GL_ARB_conservative_depth : enable
 
     #define shadowGbuffer
 
-    uniform sampler2D tex;
+    uniform sampler2D gtexture;
     uniform float alphaTestRef;
-    uniform float frameTimeCounter;
 
-    // #include "/lib/functions.glsl"
     #include "/lib/defines.glsl"
-    // #include "/lib/noise.glsl"
-    // #include "/lib/water.glsl"
-    #include "/lib/shadows.glsl"
 
 
     // ------------------------ File Contents -----------------------
@@ -117,9 +164,6 @@
 
     in vec2 texcoord;
     in vec4 glColor;
-    in vec3 worldPosVertex;
-    in vec3 glNormal;
-    flat in int entity;
 
     #if Shadow_Transparent > 0
         /* RENDERTARGETS: 0 */
@@ -129,27 +173,14 @@
     void main() {
 
         #if Shadow_Transparent > 0
-            shadowColor = texture(tex, texcoord) * glColor;
+            shadowColor = texture(gtexture, texcoord) * glColor;
             if (shadowColor.a < alphaTestRef) discard;
         #else
-            float shadowAlpha = texture(tex, texcoord).a;
+            float shadowAlpha = texture(gtexture, texcoord).a;
             if (shadowAlpha < alphaTestRef) discard;
         #endif
-
-        // if(entity == 10010) {
-        //     shadowColor.a = 0.0;
-
-        //     float waterHeight = 1.0 - abs(waterHeightFuncSimple(worldPosVertex.xz, frameTimeCounter));
-        //     float caustics = Water_Depth * pow(waterHeight, 3.0) + 0.5*(1 - Water_Depth) * 0.8 + 0.2;
-
-        //     // caustics += 1.0;
-        //     // caustics *= 2.0;
-
-        //     #ifndef Water_VanillaTexture
-        //         shadowColor.rgb = glColor.rgb;
-        //     #endif
-        //     shadowColor.rgb *= caustics;
-        // }
     }
 
+#endif
+#endif
 #endif

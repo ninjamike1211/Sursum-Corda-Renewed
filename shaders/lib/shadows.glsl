@@ -18,11 +18,22 @@ vec3 distort(vec3 pos) {
 //if a texel in the shadow map contains a bigger area,
 //then we need more bias. therefore, we need to know how much
 //bigger or smaller a pixel gets as a result of applying sistortion.
-float computeBias(vec3 pos) {
-    //square(length(pos.xy) + Shadow_Distort_Factor) / Shadow_Distort_Factor
-    float numerator = length(pos.xy) + Shadow_Distort_Factor;
+float computeBias(float shadowLength) {
+    float numerator = shadowLength + Shadow_Distort_Factor;
     numerator *= numerator;
     return Shadow_Bias / shadowMapResolution * numerator / Shadow_Distort_Factor;
+}
+float computeBias(vec3 pos) {
+    return computeBias(length(pos.xy));
+}
+
+float computeBias(float shadowLength, float NdotL) {
+    return computeBias(shadowLength) / abs(NdotL);
+}
+
+// Applies bias to un-distorted shadow position
+void applyShadowBias(inout vec3 shadowPos, float NdotL) {
+    shadowPos.z -= computeBias(shadowPos) / abs(NdotL);
 }
 
 
@@ -39,9 +50,15 @@ float computeBias(vec3 pos) {
         return (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
     }
 
-    // Applies bias to un-distorted shadow position
-    void applyShadowBias(inout vec3 shadowPos, float NdotL) {
-        shadowPos.z -= computeBias(shadowPos) / abs(NdotL);
+    vec3 recalcShadowZScene(vec3 scenePos, vec2 shadowPosXY) {
+        vec3 shadowPos = calcShadowPosScene(scenePos);
+		shadowPos.z = shadowPos.z * 0.25 + 0.5;
+
+        return vec3(shadowPosXY, shadowPos.z);
+    }
+
+    float shadowLightDirOffset(float offset) {
+        return (mat3(shadowProjection) * (mat3(shadowModelView) * vec3(0.0, 0.0, offset))).z;
     }
 
     // Applies normal offset bias with multiplier to un-distorted shadow position given worldspace alligned normal
@@ -105,12 +122,6 @@ float computeBias(vec3 pos) {
             #endif
         #endif
     }
-
-    // Samples the shadow map without filtering, applying distortion and bias
-    vec3 sampleShadow(vec3 shadowPos, float NdotL) {
-        distortShadowPosBias(shadowPos, NdotL);
-        return shadowVisibility(shadowPos);
-    }
     
     // Samples the shadow map without filtering, applying distortion and normal offset bias
     vec3 sampleShadowNormalBias(vec3 shadowPos, vec3 worldNormal) {
@@ -118,14 +129,23 @@ float computeBias(vec3 pos) {
         return shadowVisibility(shadowPos);
     }
 
-    // Samples the shadow map using PCF filtering, applying distortion and bias per sample
-    vec3 sampleShadowPCF(vec3 shadowPos, float NdotL, float penumbra, int samples, float ditherAngle) {
+    float penumbraScale(float shadowLength) {
+        // return 1.0;
+
+        float factor = shadowLength + Shadow_Distort_Factor;
+        return Shadow_Distort_Factor / (factor*factor);
+        // return 1.0 * (exp2(numerator-1)) / (Shadow_Distort_Factor);
+        // return float(abs(numerator-1.0) < 0.8);
+    }
+
+    // Samples the shadow map using PCF filtering, assuming distortion and bias are already applied
+    vec3 sampleShadowPCF(vec3 shadowPos, float shadowLength, float penumbra, int samples, float ditherAngle) {
         
         vec3 shadowVal = vec3(0.0);
+        float screenPenumbra = penumbra * penumbraScale(shadowLength);
         for(int i = 0; i < samples; i++) {
             vec3 shadowPosTemp = shadowPos;
-            shadowPosTemp.xy += penumbra * GetVogelDiskSample(i, samples, ditherAngle);
-            distortShadowPosBias(shadowPosTemp, NdotL);
+            shadowPosTemp.xy += screenPenumbra * GetVogelDiskSample(i, samples, ditherAngle);
             shadowVal += shadowVisibility(shadowPosTemp);
         }
 
@@ -146,13 +166,13 @@ float computeBias(vec3 pos) {
         return shadowVal / samples;
     }
 
-    float PCSSBlockerDist(vec3 shadowClipPos, float NdotL, float ditherAngle) {
+    float PCSSBlockerDist(vec3 shadowPos, float shadowLength, float ditherAngle) {
         float avgBlockerDepth = 0.0;
         float blockerCount = 0.0;
+        float screenPenumbra = Shadow_PCSS_BlockRadius * penumbraScale(shadowLength);
         for(int i = 0; i < Shadow_PCSS_BlockSamples; i++) {
-            vec3 shadowPosBlocker = shadowClipPos;
-            shadowPosBlocker.xy += Shadow_PCSS_BlockRadius * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
-            distortShadowPosBias(shadowPosBlocker, NdotL);
+            vec3 shadowPosBlocker = shadowPos;
+            shadowPosBlocker.xy += screenPenumbra * GetVogelDiskSample(i, Shadow_PCSS_BlockSamples, ditherAngle);
 
             float blockerDepth = texture(shadowtex0, shadowPosBlocker.xy).r;
             if(blockerDepth < shadowPosBlocker.z) {
@@ -194,16 +214,17 @@ float computeBias(vec3 pos) {
 
     // Calculates the PCSS penumbra size given shadow pos in clip space, and a dither value
     float PCSSPenumbraSize(vec3 shadowClipPos, float avgBlockerDepth) {
-        return min(Shadow_PCSS_BlurScale * ((shadowClipPos.z * 0.25 + 0.5) - avgBlockerDepth) / avgBlockerDepth, Shadow_PCSS_MaxBlur);
+        return min(Shadow_PCSS_BlurScale * ((shadowClipPos.z) - avgBlockerDepth) / avgBlockerDepth, Shadow_PCSS_MaxBlur);
     }
 
     // Samples the shadow map using PCSS filtering, applying distortion and bias
-    vec3 sampleShadowPCSS(vec3 shadowClipPos, float NdotL, float ditherAngle) {
+    vec3 sampleShadowPCSS(vec3 shadowClipPos, float shadowLength, float ditherAngle) {
 
-        float avgBlockerDepth = PCSSBlockerDist(shadowClipPos, NdotL, ditherAngle);
+        float avgBlockerDepth = PCSSBlockerDist(shadowClipPos, shadowLength, ditherAngle);
         float penumbra = PCSSPenumbraSize(shadowClipPos, avgBlockerDepth);
+        // penumbra = 0.00005;
 
-        return sampleShadowPCF(shadowClipPos, NdotL, penumbra, Shadow_PCF_Samples, ditherAngle);
+        return sampleShadowPCF(shadowClipPos, shadowLength, penumbra, Shadow_PCF_Samples, ditherAngle);
     }
 
     // Samples the shadow map using PCSS filtering, applying distortion and normal offset bias

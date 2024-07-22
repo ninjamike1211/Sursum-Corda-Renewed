@@ -84,9 +84,8 @@ bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binSt
 }
 
 
-/* RENDERTARGETS: 0,12 */
+/* RENDERTARGETS: 0 */
 layout(location = 0) out vec3 colorOut;
-layout(location = 1) out float cocOut;
 
 void main() {
 
@@ -141,10 +140,10 @@ void main() {
 	}
 	#endif
 
-	#ifdef DOF
-		float depthLinear = linearizeDepthFast(depth, near, far);
-		float centerDepthLinear = linearizeDepthFast(centerDepthSmooth, near, far);
+	// #ifdef DOF
+	// 	float depthLinear = linearizeDepthFast(depth, near, far);
+	// 	float centerDepthLinear = linearizeDepthFast(centerDepthSmooth, near, far);
 
-		cocOut = getCoCFromDepth(depthLinear, centerDepthLinear);
-	#endif
+	// 	cocOut = getCoCFromDepth(depthLinear, centerDepthLinear);
+	// #endif
 }

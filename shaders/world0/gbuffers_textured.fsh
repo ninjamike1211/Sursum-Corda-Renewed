@@ -1,6 +1,8 @@
 #version 430 compatibility
 // #extension GL_ARB_conservative_depth : enable
 
+#include "/lib/defines.glsl"
+
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform sampler2D normals;
@@ -23,22 +25,34 @@ flat in vec4 tangent;
 flat in vec4 textureBounds;
 flat in uint mcEntity;
 
+#ifdef Shadow_PerVertexDistortion
+	in vec3 shadowPos;
+#endif
+
 #if defined UseVoxelization && defined Parallax_DiscardEdge
 	flat in ivec3 voxelPos;
 	flat in ivec4 pomDiscardEdges;
 #endif
 
+#ifndef Shadow_PerVertexDistortion
 /* RENDERTARGETS: 2,3,4,5,6,7 */
+#else
+/* RENDERTARGETS: 2,3,4,5,6,7,8 */
+#endif
+
 layout(location = 0) out vec4 albedoOut;
 layout(location = 1) out vec2 normalOut;
 layout(location = 2) out vec4 specularOut;
 layout(location = 3) out vec2 lightmapOut;
 layout(location = 4) out uint maskOut;
-layout(location = 5) out vec4 pomOut;
+layout(location = 5) out vec2 pomOut;
+
+#ifdef Shadow_PerVertexDistortion
+	layout(location = 6) out vec3 shadowPosOut;
+#endif
 
 #define gbuffersTextured
 
-#include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
@@ -81,7 +95,7 @@ void main() {
 	// }
 
 	#ifdef Parallax
-		pomOut = vec4(0.0, 0.0, 0.0, 1.0);
+		pomOut = vec2(0.0, 0.0);
 		vec3 pomNormal;
 		pomOut.r = 1.0 - parallax(tangentPos, texcoordFinal, pomNormal, scenePos, lightDir, tbn, textureBounds, atlasSize, dFdXY);
 
@@ -102,17 +116,6 @@ void main() {
 
 	vec3 rawTexNormal = textureGrad(normals, texcoordFinal, dFdXY[0], dFdXY[1]).xyz;
 	vec3 texNormal = tbn * extractNormalZ(rawTexNormal.xy * 2.0 - 1.0);
-
-	#if defined Parallax && defined Parallax_EdgeNormals
-		vec3 pomNormalScene = tbn * pomNormal;
-		if(pomNormal != vec3(0.0, 0.0, 1.0)) {
-			texNormal = pomNormalScene;
-		}
-	#endif
-
-	#ifdef Texture_AO
-		lightmapOut *= (rawTexNormal.z * Texture_AO_Strength) + (1.0 - Texture_AO_Strength);
-	#endif
 
 	lightmapOut *= lightmapOut*lightmapOut;
 	// lightmapOut = (exp2(6*lightmapOut) - 1.0) / 63.0;
@@ -158,6 +161,16 @@ void main() {
 
 	#endif
 
+	#if defined Parallax && defined Parallax_EdgeNormals
+		if(pomNormal != vec3(0.0, 0.0, 1.0)) {
+			texNormal = tbn * pomNormal;
+		}
+	#endif
+
+	#ifdef Texture_AO
+		lightmapOut *= (rawTexNormal.z * Texture_AO_Strength) + (1.0 - Texture_AO_Strength);
+	#endif
+
 	// lightmapOut = clamp(lightmapOut, 0.0, 1.0);
 	// lightmapOut.g = 0.0;
 
@@ -165,6 +178,11 @@ void main() {
 	// normalOut.ba = packNormalVec2(geomNormal);
 
 	maskOut = mcEntityMask(mcEntity);
+
+	#ifdef Shadow_PerVertexDistortion
+		shadowPosOut = shadowPos;
+	#endif
+	// shadowPosOut = vec3(shadowPos.x < 1.0);
 
 	// testOut = vec4((tangentPos.xy - textureBounds.xy) / (textureBounds.zw - textureBounds.xy), 0.0, 1.0);
 	// testOut = vec4(0.0, 0.0, tangentPos.z, 1.0);

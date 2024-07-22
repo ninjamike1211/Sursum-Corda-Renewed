@@ -3,7 +3,7 @@
 #include "/lib/defines.glsl"
 #include "/lib/bloom.glsl"
 
-uniform sampler2D colortex11;
+uniform sampler2D colortex0;
 
 uniform float viewWidth;
 uniform float viewHeight;
@@ -14,5 +14,5 @@ in vec2 texcoord;
 layout(location = 0) out vec4 colorOut;
 
 void main() {
-	colorOut = vec4(bloomUpscale(texcoord*0.015625 + vec2(0.46875, 0.5), colortex11, vec2(viewWidth, viewHeight), vec4(0.46875, 0.5, 0.484375, 0.515625)), 1.0);
+	colorOut = vec4(bloomDownscale(texcoord, colortex0, vec2(viewWidth, viewHeight), vec4(0.0, 0.0, 1.0, 1.0)), 1.0);
 }
