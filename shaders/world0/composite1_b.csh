@@ -29,11 +29,16 @@ void main() {
     }
 
     if(gl_LocalInvocationIndex == 0) {
-        float weightedLogAvg = (HistogramLocal[0] / max((viewWidth * viewHeight * Exposure_Scale * Exposure_Scale) - bin, 1.0)) - 1.0;
+        float weightedLogAvg = (HistogramLocal[0] / (viewWidth * viewHeight * Exposure_Scale * Exposure_Scale)) - 1.0;
         
         float averageLumCurr = exp2(((weightedLogAvg / Local_Bin_Size_Positive) * Log_Lum_Range) + Min_Log_Lum);
 
-        float blend = pow(0.4, frameTime * 2.0);
-        averageLum = mix(averageLumCurr, averageLum, blend);
+        if(averageLum >= 0.0) {
+            float blend = pow(0.4, frameTime * 2.0);
+            averageLum = mix(averageLumCurr, averageLum, blend);
+        }
+        else {
+            averageLum = averageLumCurr;
+        }
     }
 }

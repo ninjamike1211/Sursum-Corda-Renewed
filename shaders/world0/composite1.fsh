@@ -34,11 +34,6 @@ uniform int frameCounter;
 in vec2 texcoord;
 in vec3 viewVector;
 
-layout(std430, binding = 0) buffer Histogram {
-    uint HistogramGlobal[256];
-    float averageLum;
-};
-
 vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
 	float skyLightmap = texture(colortex5, texcoord).g;
 	vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;

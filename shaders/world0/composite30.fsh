@@ -1,6 +1,7 @@
 #version 430 compatibility
 
 #include "/lib/defines.glsl"
+#include "/lib/exposure.glsl"
 #include "/lib/functions.glsl"
 
 uniform sampler2D colortex0;
@@ -10,11 +11,6 @@ uniform float viewWidth;
 uniform float viewHeight;
 
 in vec2 texcoord;
-
-layout(std430, binding = 0) buffer Histogram {
-    uint HistogramGlobal[256];
-    float averageLum;
-};
 
 /* RENDERTARGETS: 0*/
 layout(location = 0) out vec3 sceneColor;
