@@ -7,11 +7,14 @@ uniform sampler2D colortex1;
 
 varying vec2 texcoord;
 
-/* DRAWBUFFERS:0 */
+/* RENDERTARGETS: 0 */
+layout(location = 0) out vec3 colorOut;
 
 void main() {
-	vec3 opaqueColor = texture2D(colortex0, texcoord).rgb;
+	colorOut = texture2D(colortex0, texcoord).rgb;
 	vec4 transparentColor = texture2D(colortex1, texcoord);
 
-	gl_FragData[0] = vec4(mix(opaqueColor, transparentColor.rgb / transparentColor.a, transparentColor.a), 1.0);
+	if(transparentColor.a > EPS) {
+		colorOut = mix(colorOut, transparentColor.rgb / transparentColor.a, transparentColor.a), 1.0;
+	}
 }
