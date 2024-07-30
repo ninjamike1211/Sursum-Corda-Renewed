@@ -43,7 +43,7 @@ const bool shadowtexNearest = false;
 	// #define Shadow_HardwareSampler
 	#define Shadow_Transparent 2			// Controls shadows for transparent shadows. 0 = off. 1 = full shadow. 2 = colored shadow [0 1 2]
 
-	// #define Shadow_PerVertexDistortion
+	#define Shadow_PerVertexDistortion
 
     const bool shadowHardwareFiltering = true;
 	const bool shadowtex0Nearest = false;
@@ -56,10 +56,10 @@ const bool shadowtexNearest = false;
 	#ifdef Shadow_PerVertexDistortion
 		#define Shadow_Bias 0.25                	// Increase this if you get shadow acne. Decrease this if you get peter panning. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00 6.00 7.00 8.00 9.00 10.00]
 	#else
-		#define Shadow_Bias 0.01                	// Increase this if you get shadow acne. Decrease this if you get peter panning. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00 6.00 7.00 8.00 9.00 10.00]
+		#define Shadow_Bias 0.6                	// Increase this if you get shadow acne. Decrease this if you get peter panning. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.60 0.70 0.80 0.90 1.00 1.50 2.00 2.50 3.00 3.50 4.00 4.50 5.00 6.00 7.00 8.00 9.00 10.00]
 	#endif
 	
-    #define Shadow_NormalBias               // Offsets the shadow sample position by the surface normal instead of towards the sun
+    // #define Shadow_NormalBias               // Offsets the shadow sample position by the surface normal instead of towards the sun
 	#define Shadow_PCF_Samples 12			// Number of samples used calculating shadow blur [4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 36 40 44 48 56 64 72 80 88 96 112 128]
 	#define Shadow_PCF_BlurRadius 0.00007	// Blur radius for non-PCSS PCF shadow filtering [0.00000 0.00005 0.00010 0.00015 0.00020 0.00025 0.00030 0.00035 0.00040 0.00045 0.00050]
 	#define Shadow_PCSS_BlurScale 0.015 		// Scale of shadow blur [0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75]
@@ -122,8 +122,8 @@ const bool shadowtexNearest = false;
 	#define MCEntity_Cauldron_Lava 10031
 
 // BitMask
-	#define Mask_Water 128
-	#define Mask_Hand 64
+	#define Mask_Water 128u
+	#define Mask_Hand 64u	
 
 #ifdef Parallax_EdgeNormals
 #endif
