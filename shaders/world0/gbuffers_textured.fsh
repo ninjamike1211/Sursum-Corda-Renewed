@@ -57,6 +57,8 @@ layout(location = 5) out vec2 pomOut;
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/parallax.glsl"
+#include "/lib/material.glsl"
+
 
 void main() {
 	vec3 normal = glNormal;
@@ -123,14 +125,8 @@ void main() {
 
 	#ifdef DirectionalLightmap
 
-		vec3 dFdSceneposX = dFdx(scenePos);
-		vec3 dFdSceneposY = dFdy(scenePos);
-		
-		vec2 dBlockLight = vec2(dFdx(lmcoord.r), dFdy(lmcoord.r));
-		vec2 dSkyLight = vec2(dFdx(lmcoord.g), dFdy(lmcoord.g));
-
-		vec3 blockLightDir = (length(dBlockLight) > 1e-6) ? normalize(dFdSceneposX * dBlockLight.x + dFdSceneposY * dBlockLight.y) : glNormal;
-		vec3 skyLightDir   = (length( dSkyLight ) > 1e-6) ? normalize(dFdSceneposX *  dSkyLight.x  + dFdSceneposY *  dSkyLight.y ) : vec3(0.0, 1.0, 0.0);
+		vec3 blockLightDir = getDirectionalLightmapDir(scenePos, lmcoord.x);
+		vec3 skyLightDir   = getDirectionalLightmapDir(scenePos, lmcoord.y);
 
 		if(length(blockLightDir) > 0.0) {
 			

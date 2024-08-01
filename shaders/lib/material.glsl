@@ -140,6 +140,28 @@ void hardcodeMetalValue(int index, out vec3 F0, out vec3 F82) {
     }
 }
 
+// Concept based on code from CyanEmber and Bálint
+vec3 getDirectionalLightmapDir(vec3 position, float lightmap) {
+    vec2 lmDeriv = vec2(dFdx(lightmap), dFdy(lightmap));
+
+	vec3 xVec = dFdx(position) / lmDeriv.x;
+	vec3 yVec = dFdy(position) / lmDeriv.y; 
+
+    if(isnan(length(xVec)) && isnan(length(yVec))) {
+        return vec3(0.0);
+    }
+    if(isnan(length(xVec))) {
+        return normalize(yVec);
+    }
+    if(isnan(length(yVec))) {
+        return normalize(xVec);
+    }
+
+	vec3 perpendicular = yVec - xVec;
+	vec3 orthogonal = cross(xVec, yVec);
+	return normalize(cross(perpendicular, orthogonal));
+}
+
 vec3 calcLightmap(vec2 lmcoord, vec3 skyAmbientLight) {
     vec3 blockAmbient = vec3(0.8, 0.5, 0.2) * lmcoord.x;
     // vec3 blockAmbient = vec3(0.8, 0.5, 0.2) * (exp2(lmcoord.x*15.0)-1.0) * 0.05;
