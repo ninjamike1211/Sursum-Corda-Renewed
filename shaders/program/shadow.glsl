@@ -26,6 +26,7 @@
     #include "/lib/shadows.glsl"
     #include "/lib/voxel.glsl"
     #include "/lib/weather.glsl"
+    #include "/lib/water.glsl"
 
     void main() {
 
@@ -42,14 +43,22 @@
         // }
 
         // Apply waving geometry
-        #ifdef wavingPlants
+        #if defined(wavingPlants) || defined(Water_VertexOffset)
             int entity = int(mc_Entity.x + 0.5);
-            if(entity > 10000) {
+            vec3 worldPos = modelPos.xyz + cameraPosition;
+
+            #ifdef Water_VertexOffset
+            if(entity == MCEntity_Water) {
+                modelPos.y += waterOffset(worldPos, frameTimeCounter);
+            }
+            #endif
+
+            #ifdef wavingPlants
+            if(entity > 10000 && entity < 10010) {
                 vec3 viewNormal = normalize(gl_Normal);
-                vec3 worldPos = modelPos.xyz + cameraPosition;
-                
                 modelPos.xyz += wavingOffset(worldPos, entity, at_midBlock, viewNormal, frameTimeCounter, rainStrength);
             }
+            #endif
         #endif
 
         gl_Position = gl_ModelViewProjectionMatrix * modelPos;

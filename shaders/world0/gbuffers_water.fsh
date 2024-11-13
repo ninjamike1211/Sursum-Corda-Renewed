@@ -12,6 +12,7 @@ uniform mat4 shadowProjection;
 #include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
 #include "/lib/sky.glsl"
+#include "/lib/water.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
@@ -23,6 +24,8 @@ uniform float alphaTestRef;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int frameCounter;
+uniform vec3 cameraPosition;
+uniform float frameTimeCounter;
 
 in vec2 lmcoord;
 in vec2 texcoord;
@@ -61,15 +64,19 @@ void main() {
 
 	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
 
+	if(mcEntity == MCEntity_Water) {
+		specularOut.r = 1.0;
+		specularOut.g = 0.0/255.0;
+		albedo.a = 0.1;
+
+		texNormal = waterNormal(scenePos + cameraPosition, frameTimeCounter);
+	}
+
 	normalOut.rg = packNormalVec2(texNormal);
 	// normalOut.ba = packNormalVec2(tbn[2]);
 
 	maskOut = mcEntityMask(mcEntity);
 
-	if(mcEntity == MCEntity_Water) {
-		specularOut.r = 1.0;
-		specularOut.g = 229.0/255.0;
-	}
 
 
 	vec3 lightDir = mat3(gbufferModelViewInverse) * normalize(shadowLightPosition);

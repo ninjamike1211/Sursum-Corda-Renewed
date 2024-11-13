@@ -1,17 +1,21 @@
 #version 400 compatibility
 
+uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform vec3 cameraPosition;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int frameCounter;
+uniform float frameTimeCounter;
 
 #define shadowGbuffer
 
 #include "/lib/defines.glsl"
 #include "/lib/spaceConvert.glsl"
 #include "/lib/shadows.glsl"
+#include "/lib/water.glsl"
 
 in vec4 at_tangent;
 in float mc_Entity;
@@ -26,8 +30,17 @@ flat out vec4 tangent;
 flat out uint mcEntity;
 
 void main() {
-	gl_Position = ftransform();
-	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
+	// gl_Position = ftransform();
+
+	vec4 modelPos = gl_Vertex;
+	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * modelPos)).xyz;
+
+	#ifdef Water_VertexOffset
+		vec3 worldPos = scenePos + cameraPosition;
+		scenePos.y += waterOffset(scenePos + cameraPosition, frameTimeCounter);
+	#endif
+
+	gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(scenePos, 1.0));
 
 	#ifdef TAA
 		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;

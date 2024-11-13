@@ -78,6 +78,9 @@ const bool shadowtexNearest = false;
 
 	const float sunPathRotation = -20;
 
+// Water
+	#define Water_VertexOffset
+
 // DOF
 	// #define DOF
 
