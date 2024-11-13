@@ -93,7 +93,7 @@ mat3 tbnNormalTangent(vec3 normal, vec3 tangent) {
 // Creates a TBN matrix from a normal and a tangent
 mat3 tbnNormalTangent(vec3 normal, vec4 tangent) {
     // For DirectX normal mapping you want to switch the order of these 
-    vec3 bitangent = cross(normal, tangent.xyz) * -sign(tangent.w);
+    vec3 bitangent = cross(tangent.xyz, normal) * sign(tangent.w);
     return mat3(tangent.xyz, bitangent, normal);
 }
 

@@ -84,15 +84,23 @@ void main() {
 			directLight *= lmcoord.g;
 		#else
 			#ifdef Shadow_PerVertexDistortion
-				// vec3 shadowPos = calcShadowPosScene(scenePos /* + lightDir * pomShadow.g */);
+				// vec3 shadowPos = calcShadowPosScene(scenePos);
 				// shadowPos = distort(shadowPos) * 0.5 + 0.5;
 				// shadowPos.xy = shadowPosRaw.xy;
-				vec3 shadowPos = recalcShadowZScene(scenePos, shadowPosRaw.xy);
-				float shadowLength = shadowPosRaw.z * length(vec2(1.0));
-				shadowPos.z -= computeBias(shadowLength, NGdotL);
+
+				// vec3 shadowPos = recalcShadowZScene(scenePos, shadowPosRaw.xy);
+				// float shadowLength = shadowPosRaw.z * length(vec2(1.0));
+				// shadowPos.z -= computeBias(shadowLength, NGdotL);
+				// shadowPos.z += shadowLightDirOffset(pomShadow.g);
+
+				vec3 shadowPos = calcShadowPosScene(scenePos);
+				float shadowLength = length(shadowPos.xy);
+				shadowPos = distort(shadowPos) * 0.5 + 0.5;
+				float shadowPosDiff = length(shadowPos.xy - shadowPosRaw.xy);
+				shadowPos.z -= computeBias(shadowLength, NGdotL) * max(1.0 + shadowPosDiff * 2000, 0.0);
 				shadowPos.z += shadowLightDirOffset(pomShadow.g);
 			#else
-				vec3 shadowPos = calcShadowPosScene(scenePos /* + lightDir * pomShadow.g */);
+				vec3 shadowPos = calcShadowPosScene(scenePos);
 				float shadowLength = length(shadowPos.xy);
 				shadowPos = distort(shadowPos) * 0.5 + 0.5;
 				shadowPos.z -= computeBias(shadowLength, NGdotL);
