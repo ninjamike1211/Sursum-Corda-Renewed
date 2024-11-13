@@ -80,6 +80,8 @@ const bool shadowtexNearest = false;
 
 // Water
 	#define Water_VertexOffset
+	#define Water_Height			2.0
+	#define Water_VertexHeightMult	1.0
 
 // DOF
 	// #define DOF

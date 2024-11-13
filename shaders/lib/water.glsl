@@ -11,18 +11,19 @@ vec2 cosDerivs(float amp, vec2 pos, vec2 angle, float posMult, float offset) {
 }
 
 float waterOffset(vec3 worldPos, float time) {
-    // float offset  = 0.05*cos(1.2*worldPos.x + 1.8*time);
-    //       offset += 0.05*cos(0.8*worldPos.z + 0.9*time);
+    float offset  = cosOffset(0.6, worldPos.xz, vec2(cos(2.8), sin(2.8)), 0.5, 1.1*time);
+          offset += cosOffset(0.4, worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.7, 1.6*time);
 
-    float offset  = cosOffset(0.05, worldPos.xz, vec2(cos(2.8), sin(2.8)), 1.2, 1.8*time);
-          offset += cosOffset(0.05, worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.8, 1.8*time);
-
-    return offset;
+    return Water_Height * Water_VertexHeightMult * offset;
 }
 
 vec3 waterNormal(vec3 worldPos, float time) {
-    vec2 derivs  = cosDerivs(0.05, worldPos.xz, vec2(cos(2.8), sin(2.8)), 1.2, 1.8*time);
-         derivs += cosDerivs(0.05, worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.8, 1.8*time);
+    vec2 derivs  = cosDerivs(0.6,   worldPos.xz, vec2(cos(2.8), sin(2.8)), 0.5, 1.1*time);
+         derivs += cosDerivs(0.4,   worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.7, 1.6*time);
+         derivs += cosDerivs(0.05,  worldPos.xz, vec2(cos(0.8), sin(0.8)), 2.0, 2.8*time);
+         derivs += cosDerivs(0.02, worldPos.xz, vec2(cos(1.8), sin(1.8)), 4.0, 3.8*time);
+
+    derivs *= Water_Height;
 
     return normalize(vec3(derivs.x, 1.0, derivs.y));
 }
