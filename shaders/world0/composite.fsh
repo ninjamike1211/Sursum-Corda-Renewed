@@ -11,6 +11,7 @@ uniform usampler2D colortex6;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
 
+uniform int isEyeInWater;
 uniform int frameCounter;
 uniform float viewWidth;
 uniform float viewHeight;
@@ -21,22 +22,37 @@ varying vec2 texcoord;
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec3 colorOut;
 
+void applyWaterFog(inout vec3 sceneColor, float vectorLen) {
+	float fogFactor = exp(-vectorLen*0.07);
+	sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8)*skyLight.skyAmbient, sceneColor, fogFactor);
+}
+
 void main() {
 	uint mask = texture(colortex6, texcoord).r;
 
 	colorOut = texture2D(colortex0, texcoord).rgb;
 	vec4 transparentColor = texture2D(colortex1, texcoord);
 
-	if(mask == Mask_Water) {
-		float waterDepth = texture(depthtex0, texcoord).r;
-		float solidDepth = texture(depthtex1, texcoord).r;
+	float waterDepth = texture(depthtex0, texcoord).r;
+	float solidDepth = texture(depthtex1, texcoord).r;
 
-		vec3 viewPosWater = screenToView(texcoord, waterDepth, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
-		vec3 viewPosSolid = screenToView(texcoord, solidDepth, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
+	vec3 viewPosWater = screenToView(texcoord, waterDepth, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
+	vec3 viewPosSolid = screenToView(texcoord, solidDepth, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
 
-		float fogDist = length(viewPosWater - viewPosSolid);
-		float fogFactor = exp(-fogDist*0.07);
-		colorOut = mix(0.2*vec3(0.4, 0.7, 0.8)*skyLight.skyAmbient, colorOut, fogFactor);
+	if(isEyeInWater == 0) {
+		if(mask == Mask_Water) {
+			float fogDist = length(viewPosWater - viewPosSolid);
+			applyWaterFog(colorOut, fogDist);
+		}
+	}
+	else if(isEyeInWater == 1) {
+		vec3 farPos = viewPosSolid;
+
+		if(waterDepth < 1.0 && mask == Mask_Water)
+			farPos = viewPosWater;
+
+		float fogDist = length(farPos);
+		applyWaterFog(colorOut, fogDist);
 	}
 
 	if(transparentColor.a > EPS) {
