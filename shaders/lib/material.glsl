@@ -165,7 +165,7 @@ vec3 getDirectionalLightmapDir(vec3 position, float lightmap) {
 vec3 calcLightmap(vec2 lmcoord, vec3 skyAmbientLight) {
     vec3 blockAmbient = vec3(0.8, 0.5, 0.2) * lmcoord.x;
     // vec3 blockAmbient = vec3(0.8, 0.5, 0.2) * (exp2(lmcoord.x*15.0)-1.0) * 0.05;
-    vec3 skyAmbient   = skyAmbientLight * lmcoord.y + 0.02;
+    vec3 skyAmbient   = skyAmbientLight * lmcoord.y + 0.0002;
     // vec3 skyAmbient   = skyAmbientLight * (exp2(min(15.0, lmcoord.y*15.0+3))-0.9) * 0.00005;
 
     return blockAmbient + skyAmbient;

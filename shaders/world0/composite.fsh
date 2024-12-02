@@ -35,7 +35,7 @@ void main() {
 		vec3 viewPosSolid = screenToView(texcoord, solidDepth, frameCounter, vec2(viewWidth, viewHeight), gbufferProjectionInverse);
 
 		float fogDist = length(viewPosWater - viewPosSolid);
-		float fogFactor = exp(-fogDist*0.05);
+		float fogFactor = exp(-fogDist*0.07);
 		colorOut = mix(0.2*vec3(0.4, 0.7, 0.8)*skyLight.skyAmbient, colorOut, fogFactor);
 	}
 
