@@ -30,14 +30,17 @@ flat out vec4 tangent;
 flat out uint mcEntity;
 
 void main() {
-	// gl_Position = ftransform();
+	mcEntity = uint(mc_Entity + 0.5);
 
+	// gl_Position = ftransform();
 	vec4 modelPos = gl_Vertex;
 	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * modelPos)).xyz;
 
 	#ifdef Water_VertexOffset
+	if(mcEntity == MCEntity_Water) {
 		vec3 worldPos = scenePos + cameraPosition;
 		scenePos.y += waterOffset(scenePos + cameraPosition, frameTimeCounter);
+	}
 	#endif
 
 	gl_Position = gl_ProjectionMatrix * (gbufferModelView * vec4(scenePos, 1.0));
@@ -47,7 +50,9 @@ void main() {
 	#endif
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	lmcoord = gl_MultiTexCoord1.xy / 240.0;
+	// lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+	// lmcoord = ((gl_TextureMatrix[1] * gl_MultiTexCoord1).xy - 1.0/32.0) * 16.0/15.0;
+	lmcoord = (gl_MultiTexCoord1.xy - 8) / 240.0;
 	glcolor  = gl_Color;
 
 	shadowPos.xyz = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
@@ -57,5 +62,4 @@ void main() {
 	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
 	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
 
-	mcEntity = uint(mc_Entity + 0.5);
 }

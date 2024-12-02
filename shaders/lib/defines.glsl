@@ -79,9 +79,9 @@ const bool shadowtexNearest = false;
 	const float sunPathRotation = -20;
 
 // Water
-	#define Water_VertexOffset
-	#define Water_Height			2.0
-	#define Water_VertexHeightMult	1.0
+	#define Water_Height			0.10	// Sets the high of water waves in blocks. [0.00 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50]
+	#define Water_VertexOffset				// Sets whether vertex displacement is applied to water, causing the geometry to move up and down.
+	#define Water_VertexHeightMult	1.0		// Sets the multiplier for water vertex displacement relative to water normals. [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
 
 // DOF
 	// #define DOF

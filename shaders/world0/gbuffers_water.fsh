@@ -67,7 +67,7 @@ void main() {
 	if(mcEntity == MCEntity_Water) {
 		specularOut.r = 1.0;
 		specularOut.g = 0.0/255.0;
-		albedo.a = 0.1;
+		albedo.a = 0.07;
 
 		texNormal = waterNormal(scenePos + cameraPosition, frameTimeCounter);
 	}

@@ -20,8 +20,10 @@ float waterOffset(vec3 worldPos, float time) {
 vec3 waterNormal(vec3 worldPos, float time) {
     vec2 derivs  = cosDerivs(0.6,   worldPos.xz, vec2(cos(2.8), sin(2.8)), 0.5, 1.1*time);
          derivs += cosDerivs(0.4,   worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.7, 1.6*time);
-         derivs += cosDerivs(0.05,  worldPos.xz, vec2(cos(0.8), sin(0.8)), 2.0, 2.8*time);
+         derivs += cosDerivs(0.04,  worldPos.xz, vec2(cos(0.8), sin(0.8)), 2.0, 2.8*time);
          derivs += cosDerivs(0.02, worldPos.xz, vec2(cos(1.8), sin(1.8)), 4.0, 3.8*time);
+         derivs += cosDerivs(0.01, worldPos.xz, vec2(cos(3.8), sin(3.8)), 6.5, 4.8*time);
+         derivs += cosDerivs(0.01, worldPos.xz, vec2(cos(4.8), sin(5.8)), 8.8, 5.8*time);
 
     derivs *= Water_Height;
 
