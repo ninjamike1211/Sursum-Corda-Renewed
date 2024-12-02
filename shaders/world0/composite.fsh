@@ -3,6 +3,7 @@
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/spaceConvert.glsl"
+#include "/lib/water.glsl"
 #include "/lib/sky.glsl"
 
 uniform sampler2D  colortex0;
@@ -10,6 +11,7 @@ uniform sampler2D  colortex1;
 uniform usampler2D colortex6;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
+uniform sampler2D shadowtex0;
 
 uniform int isEyeInWater;
 uniform int frameCounter;
@@ -22,10 +24,6 @@ varying vec2 texcoord;
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec3 colorOut;
 
-void applyWaterFog(inout vec3 sceneColor, float vectorLen) {
-	float fogFactor = exp(-vectorLen*0.07);
-	sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8)*skyLight.skyAmbient, sceneColor, fogFactor);
-}
 
 void main() {
 	uint mask = texture(colortex6, texcoord).r;
@@ -42,7 +40,8 @@ void main() {
 	if(isEyeInWater == 0) {
 		if(mask == Mask_Water) {
 			float fogDist = length(viewPosWater - viewPosSolid);
-			applyWaterFog(colorOut, fogDist);
+			// simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
+			volumetricWaterFog(colorOut, viewPosWater, viewPosSolid, skyLight.skyDirect, skyLight.skyAmbient, shadowtex0);
 		}
 	}
 	else if(isEyeInWater == 1) {
@@ -52,7 +51,7 @@ void main() {
 			farPos = viewPosWater;
 
 		float fogDist = length(farPos);
-		applyWaterFog(colorOut, fogDist);
+		simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
 	}
 
 	if(transparentColor.a > EPS) {

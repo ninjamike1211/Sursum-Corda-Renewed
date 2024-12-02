@@ -29,3 +29,24 @@ vec3 waterNormal(vec3 worldPos, float time) {
 
     return normalize(vec3(derivs.x, 1.0, derivs.y));
 }
+
+void simpleWaterFog(inout vec3 sceneColor, float vectorLen, vec3 skyAmbient) {
+	float fogFactor = exp(-vectorLen*0.07);
+	sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
+}
+
+void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, vec3 skyDirect, vec3 skyAmbient, sampler2D shadowSampler) {
+    vec3  pos = startPos;
+    vec3  diff = (endPos - startPos) / 16.0;
+    float diffLength = length(diff);
+    float fogFactor = exp(-diffLength*0.07);
+
+    for(int i = 0; i < 16; i++) {
+        pos += diff;
+	    sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
+    }
+    
+    // float vectorLen = length(endPos - startPos);
+    // float fogFactor = exp(-vectorLen*0.07);
+	// sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
+}
