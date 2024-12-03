@@ -1,33 +1,39 @@
 
-float cosOffset(float amp, vec2 pos, vec2 angle, float posMult, float offset) {
-    return amp * cos(posMult*dot(pos, angle) + offset);
+float cosOffset(float amp, vec2 pos, float angle, float posMult, float offset) {
+    return amp * cos(posMult*dot(pos, vec2(cos(angle), sin(angle))) + offset);
 }
 
-vec2 cosDerivs(float amp, vec2 pos, vec2 angle, float posMult, float offset) {
-    float derivX = amp * posMult * angle.x * sin(posMult*dot(pos, angle) + offset);
-    float derivY = amp * posMult * angle.y * sin(posMult*dot(pos, angle) + offset);
+vec2 cosDerivs(float amp, vec2 pos, float angle, float posMult, float offset) {
+    float derivX = amp * posMult * cos(angle) * sin(posMult*dot(pos, vec2(cos(angle), sin(angle))) + offset);
+    float derivY = amp * posMult * sin(angle) * sin(posMult*dot(pos, vec2(cos(angle), sin(angle))) + offset);
 
     return vec2(derivX, derivY);
 }
 
 float waterOffset(vec3 worldPos, float time) {
-    float offset  = cosOffset(0.6, worldPos.xz, vec2(cos(2.8), sin(2.8)), 0.5, 1.1*time);
-          offset += cosOffset(0.4, worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.7, 1.6*time);
+    float offset  = cosOffset(0.550, worldPos.xz, 1.580*PI, 0.125, 0.9*time);
+          offset += cosOffset(0.200, worldPos.xz, 0.966*PI, 0.250, 1.1*time);
+          offset += cosOffset(0.150, worldPos.xz, 1.163*PI, 0.500, 1.3*time);
+          offset += cosOffset(0.100, worldPos.xz, 0.364*PI, 0.750, 1.5*time);
 
     return Water_Height * Water_VertexHeightMult * offset;
 }
 
 vec3 waterNormal(vec3 worldPos, float time) {
-    vec2 derivs  = cosDerivs(0.6,   worldPos.xz, vec2(cos(2.8), sin(2.8)), 0.5, 1.1*time);
-         derivs += cosDerivs(0.4,   worldPos.xz, vec2(cos(4.8), sin(4.8)), 0.7, 1.6*time);
-         derivs += cosDerivs(0.04,  worldPos.xz, vec2(cos(0.8), sin(0.8)), 2.0, 2.8*time);
-         derivs += cosDerivs(0.02, worldPos.xz, vec2(cos(1.8), sin(1.8)), 4.0, 3.8*time);
-         derivs += cosDerivs(0.01, worldPos.xz, vec2(cos(3.8), sin(3.8)), 6.5, 4.8*time);
-         derivs += cosDerivs(0.01, worldPos.xz, vec2(cos(4.8), sin(5.8)), 8.8, 5.8*time);
+    vec2 derivs  = cosDerivs(0.550, worldPos.xz, 1.580*PI, 0.125, 0.9*time);
+         derivs += cosDerivs(0.200, worldPos.xz, 0.966*PI, 0.250, 1.1*time);
+         derivs += cosDerivs(0.150, worldPos.xz, 1.163*PI, 0.500, 1.3*time);
+         derivs += cosDerivs(0.100, worldPos.xz, 0.364*PI, 0.750, 1.5*time);
+
+         derivs += cosDerivs(0.050, worldPos.xz, 1.555*PI, 1.000, 1.8*time);
+         derivs += cosDerivs(0.020, worldPos.xz, 2.175*PI, 1.750, 2.0*time);
+         derivs += cosDerivs(0.010, worldPos.xz, 0.367*PI, 2.750, 2.4*time);
+         derivs += cosDerivs(0.005, worldPos.xz, 0.734*PI, 4.000, 2.9*time);
+         derivs += cosDerivs(0.003, worldPos.xz, 1.967*PI, 6.000, 2.9*time);
 
     derivs *= Water_Height;
 
-    return normalize(vec3(derivs.x, 1.0, derivs.y));
+    return normalize(vec3(derivs.x, derivs.y, 1.0));
 }
 
 void simpleWaterFog(inout vec3 sceneColor, float vectorLen, vec3 skyAmbient) {
@@ -35,18 +41,37 @@ void simpleWaterFog(inout vec3 sceneColor, float vectorLen, vec3 skyAmbient) {
 	sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
 }
 
-void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, vec3 skyDirect, vec3 skyAmbient, sampler2D shadowSampler) {
-    vec3  pos = startPos;
-    vec3  diff = (endPos - startPos) / 16.0;
+#ifdef WaterVolumetrics
+void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float eyeAltitude, vec3 skyDirect, vec3 skyAmbient, float bias, sampler2D shadowSampler) {
+    int sampleCount = 32;
+    
+    vec3  diff = -(endPos - startPos) / sampleCount;
+    vec3  rayPos = endPos + bias*diff;
+
     float diffLength = length(diff);
     float fogFactor = exp(-diffLength*0.07);
 
-    for(int i = 0; i < 16; i++) {
-        pos += diff;
-	    sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
+    float sunDot = normalize(endPos).y;
+
+    for(int i = 0; i < sampleCount; i++) {
+        rayPos += diff;
+
+        vec3 shadowPos = calcShadowPosScene(rayPos);
+        distortShadowPos(shadowPos);
+        float shadowVal = step(shadowPos.z, texture(shadowSampler, shadowPos.xy).x);
+        // vec3 shadowVal = shadowVisibility(shadowPos);
+        // float waterDist = (60.0 - rayPos.y+eyeAltitude) / sunDot;
+        // float waterScatterMult = 1.0-exp(-diffLength*0.07);
+        // waterScatterMult = 1.0;
+
+        vec3 fogColor = 0.04*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
+        // vec3 fogColor = waterScatterMult * 0.1*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
+
+	    sceneColor = mix(fogColor, sceneColor, fogFactor);
     }
     
     // float vectorLen = length(endPos - startPos);
     // float fogFactor = exp(-vectorLen*0.07);
 	// sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
 }
+#endif

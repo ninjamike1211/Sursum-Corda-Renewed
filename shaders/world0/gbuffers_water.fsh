@@ -69,7 +69,7 @@ void main() {
 		specularOut.g = 0.0/255.0;
 		albedo.a = 0.06;
 
-		texNormal = waterNormal(scenePos + cameraPosition, frameTimeCounter);
+		texNormal = tbn * waterNormal(scenePos + cameraPosition, frameTimeCounter);
 	}
 
 	normalOut.rg = packNormalVec2(texNormal);
