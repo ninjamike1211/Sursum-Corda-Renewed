@@ -68,6 +68,7 @@ void main() {
 		specularOut.r = 1.0;
 		specularOut.g = 0.0/255.0;
 		albedo.a = 0.06;
+		// albedo.a = 0.0;
 
 		texNormal = tbn * waterNormal(scenePos + cameraPosition, frameTimeCounter);
 	}

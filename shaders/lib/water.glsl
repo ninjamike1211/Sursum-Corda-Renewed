@@ -51,8 +51,9 @@ void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float
     float diffLength = length(diff);
     float fogFactor = exp(-diffLength*0.07);
 
-    vec3 absorptionCoef = 0.2*vec3(0.3, 0.15, 0.1);
-    float scatteringCoef = 0.002;
+    // vec3 absorptionCoef = 0.2*vec3(0.3, 0.15, 0.1);
+    vec3 absorptionCoef = vec3(0.2, 0.07, 0.06);
+    float scatteringCoef = 0.001;
     // float extinctionCoef = absorptionCoef + scatteringCoef;
     float density = 1.0;
 
@@ -76,8 +77,10 @@ void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float
         // vec3 fogColor = waterScatterMult * 0.1*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
 
         transmittance *= exp(-density * absorptionCoef * diffLength);
-        
-        vec3 lightColor = vec3(0.1, 0.4, 0.9) * (skyAmbient + shadowVal*skyDirect);
+
+        vec3 lightColor = vec3(0.1, 0.3, 0.9) * (skyAmbient + shadowVal*skyDirect);
+        // vec3 lightColor = (1.0-normalize(absorptionCoef)) * (skyAmbient + shadowVal*skyDirect);
+
         vec3 scatteringTrans = exp(-density * absorptionCoef * waterDist);
         inScattering += scatteringCoef * lightColor * diffLength * scatteringTrans;
         // inScattering = vec3(waterDist);
