@@ -28,6 +28,7 @@ uniform int frameCounter;
 uniform float eyeAltitude;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform vec3 sunDir;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 
@@ -55,11 +56,13 @@ void main() {
 	float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
 	// randomAngle = 0.0;
 
+	float sunDot = dot(sunDir, vec3(0.0, 1.0, 0.0));
+
 	if(isEyeInWater == 0) {
 		if(mask == Mask_Water) {
 			// float fogDist = length(viewPosWater - viewPosSolid);
 			// simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
-			volumetricWaterFog(colorOut, scenePosWater, scenePosSolid, eyeAltitude, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+			volumetricWaterFog(colorOut, scenePosWater, scenePosSolid, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
 		}
 	}
 	else if(isEyeInWater == 1) {
@@ -70,7 +73,7 @@ void main() {
 
 		float fogDist = length(farPos);
 		// simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
-		volumetricWaterFog(colorOut, vec3(0.0), farPos, eyeAltitude, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+		volumetricWaterFog(colorOut, vec3(0.0), farPos, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
 
 		// volumetricWaterFog(transparentColor.rgb, vec3(0.0), viewPosWater, skyLight.skyDirect, skyLight.skyAmbient, shadowtex1);
 	}

@@ -42,7 +42,7 @@ void simpleWaterFog(inout vec3 sceneColor, float vectorLen, vec3 skyAmbient) {
 }
 
 #ifdef WaterVolumetrics
-void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float eyeAltitude, vec3 skyDirect, vec3 skyAmbient, float bias, sampler2D shadowSampler) {
+void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float eyeAltitude, float sunDot, vec3 skyDirect, vec3 skyAmbient, float bias, sampler2D shadowSampler) {
     int sampleCount = 32;
     
     vec3  diff = -(endPos - startPos) / sampleCount;
@@ -51,7 +51,15 @@ void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float
     float diffLength = length(diff);
     float fogFactor = exp(-diffLength*0.07);
 
-    float sunDot = normalize(endPos).y;
+    vec3 absorptionCoef = 0.2*vec3(0.3, 0.15, 0.1);
+    float scatteringCoef = 0.002;
+    // float extinctionCoef = absorptionCoef + scatteringCoef;
+    float density = 1.0;
+
+    vec3 transmittance = vec3(1.0);
+    vec3 inScattering = vec3(0.0);
+
+    // float sunDot = normalize(endPos);
 
     for(int i = 0; i < sampleCount; i++) {
         rayPos += diff;
@@ -60,18 +68,30 @@ void volumetricWaterFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float
         distortShadowPos(shadowPos);
         float shadowVal = step(shadowPos.z, texture(shadowSampler, shadowPos.xy).x);
         // vec3 shadowVal = shadowVisibility(shadowPos);
-        // float waterDist = (60.0 - rayPos.y+eyeAltitude) / sunDot;
+        float waterDist = max((63.0 - (rayPos.y+eyeAltitude)) / sunDot, 0.0);
         // float waterScatterMult = 1.0-exp(-diffLength*0.07);
         // waterScatterMult = 1.0;
 
-        vec3 fogColor = 0.04*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
+        // vec3 fogColor = 0.04*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
         // vec3 fogColor = waterScatterMult * 0.1*vec3(0.4, 0.7, 0.8) * (skyAmbient + shadowVal*skyDirect);
 
-	    sceneColor = mix(fogColor, sceneColor, fogFactor);
+        transmittance *= exp(-density * absorptionCoef * diffLength);
+        
+        vec3 lightColor = vec3(0.1, 0.4, 0.9) * (skyAmbient + shadowVal*skyDirect);
+        vec3 scatteringTrans = exp(-density * absorptionCoef * waterDist);
+        inScattering += scatteringCoef * lightColor * diffLength * scatteringTrans;
+        // inScattering = vec3(waterDist);
+        // float outScattering = scatteringCoef * density;
+
+        // vec3 currentLight = inScattering * outScattering;
+
+	    // sceneColor = mix(fogColor, sceneColor, fogFactor);
     }
     
     // float vectorLen = length(endPos - startPos);
     // float fogFactor = exp(-vectorLen*0.07);
 	// sceneColor = mix(0.2*vec3(0.4, 0.7, 0.8) * skyAmbient, sceneColor, fogFactor);
+
+    sceneColor = sceneColor * transmittance + inScattering;
 }
 #endif
