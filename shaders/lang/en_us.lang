@@ -1,4 +1,4 @@
-value.viewBuffer.0=off
+value.viewBuffer.0=off (scene color)
 value.viewBuffer.1=colortex1
 value.viewBuffer.2=colortex2
 value.viewBuffer.3=colortex3
@@ -9,7 +9,7 @@ value.viewBuffer.7=colortex7
 value.viewBuffer.8=colortex8
 value.viewBuffer.9=colortex9
 value.viewBuffer.10=colortex10
-value.viewBuffer.11=colortex11
+value.viewBuffer.11=colortex11 (Bloom tiles)
 value.viewBuffer.12=colortex12
 value.viewBuffer.13=colortex13
 value.viewBuffer.14=colortex14

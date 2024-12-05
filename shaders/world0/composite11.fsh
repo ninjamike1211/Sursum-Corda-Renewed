@@ -14,5 +14,5 @@ in vec2 texcoord;
 layout(location = 0) out vec4 colorOut;
 
 void main() {
-	colorOut = vec4(bloomDownscale(texcoord*0.5, colortex11, vec2(viewWidth, viewHeight), vec4(0.0, 0.0, 0.5, 0.5)), 1.0);
+	colorOut = vec4(bloomDownscale(vec2(1.0, 0.5) * texcoord, colortex11, vec2(0.5*viewWidth, viewHeight), vec4(0.0, 0.0, 1.0, 0.5)), 1.0);
 }

@@ -19,7 +19,7 @@ void main() {
 	sceneColor = texture(colortex0, texcoord).rgb;
 
 	#if Bloom_Levels > 0
-		vec3 bloomColor = texture(colortex11, texcoord*0.5).rgb;
+		vec3 bloomColor = texture(colortex11, texcoord*vec2(1.0, 0.5)).rgb;
 		sceneColor = mix(sceneColor, bloomColor, 0.01);
 	#endif
 
