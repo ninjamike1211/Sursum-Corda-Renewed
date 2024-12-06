@@ -51,7 +51,9 @@ void binSearch(inout vec3 screenPos, vec3 rayStep, sampler2D depthtex, int stepC
     }
 }
 
-bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binStepCount, float jitter, out vec3 hitPos, int frameCounter, vec2 screenSize, float near, float far, sampler2D depthtex, mat4 projectionMatrix) {
+#define SSR_Diff 0.00001
+
+bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, vec3 viewNormal, int stepCount, int binStepCount, float jitter, out vec3 hitPos, int frameCounter, float near, float far, sampler2D depthtex, mat4 projectionMatrix) {
 	if (viewRayDir.z > 0.0 && viewRayDir.z >= -viewPos.z)
         return false;
 	
@@ -60,6 +62,7 @@ bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binSt
 	vec3 rayStep = screenRayDir * min3((sign(screenRayDir) - screenPos) / screenRayDir) * 0.9999 / (stepCount);
 
 	screenPos += rayStep * jitter;
+	// screenPos += (rayStep) / rayStep.z * SSR_Diff;
 
 	for(int i = 0; i < stepCount; i++) {
 		screenPos += rayStep;
@@ -68,7 +71,7 @@ bool ssr(vec3 screenPos, vec3 viewPos, vec3 viewRayDir, int stepCount, int binSt
 		if(clamp(screenPos, 0.0, 1.0) != screenPos) {
 			return false;
 		}
-		else if(screenPos.z - depth > -0.00001) {
+		else if(screenPos.z - depth > -SSR_Diff) {
 			hitPos = screenPos;
 			binSearch(hitPos, rayStep, depthtex, binStepCount);
 			return true;
@@ -122,7 +125,7 @@ void main() {
 		vec3 reflectColor = vec3(0.0);
 
 		#if Reflections == 2
-			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, 32, 4, randomAngle, hitPos, frameCounter, vec2(viewWidth, viewHeight), near, far, depthtex0, gbufferProjection);
+			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, normal, 32, 4, randomAngle, hitPos, frameCounter, near, far, depthtex0, gbufferProjection);
 			if(hit) {
 				reflectColor = texture(colortex0, hitPos.xy).rgb;
 			}

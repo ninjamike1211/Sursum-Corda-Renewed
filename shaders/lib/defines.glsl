@@ -94,7 +94,7 @@ const bool shadowtexNearest = false;
 
 // Reflections
 	#define Reflections 2					// The type of reflections used [0 1 2]
-	#define Reflections_Rough				// Enables rough reflections based on specular roughness
+	// #define Reflections_Rough				// Enables rough reflections based on specular roughness
 
 // Lighting
 	#define EmissiveStrength 1.0
