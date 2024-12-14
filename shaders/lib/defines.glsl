@@ -83,6 +83,8 @@ const bool shadowtexNearest = false;
 	#define Water_VertexOffset				// Sets whether vertex displacement is applied to water, causing the geometry to move up and down.
 	#define Water_VertexHeightMult	1.0		// Sets the multiplier for water vertex displacement relative to water normals. [0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 1.8 2.0]
 
+	#define Water_VolumetricFog
+
 // DOF
 	// #define DOF
 
@@ -129,6 +131,12 @@ const bool shadowtexNearest = false;
 // BitMask
 	#define Mask_Water 128u
 	#define Mask_Hand 64u	
+
+
+// Undefines based on user settings
+#if Shadow_Type == 0
+	#undef Water_VolumetricFog
+#endif
 
 #ifdef Parallax_EdgeNormals
 #endif

@@ -83,6 +83,7 @@ void main() {
 		#if Shadow_Type == 0
 			directLight *= lmcoord.g;
 		#else
+		if(NGdotL > 0.0) {
 			#ifdef Shadow_PerVertexDistortion
 				// vec3 shadowPos = calcShadowPosScene(scenePos);
 				// shadowPos = distort(shadowPos) * 0.5 + 0.5;
@@ -136,6 +137,7 @@ void main() {
 					directLight *= sampleShadowPCSS(shadowPos, shadowLength, randomAngle);
 				#endif
 			#endif
+		}
 		#endif
 
 		vec3 color = cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specular, directLight, lightDir);

@@ -60,9 +60,12 @@ void main() {
 
 	if(isEyeInWater == 0) {
 		if(mask == Mask_Water) {
-			// float fogDist = length(viewPosWater - viewPosSolid);
-			// simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
-			volumetricWaterFog(colorOut, scenePosWater, scenePosSolid, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+			#ifdef Water_VolumetricFog
+				volumetricWaterFog(colorOut, scenePosWater, scenePosSolid, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+			#else
+				float fogDist = length(viewPosWater - viewPosSolid);
+				simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
+			#endif
 		}
 	}
 	else if(isEyeInWater == 1) {
@@ -71,9 +74,12 @@ void main() {
 		if(waterDepth < 1.0 && mask == Mask_Water)
 			farPos = scenePosWater;
 
-		float fogDist = length(farPos);
-		// simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
-		volumetricWaterFog(colorOut, vec3(0.0), farPos, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+		#ifdef Water_VolumetricFog
+			volumetricWaterFog(colorOut, vec3(0.0), farPos, eyeAltitude, sunDot, skyLight.skyDirect, skyLight.skyAmbient, randomAngle, shadowtex1);
+		#else
+			float fogDist = length(farPos);
+			simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
+		#endif
 
 		// volumetricWaterFog(transparentColor.rgb, vec3(0.0), viewPosWater, skyLight.skyDirect, skyLight.skyAmbient, shadowtex1);
 	}
