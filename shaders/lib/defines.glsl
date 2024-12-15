@@ -148,5 +148,9 @@ const bool shadowtexNearest = false;
 #endif
 #ifdef DOF
 #endif
+#ifdef Parallax_DepthOffset
+#endif
+#ifdef DirectionalLightmap
+#endif
 
 #endif

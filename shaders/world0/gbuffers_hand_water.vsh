@@ -1,48 +1,52 @@
-#version 400 compatibility
+#version 430 compatibility
 
-uniform mat4 gbufferModelViewInverse;
-uniform mat4 shadowModelView;
-uniform mat4 shadowProjection;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int frameCounter;
+#define GBUFFERS_TRANSLUCENT_HAND
 
-#define shadowGbuffer
+#include "/program/gbuffers/translucent.vert"
 
-#include "/lib/defines.glsl"
-#include "/lib/spaceConvert.glsl"
-#include "/lib/shadows.glsl"
+// uniform mat4 gbufferModelViewInverse;
+// uniform mat4 shadowModelView;
+// uniform mat4 shadowProjection;
+// uniform float viewWidth;
+// uniform float viewHeight;
+// uniform int frameCounter;
 
-in vec4 at_tangent;
-in float mc_Entity;
+// #define shadowGbuffer
 
-out vec2 lmcoord;
-out vec2 texcoord;
-out vec4 glcolor;
-out vec3 scenePos;
-out vec4 shadowPos;
-flat out vec3 glNormal;
-flat out vec4 tangent;
-flat out uint mcEntity;
+// #include "/lib/defines.glsl"
+// #include "/lib/spaceConvert.glsl"
+// #include "/lib/shadows.glsl"
 
-void main() {
-	gl_Position = ftransform();
-	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
+// in vec4 at_tangent;
+// in float mc_Entity;
 
-	#ifdef TAA
-		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
-	#endif
+// out vec2 lmcoord;
+// out vec2 texcoord;
+// out vec4 glcolor;
+// out vec3 scenePos;
+// out vec4 shadowPos;
+// flat out vec3 glNormal;
+// flat out vec4 tangent;
+// flat out uint mcEntity;
 
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	lmcoord = gl_MultiTexCoord1.xy / 240.0;
-	glcolor  = gl_Color;
+// void main() {
+// 	gl_Position = ftransform();
+// 	scenePos = (gbufferModelViewInverse * (gl_ModelViewMatrix * gl_Vertex)).xyz;
 
-	shadowPos.xyz = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
-	shadowPos.w = length(shadowPos.xy);
-	shadowPos.xyz = distort(shadowPos.xyz) * 0.5 + 0.5;
+// 	#ifdef TAA
+// 		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
+// 	#endif
 
-	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
-	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
+// 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+// 	lmcoord = gl_MultiTexCoord1.xy / 240.0;
+// 	glcolor  = gl_Color;
 
-	mcEntity = uint(mc_Entity + 0.5);
-}
+// 	shadowPos.xyz = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
+// 	shadowPos.w = length(shadowPos.xy);
+// 	shadowPos.xyz = distort(shadowPos.xyz) * 0.5 + 0.5;
+
+// 	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
+// 	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
+
+// 	mcEntity = uint(mc_Entity + 0.5);
+// }

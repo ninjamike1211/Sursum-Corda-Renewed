@@ -1,51 +1,55 @@
-#version 400 compatibility
+#version 430 compatibility
 
-#include "/lib/defines.glsl"
-#include "/lib/functions.glsl"
-#include "/lib/material.glsl"
-#include "/lib/spaceConvert.glsl"
+#define GBUFFERS_BEACONBEAM
 
-uniform sampler2D gtexture;
-uniform sampler2D lightmap;
-uniform sampler2D normals;
-uniform sampler2D specular;
-uniform float alphaTestRef;
+#include "/program/gbuffers/solid.frag"
 
-in vec2 lmcoord;
-in vec2 texcoord;
-in vec4 glcolor;
-flat in vec3 glNormal;
-flat in vec4 tangent;
-flat in uint mcEntity;
+// #include "/lib/defines.glsl"
+// #include "/lib/functions.glsl"
+// #include "/lib/material.glsl"
+// #include "/lib/spaceConvert.glsl"
 
-/* RENDERTARGETS: 2,3,4,5,6 */
-layout(location = 0) out vec4 albedoOut;
-layout(location = 1) out vec2 normalOut;
-layout(location = 2) out vec4 specularOut;
-layout(location = 3) out vec2 lightmapOut;
-layout(location = 4) out uint maskOut;
+// uniform sampler2D gtexture;
+// uniform sampler2D lightmap;
+// uniform sampler2D normals;
+// uniform sampler2D specular;
+// uniform float alphaTestRef;
 
-void main() {
-	albedoOut = texture(gtexture, texcoord) * glcolor;
-	if (albedoOut.a < 0.9) discard;
+// in vec2 lmcoord;
+// in vec2 texcoord;
+// in vec4 glcolor;
+// flat in vec3 glNormal;
+// flat in vec4 tangent;
+// flat in uint mcEntity;
 
-	// albedoOut.rgb = sRGBToLinear3(albedoOut.rgb);
+// /* RENDERTARGETS: 2,3,4,5,6 */
+// layout(location = 0) out vec4 albedoOut;
+// layout(location = 1) out vec2 normalOut;
+// layout(location = 2) out vec4 specularOut;
+// layout(location = 3) out vec2 lightmapOut;
+// layout(location = 4) out uint maskOut;
 
-	specularOut = texture(specular, texcoord);
-	lightmapOut = lmcoord;
+// void main() {
+// 	albedoOut = texture(gtexture, texcoord) * glcolor;
+// 	if (albedoOut.a < 0.9) discard;
+
+// 	// albedoOut.rgb = sRGBToLinear3(albedoOut.rgb);
+
+// 	specularOut = texture(specular, texcoord);
+// 	lightmapOut = lmcoord;
 
 
-	vec3 normal = glNormal;
-	if(!gl_FrontFacing)
-		normal *= -1.0;
+// 	vec3 normal = glNormal;
+// 	if(!gl_FrontFacing)
+// 		normal *= -1.0;
 	
-	mat3 tbn = tbnNormalTangent(normal, tangent);
+// 	mat3 tbn = tbnNormalTangent(normal, tangent);
 
 
-	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
+// 	vec3 texNormal = tbn * extractNormalZ(texture(normals, texcoord).xy * 2.0 - 1.0);
 
-	normalOut.rg = packNormalVec2(texNormal);
-	// normalOut.ba = packNormalVec2(tbn[2]);
+// 	normalOut.rg = packNormalVec2(texNormal);
+// 	// normalOut.ba = packNormalVec2(tbn[2]);
 
-	maskOut = mcEntityMask(mcEntity);
-}
+// 	maskOut = mcEntityMask(mcEntity);
+// }

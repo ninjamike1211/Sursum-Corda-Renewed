@@ -1,36 +1,38 @@
-#version 400 compatibility
+#version 430 compatibility
 
-uniform mat4 gbufferModelViewInverse;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform int frameCounter;
+#include "/program/gbuffers/solid.vert"
 
-#include "/lib/defines.glsl"
-#include "/lib/spaceConvert.glsl"
+// uniform mat4 gbufferModelViewInverse;
+// uniform float viewWidth;
+// uniform float viewHeight;
+// uniform int frameCounter;
 
-in vec4 at_tangent;
-in float mc_Entity;
+// #include "/lib/defines.glsl"
+// #include "/lib/spaceConvert.glsl"
 
-out vec2 lmcoord;
-out vec2 texcoord;
-out vec4 glcolor;
-flat out vec3 glNormal;
-flat out vec4 tangent;
-flat out uint mcEntity;
+// in vec4 at_tangent;
+// in float mc_Entity;
 
-void main() {
-	gl_Position = ftransform();
+// out vec2 lmcoord;
+// out vec2 texcoord;
+// out vec4 glcolor;
+// flat out vec3 glNormal;
+// flat out vec4 tangent;
+// flat out uint mcEntity;
 
-	#ifdef TAA
-		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
-	#endif
+// void main() {
+// 	gl_Position = ftransform();
 
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	lmcoord = gl_MultiTexCoord1.xy / 240.0;
-	glcolor  = gl_Color;
+// 	#ifdef TAA
+// 		gl_Position.xy += taaOffset(frameCounter, vec2(viewWidth, viewHeight)) * gl_Position.w;
+// 	#endif
 
-	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
-	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
+// 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+// 	lmcoord = gl_MultiTexCoord1.xy / 240.0;
+// 	glcolor  = gl_Color;
 
-	mcEntity = uint(mc_Entity + 0.5);
-}
+// 	glNormal = normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * gl_Normal));
+// 	tangent  = vec4(normalize(mat3(gbufferModelViewInverse) * (gl_NormalMatrix * at_tangent.xyz)), at_tangent.w);
+
+// 	mcEntity = uint(mc_Entity + 0.5);
+// }
