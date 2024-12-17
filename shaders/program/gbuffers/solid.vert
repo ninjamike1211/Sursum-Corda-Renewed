@@ -36,8 +36,8 @@ flat out uint mcEntity;
 	out vec3 shadowPos;
 #endif
 
+layout (r8ui) uniform uimage3D voxelImage;
 #if defined UseVoxelization && defined Parallax_DiscardEdge
-    layout (r8ui) uniform uimage3D voxelImage;
 	flat out ivec3 voxelPos;
 	flat out ivec4 pomDiscardEdges;
 #endif

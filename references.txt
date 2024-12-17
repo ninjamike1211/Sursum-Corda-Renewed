@@ -1,3 +1,11 @@
 Exposure:
     https://bruop.github.io/exposure/
     https://www.alextardif.com/HistogramLuminance.html
+
+
+3D blue noise textures (not used)
+    https://github.com/Calinou/free-blue-noise-textures?tab=readme-ov-file
+
+Noise Generator:
+    https://github.com/sixthsurge/volume-noise-generator
+    
