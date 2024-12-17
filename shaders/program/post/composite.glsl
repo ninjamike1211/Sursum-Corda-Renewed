@@ -108,6 +108,30 @@ void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
 	// sceneColor = mix(sceneColor, vec3(3), cloudFactor);
 }
 
+void volumetricFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos, float bias) {
+	int sampleCount = 32;
+    
+    vec3  diff = -(endPos - startPos) / sampleCount;
+    vec3  rayPos = endPos + bias*diff;
+
+	vec3 shadowAccum = vec3(0.0);
+
+	for(int i = 0; i < sampleCount; i++) {
+        rayPos += diff;
+
+		vec3 shadowPos = calcShadowPosScene(rayPos);
+        distortShadowPos(shadowPos);
+        // float shadowVal = step(shadowPos.z, texture(shadowSampler, shadowPos.xy).x);
+        vec3 shadowVal = shadowVisibility(shadowPos);
+		shadowAccum += shadowVal;
+	}
+
+	shadowAccum /= sampleCount;
+
+	applyFog(sceneColor, startPos, endPos);
+	sceneColor += shadowAccum * skyLight.skyDirect * 0.03;
+}
+
 varying vec2 texcoord;
 
 /* RENDERTARGETS: 0 */
@@ -151,10 +175,22 @@ void main() {
 		}
 
 		if(solidDepth != 1.0) {
-			applyFog(colorOut, vec3(0.0), scenePosSolid);
+			#ifdef VolumetricFog
+				volumetricFog(colorOut, vec3(0.0), scenePosSolid, 0.0);
+			#else
+				applyFog(colorOut, vec3(0.0), scenePosSolid);
+			#endif
 		}
 	}
 	else if(isEyeInWater == 1) {
+		if(solidDepth != 1.0) {
+			#ifdef VolumetricFog
+				volumetricFog(colorOut, scenePosWater, scenePosSolid, 0.0);
+			#else
+				applyFog(colorOut, scenePosWater, scenePosSolid);
+			#endif
+		}
+
 		vec3 farPos = scenePosSolid;
 
 		if(waterDepth < 1.0 && mask == Mask_Water)
@@ -166,6 +202,7 @@ void main() {
 			float fogDist = length(farPos);
 			simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
 		#endif
+
 
 		// volumetricWaterFog(transparentColor.rgb, vec3(0.0), viewPosWater, skyLight.skyDirect, skyLight.skyAmbient, shadowtex1);
 	}
