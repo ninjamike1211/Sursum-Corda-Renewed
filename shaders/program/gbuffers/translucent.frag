@@ -4,6 +4,7 @@ uniform sampler2D shadowtex1;
 uniform sampler2D shadowcolor0;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform float rainStrength;
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"

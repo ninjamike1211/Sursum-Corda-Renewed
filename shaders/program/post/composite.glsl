@@ -7,6 +7,7 @@ uniform sampler3D worleyNoise;
 uniform sampler3D perlinNoise;
 uniform mat4 shadowModelView;
 uniform mat4 shadowProjection;
+uniform float rainStrength;
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
@@ -87,7 +88,7 @@ void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
 		float noiseVal = 0.8*worleyVal + 0.2*perlinVal;
 
 		float heightFactor = 1.5* (1.0 - pow(i - VolumetricClouds_Samples/2.0, 2.0) / (VolumetricClouds_Samples/2.0 * VolumetricClouds_Samples/2.0));
-		float density = pow(noiseVal, 8.0) * 40.5;
+		float density = pow(noiseVal, mix(8.0, 3.0, rainStrength)) * mix(40.5, 40.5, rainStrength);
 		// cloudValue += 
 
 		transmittance *= exp(-0.01 * density * diffLength);

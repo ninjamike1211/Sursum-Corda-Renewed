@@ -16,7 +16,7 @@ float waterOffset(vec3 worldPos, float time) {
           offset += cosOffset(0.150, worldPos.xz, 1.163*PI, 0.500, 1.3*time);
           offset += cosOffset(0.100, worldPos.xz, 0.364*PI, 0.750, 1.5*time);
 
-    return Water_Height * Water_VertexHeightMult * offset;
+    return Water_Height * Water_VertexHeightMult * offset * mix(1.0, 3.0, rainStrength);
 }
 
 vec3 waterNormal(vec3 worldPos, float time) {
@@ -31,7 +31,7 @@ vec3 waterNormal(vec3 worldPos, float time) {
          derivs += cosDerivs(0.005, worldPos.xz, 0.734*PI, 4.000, 2.9*time);
          derivs += cosDerivs(0.003, worldPos.xz, 1.967*PI, 6.000, 2.9*time);
 
-    derivs *= Water_Height;
+    derivs *= Water_Height * mix(1.0, 3.0, rainStrength);
 
     return normalize(vec3(derivs.x, derivs.y, 1.0));
 }

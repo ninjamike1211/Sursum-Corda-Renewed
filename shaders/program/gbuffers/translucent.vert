@@ -8,6 +8,7 @@ uniform float viewWidth;
 uniform float viewHeight;
 uniform int frameCounter;
 uniform float frameTimeCounter;
+uniform float rainStrength;
 
 #define shadowGbuffer
 
