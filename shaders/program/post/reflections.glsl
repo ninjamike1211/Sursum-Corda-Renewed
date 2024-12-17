@@ -123,7 +123,7 @@ void main() {
 		vec3 reflectColor = vec3(0.0);
 
 		#if Reflections == 2
-			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, normal, 32, 4, randomAngle, hitPos, frameCounter, near, far, depthtex0, gbufferProjection);
+			bool hit = ssr(vec3(texcoord, depth), viewPos, reflectDir, normal, 32, 4, randomAngle, hitPos, frameCounter, near, far, depthtex1, gbufferProjection);
 			if(hit) {
 				reflectColor = texture(colortex0, hitPos.xy).rgb;
 			}
