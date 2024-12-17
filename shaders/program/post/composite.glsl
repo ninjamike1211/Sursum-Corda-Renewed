@@ -20,6 +20,7 @@ uniform mat4 shadowProjection;
 uniform sampler2D  colortex0;
 uniform sampler2D  colortex1;
 uniform usampler2D colortex6;
+uniform sampler2D  colortex10;
 uniform sampler2D  depthtex0;
 uniform sampler2D  depthtex1;
 // uniform sampler2D shadowtex0;
@@ -29,16 +30,23 @@ uniform int frameCounter;
 uniform float eyeAltitude;
 uniform float viewWidth;
 uniform float viewHeight;
+uniform float frameTimeCounter;
 uniform vec3 sunDir;
 uniform vec3 cameraPosition;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 gbufferProjectionInverse;
 
 
-#define VolumetricClouds
-#define VolumetricClouds_LowHeight 150
-#define VolumetricClouds_HighHeight 450
-#define VolumetricClouds_Samples 64
+void applyFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos) {
+	float fogFactor = exp(-0.001*length(endPos - startPos));
+
+	vec3 skySampleDir = normalize(vec3(endPos));
+	vec2 skySamplePos = projectSphere(skySampleDir);
+	skySamplePos.y = 0.4;
+	vec3 fogSkyColor = texture(colortex10, skySamplePos).rgb;
+
+	sceneColor = mix(fogSkyColor, sceneColor, fogFactor);
+}
 
 void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
 	vec3 samplePosHi = vec3(abs(VolumetricClouds_HighHeight-cameraPosition.y) * scenePos.xz / abs(scenePos.y) + cameraPosition.xz, 1.0);
@@ -61,7 +69,7 @@ void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
 	}
 
 	vec3 diff = -(samplePosHi - samplePosLo) / VolumetricClouds_Samples;
-	float diffLength = length(diff);
+	float diffLength = min(length(diff), 1000.0);
 
 	vec3 currentPos = samplePosHi;
 	// float cloudValue = 0.0;
@@ -70,24 +78,27 @@ void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
 	
 	for(int i = 0; i < VolumetricClouds_Samples; i++) {
 		currentPos += diff;
-		vec3 perlinCoords = vec3(fract(0.01*currentPos.xy), currentPos.z);
+		vec3 perlinCoords = vec3(fract(0.003*currentPos.xy - 0.07*frameTimeCounter), currentPos.z);
 		float perlinVal = texture(perlinNoise, perlinCoords).r;
 
-		vec3 worleyCoords = vec3(fract(0.001*currentPos.xy), currentPos.z);
+		vec3 worleyCoords = vec3(fract(0.001*currentPos.xy + 0.03*frameTimeCounter), currentPos.z);
 		float worleyVal = texture(worleyNoise, worleyCoords).r;
 
-		float noiseVal = 0.75*worleyVal + 0.25*perlinVal;
+		float noiseVal = 0.8*worleyVal + 0.2*perlinVal;
 
 		float heightFactor = 1.5* (1.0 - pow(i - VolumetricClouds_Samples/2.0, 2.0) / (VolumetricClouds_Samples/2.0 * VolumetricClouds_Samples/2.0));
-		float density = pow(noiseVal, 5.0) * 4.5;
+		float density = pow(noiseVal, 8.0) * 40.5;
 		// cloudValue += 
 
 		transmittance *= exp(-0.01 * density * diffLength);
 		inScattering += 0.0002 * skyLight.skyDirect * diffLength * density;
 	}
 
+	// applyFog(inScattering, vec3(0.0), scenePos);
+
 	vec3 cloudSceneColor = sceneColor * transmittance + inScattering;
-	float cloudFactor = exp(-0.002*length(samplePosLo.xy - cameraPosition.xz));
+	float cloudFactor = exp(-0.0003*length(samplePosHi.xy - cameraPosition.xz));
+	// float cloudFactor = 1.0;
 
 	sceneColor = mix(sceneColor, cloudSceneColor, cloudFactor);
 
@@ -123,23 +134,11 @@ void main() {
 
 	float sunDot = dot(sunDir, vec3(0.0, 1.0, 0.0));
 
-	if(solidDepth == 1.0) {
-
-		volumetricClouds(colorOut, scenePosSolid);
-
-		// // if(sign(150-cameraPosition.y) == sign(scenePosWater.y)) {
-		// // 	// float noiseValHi = snoise(0.1*samplePosHi) * 0.5 + 0.5;
-		// // 	float noiseValHi = texture(worleyNoise, fract(vec3(0.01*samplePosHi, 1.0))).r;
-		// // 	colorOut = mix(colorOut, vec3(10.0), noiseValHi);	
-		// // }
-
-		// // if(sign(120-cameraPosition.y) == sign(scenePosWater.y)) {
-		// // 	// float noiseValLo = snoise(0.1*samplePosLo) * 0.5 + 0.5;
-		// // 	float noiseValLo = texture(worleyNoise, fract(vec3(0.01*samplePosLo, 0.0))).r;
-		// // 	colorOut = mix(colorOut, vec3(10.0), noiseValLo);	
-		// // }
-
-	}
+	#ifdef VolumetricClouds
+		if(solidDepth == 1.0) {
+			volumetricClouds(colorOut, scenePosSolid);
+		}
+	#endif
 
 	if(isEyeInWater == 0) {
 		if(mask == Mask_Water) {
@@ -149,6 +148,10 @@ void main() {
 				float fogDist = length(viewPosWater - viewPosSolid);
 				simpleWaterFog(colorOut, fogDist, skyLight.skyAmbient);
 			#endif
+		}
+
+		if(solidDepth != 1.0) {
+			applyFog(colorOut, vec3(0.0), scenePosSolid);
 		}
 	}
 	else if(isEyeInWater == 1) {

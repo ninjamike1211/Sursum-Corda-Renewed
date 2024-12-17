@@ -110,6 +110,13 @@ const bool shadowtexNearest = false;
 	#define Parallax_DiscardEdge
 	#define Parallax_Depth 1.0				// Parallax Depth multiplier (default is 1.0 which is 1/4 block depth) [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
 
+// Volumetric Clouds
+	#define VolumetricClouds
+	#define VolumetricClouds_LowHeight 150	// [100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300]
+	#define VolumetricClouds_HighHeight 450	// [150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450 460 470 480 490 500]
+	#define VolumetricClouds_Samples 64		// [8 12 16 24 32 48 64]
+
+
 // Voxelization
 	// #define UseVoxelization
 
