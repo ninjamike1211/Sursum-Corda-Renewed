@@ -150,7 +150,7 @@ void main() {
 		// float fogFactor = exp(-0.001 * length(scenePos));
 		// color = mix(fogColor, color, fogFactor);
 
-		color = getFogColor(color, playerAltitude, normalize(scenePos), mat3(gbufferModelViewInverse) * normalize(sunPosition), mat3(gbufferModelViewInverse) * normalize(moonPosition), moonPhase);
+		// color = getFogColor(color, playerAltitude, normalize(scenePos), mat3(gbufferModelViewInverse) * normalize(sunPosition), mat3(gbufferModelViewInverse) * normalize(moonPosition), moonPhase);
 
 		colorOut = vec4(color, 1.0);
 	}
