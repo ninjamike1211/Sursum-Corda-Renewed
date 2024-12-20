@@ -1,5 +1,0 @@
-#version 430 compatibility
-
-#define Shadow_TES
-
-#include "/program/shadow.glsl"

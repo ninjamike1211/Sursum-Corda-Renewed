@@ -86,7 +86,10 @@ void main() {
         #elif viewBuffer == 10
             gl_FragData[0] = texture(colortex10, texcoord);
         #elif viewBuffer == 11
-            gl_FragData[0] = texture(colortex11, texcoord);
+            if(texcoord.x >= 0.5)
+                gl_FragData[0] = texture(colortex11, vec2(texcoord.x * 2.0 - 1.0, texcoord.y));
+            else
+                gl_FragData[0] = vec4(0.0);
         #elif viewBuffer == 12
             gl_FragData[0] = texture(colortex12, texcoord);
         #elif viewBuffer == 13
