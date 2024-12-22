@@ -21,9 +21,6 @@ flat in vec4 tangent;
 flat in vec4 textureBounds;
 flat in uint mcEntity;
 
-#ifdef Shadow_PerVertexDistortion
-	in vec3 shadowPos;
-#endif
 
 layout (r8ui) uniform uimage3D voxelImage;
 #if defined UseVoxelization && defined Parallax_DiscardEdge
@@ -31,10 +28,10 @@ layout (r8ui) uniform uimage3D voxelImage;
 	flat in ivec4 pomDiscardEdges;
 #endif
 
-#ifndef Shadow_PerVertexDistortion
-/* RENDERTARGETS: 2,3,4,5,6,7 */
-#else
+#if defined Shadow_PerVertexDistortion && !defined NETHER
 /* RENDERTARGETS: 2,3,4,5,6,7,8 */
+#else
+/* RENDERTARGETS: 2,3,4,5,6,7 */
 #endif
 
 layout(location = 0) out vec4 albedoOut;
@@ -44,9 +41,6 @@ layout(location = 3) out vec2 lightmapOut;
 layout(location = 4) out uint maskOut;
 layout(location = 5) out vec2 pomOut;
 
-#ifdef Shadow_PerVertexDistortion
-	layout(location = 6) out vec3 shadowPosOut;
-#endif
 
 #define gbuffersTextured
 
@@ -55,6 +49,13 @@ layout(location = 5) out vec2 pomOut;
 #include "/lib/spaceConvert.glsl"
 #include "/lib/parallax.glsl"
 #include "/lib/material.glsl"
+
+#ifndef NETHER
+	#ifdef Shadow_PerVertexDistortion
+		in vec3 shadowPos;
+		layout(location = 6) out vec3 shadowPosOut;
+	#endif
+#endif
 
 
 void main() {
@@ -181,7 +182,7 @@ void main() {
         maskOut |= Mask_Hand;
     #endif
 
-	#ifdef Shadow_PerVertexDistortion
+	#if defined Shadow_PerVertexDistortion && !defined NETHER
 		shadowPosOut = shadowPos;
 	#endif
 	// shadowPosOut = vec3(shadowPos.x < 1.0);

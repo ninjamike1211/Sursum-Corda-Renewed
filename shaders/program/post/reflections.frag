@@ -14,7 +14,6 @@ uniform sampler2D colortex3;
 uniform sampler2D colortex4;
 uniform sampler2D colortex5;
 uniform usampler2D colortex6;
-uniform sampler2D colortex10;
 uniform sampler2D depthtex0;
 uniform sampler2D depthtex1;
 uniform mat4 gbufferModelView;
@@ -32,14 +31,22 @@ uniform int frameCounter;
 in vec2 texcoord;
 in vec3 viewVector;
 
-vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
-	float skyLightmap = texture(colortex5, texcoord).g;
-	vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
-	vec2 skySamplePos = projectSphere(sceneReflectDir);
-	vec3 reflectColor = texture(colortex10, skySamplePos).rgb;
-	reflectColor *= linstep(0.0, 0.5, skyLightmap);
-	return reflectColor;
-}
+#ifndef NETHER
+	uniform sampler2D colortex10;
+	vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
+		float skyLightmap = texture(colortex5, texcoord).g;
+		vec3 sceneReflectDir = mat3(gbufferModelViewInverse) * reflectDir;
+		vec2 skySamplePos = projectSphere(sceneReflectDir);
+		vec3 reflectColor = texture(colortex10, skySamplePos).rgb;
+		reflectColor *= linstep(0.0, 0.5, skyLightmap);
+		return reflectColor;
+	}
+#else
+	uniform vec3 fogColor;
+	vec3 getSkyReflection(vec3 reflectDir, vec2 texcoord) {
+		return 0.1*fogColor;
+	}
+#endif
 
 void binSearch(inout vec3 screenPos, vec3 rayStep, sampler2D depthtex, int stepCount) {
     for(int i = 0; i < stepCount; i++) {

@@ -1,16 +1,10 @@
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4 shadowModelView;
-uniform mat4 shadowProjection;
 uniform float rainStrength;
 
 #include "/lib/defines.glsl"
 #include "/lib/functions.glsl"
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
-#include "/lib/shadows.glsl"
 #include "/lib/sky.glsl"
 #include "/lib/water.glsl"
 
@@ -19,22 +13,33 @@ uniform sampler2D lightmap;
 uniform sampler2D normals;
 uniform sampler2D specular;
 uniform mat4 gbufferModelViewInverse;
-uniform vec3 shadowLightPosition;
 uniform float alphaTestRef;
 uniform float viewWidth;
 uniform float viewHeight;
 uniform int frameCounter;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
+uniform vec3 shadowLightPosition;
 
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in vec3 scenePos;
-in vec4 shadowPos;
 flat in vec3 glNormal;
 flat in vec4 tangent;
 flat in uint mcEntity;
+
+#ifndef NETHER
+	uniform sampler2D shadowtex0;
+	uniform sampler2D shadowtex1;
+	uniform sampler2D shadowcolor0;
+	uniform mat4 shadowModelView;
+	uniform mat4 shadowProjection;
+	
+	#include "/lib/shadows.glsl"
+
+	in vec4 shadowPos;
+#endif
 
 /* RENDERTARGETS: 1,2,3,4,5,6 */
 layout(location = 0) out vec4 colorOut;
@@ -90,28 +95,30 @@ void main() {
 	float NGdotL = dot(glNormal, lightDir);
 	vec3 directLight = skyLight.skyDirect;
 
-	#ifdef Shadow_NoiseAnimated
-		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
-	#else
-		float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), 0) * TAU;
-	#endif
+	#ifndef NETHER
+		#ifdef Shadow_NoiseAnimated
+			float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
+		#else
+			float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), 0) * TAU;
+		#endif
 
-	#if Shadow_Type == 0
-		directLight *= lmcoord.g;
+		#if Shadow_Type == 0
+			directLight *= lmcoord.g;
 
-	#else
-		vec3 shadowPosScreen = shadowPos.xyz;
-		shadowPosScreen.z -= computeBias(shadowPos.w, NGdotL);
-		
-		#if Shadow_Type == 1
-			directLight *= shadowVisibility(shadowPosScreen);
+		#else
+			vec3 shadowPosScreen = shadowPos.xyz;
+			shadowPosScreen.z -= computeBias(shadowPos.w, NGdotL);
+			
+			#if Shadow_Type == 1
+				directLight *= shadowVisibility(shadowPosScreen);
 
-		#elif Shadow_Type == 2
-			directLight *= sampleShadowPCF(shadowPosScreen, shadowPos.w, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
+			#elif Shadow_Type == 2
+				directLight *= sampleShadowPCF(shadowPosScreen, shadowPos.w, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
 
-		#elif Shadow_Type == 3
-			directLight *= sampleShadowPCSS(shadowPosScreen, shadowPos.w, randomAngle);
+			#elif Shadow_Type == 3
+				directLight *= sampleShadowPCSS(shadowPosScreen, shadowPos.w, randomAngle);
 
+			#endif
 		#endif
 	#endif
 

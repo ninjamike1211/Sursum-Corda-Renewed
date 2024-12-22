@@ -1,0 +1,5 @@
+#version 400 compatibility
+
+#define NETHER
+
+#include "/program/gbuffers/basic.glsl"

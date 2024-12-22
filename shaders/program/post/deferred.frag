@@ -1,14 +1,8 @@
 
-uniform sampler2D shadowtex0;
-uniform sampler2D shadowtex1;
-uniform sampler2D shadowcolor0;
-uniform mat4 shadowModelView;
-uniform mat4 shadowProjection;
 
 #include "/lib/defines.glsl"
 #include "/lib/material.glsl"
 #include "/lib/spaceConvert.glsl"
-#include "/lib/shadows.glsl"
 #include "/lib/sky.glsl"
 
 uniform sampler2D  depthtex0;
@@ -39,6 +33,18 @@ uniform vec3 lightDir;
 in vec2 texcoord;
 in vec3 viewVector;
 
+#ifndef NETHER
+	uniform sampler2D shadowtex0;
+	uniform sampler2D shadowtex1;
+	uniform sampler2D shadowcolor0;
+	uniform mat4 shadowModelView;
+	uniform mat4 shadowProjection;
+
+	#include "/lib/shadows.glsl"
+#else
+	uniform vec3 fogColor;
+#endif
+
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 colorOut;
 
@@ -62,81 +68,82 @@ void main() {
 		vec2 lmcoord = texture(colortex5, texcoord).rg;
 		vec2 pomShadow = texture(colortex7, texcoord).rg;
 
-		#if Shadow_Type > 0 && defined Shadow_PerVertexDistortion
-			vec3 shadowPosRaw = texture(colortex8, texcoord).xyz;
-		#endif
-
 		vec3 normal = unpackNormalVec2(rawNormal.xy);
 		// vec3 normalGeom = unpackNormalVec2(rawNormal.zw);
 		vec3 normalGeom = normal;
 		float NGdotL = dot(normalGeom, lightDir);
 		vec3 directLight = skyLight.skyDirect * (1.0-pomShadow.r);
 
-        #ifdef Shadow_NoiseAnimated
-            float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
-        #else
-            float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), 0) * TAU;
-        #endif
+		#ifndef NETHER
 
-		// Shadows disabled
-		#if Shadow_Type == 0
-			directLight *= lmcoord.g;
-		#else
-		if(NGdotL > 0.0) {
-			#ifdef Shadow_PerVertexDistortion
-				// vec3 shadowPos = calcShadowPosScene(scenePos);
-				// shadowPos = distort(shadowPos) * 0.5 + 0.5;
-				// shadowPos.xy = shadowPosRaw.xy;
-
-				// vec3 shadowPos = recalcShadowZScene(scenePos, shadowPosRaw.xy);
-				// float shadowLength = shadowPosRaw.z * length(vec2(1.0));
-				// shadowPos.z -= computeBias(shadowLength, NGdotL);
-				// shadowPos.z += shadowLightDirOffset(pomShadow.g);
-
-				vec3 shadowPos = calcShadowPosScene(scenePos);
-				float shadowLength = length(shadowPos.xy);
-				shadowPos = distort(shadowPos) * 0.5 + 0.5;
-				float shadowPosDiff = length(shadowPos.xy - shadowPosRaw.xy);
-				shadowPos.z -= computeBias(shadowLength, NGdotL) * max(1.0 + shadowPosDiff * 2000, 0.0);
-				shadowPos.z += shadowLightDirOffset(pomShadow.g);
+			#ifdef Shadow_NoiseAnimated
+				float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), frameCounter) * TAU;
 			#else
-				vec3 shadowPos = calcShadowPosScene(scenePos);
-				float shadowLength = length(shadowPos.xy);
-				shadowPos = distort(shadowPos) * 0.5 + 0.5;
-				shadowPos.z -= computeBias(shadowLength, NGdotL);
-				shadowPos.z += shadowLightDirOffset(pomShadow.g);
+				float randomAngle = interleaved_gradient(ivec2(gl_FragCoord.xy), 0) * TAU;
 			#endif
 
-			// Shadows no filtering
-			#if Shadow_Type == 1
+			// Shadows disabled
+			#if Shadow_Type == 0
+				directLight *= lmcoord.g;
+			#else
+			if(NGdotL > 0.0) {
+				#ifdef Shadow_PerVertexDistortion
+					vec3 shadowPosRaw = texture(colortex8, texcoord).xyz;
 
-				#ifdef Shadow_NormalBias
-					directLight *= sampleShadowNormalBias(shadowPos, normalGeom);
+					// vec3 shadowPos = calcShadowPosScene(scenePos);
+					// shadowPos = distort(shadowPos) * 0.5 + 0.5;
+					// shadowPos.xy = shadowPosRaw.xy;
+
+					// vec3 shadowPos = recalcShadowZScene(scenePos, shadowPosRaw.xy);
+					// float shadowLength = shadowPosRaw.z * length(vec2(1.0));
+					// shadowPos.z -= computeBias(shadowLength, NGdotL);
+					// shadowPos.z += shadowLightDirOffset(pomShadow.g);
+
+					vec3 shadowPos = calcShadowPosScene(scenePos);
+					float shadowLength = length(shadowPos.xy);
+					shadowPos = distort(shadowPos) * 0.5 + 0.5;
+					float shadowPosDiff = length(shadowPos.xy - shadowPosRaw.xy);
+					shadowPos.z -= computeBias(shadowLength, NGdotL) * max(1.0 + shadowPosDiff * 2000, 0.0);
+					shadowPos.z += shadowLightDirOffset(pomShadow.g);
 				#else
-					directLight *= shadowVisibility(shadowPos);
+					vec3 shadowPos = calcShadowPosScene(scenePos);
+					float shadowLength = length(shadowPos.xy);
+					shadowPos = distort(shadowPos) * 0.5 + 0.5;
+					shadowPos.z -= computeBias(shadowLength, NGdotL);
+					shadowPos.z += shadowLightDirOffset(pomShadow.g);
 				#endif
 
-			// PCF shadows
-			#elif Shadow_Type == 2
-				// vec3 shadowPos = calcShadowPosScene(scenePos);
+				// Shadows no filtering
+				#if Shadow_Type == 1
 
-				#ifdef Shadow_NormalBias
-					directLight *= sampleShadowPCFNormalBias(shadowPos, normalGeom, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
-				#else
-					directLight *= sampleShadowPCF(shadowPos, shadowLength, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
+					#ifdef Shadow_NormalBias
+						directLight *= sampleShadowNormalBias(shadowPos, normalGeom);
+					#else
+						directLight *= shadowVisibility(shadowPos);
+					#endif
+
+				// PCF shadows
+				#elif Shadow_Type == 2
+					// vec3 shadowPos = calcShadowPosScene(scenePos);
+
+					#ifdef Shadow_NormalBias
+						directLight *= sampleShadowPCFNormalBias(shadowPos, normalGeom, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
+					#else
+						directLight *= sampleShadowPCF(shadowPos, shadowLength, Shadow_PCF_BlurRadius, Shadow_PCF_Samples, randomAngle);
+					#endif
+
+				// PCSS shadows
+				#elif Shadow_Type == 3
+					// vec3 shadowPos = calcShadowPosScene(scenePos + lightDir * pomShadow.g);
+
+					#ifdef Shadow_NormalBias
+						directLight *= sampleShadowPCSSNormalBias(shadowPos, normalGeom, randomAngle);
+					#else
+						directLight *= sampleShadowPCSS(shadowPos, shadowLength, randomAngle);
+					#endif
 				#endif
-
-			// PCSS shadows
-			#elif Shadow_Type == 3
-				// vec3 shadowPos = calcShadowPosScene(scenePos + lightDir * pomShadow.g);
-
-				#ifdef Shadow_NormalBias
-					directLight *= sampleShadowPCSSNormalBias(shadowPos, normalGeom, randomAngle);
-				#else
-					directLight *= sampleShadowPCSS(shadowPos, shadowLength, randomAngle);
-				#endif
+			}
 			#endif
-		}
 		#endif
 
 		vec3 color = cookTorrancePBRLighting(albedo, normalize(-scenePos), normal, specular, directLight, lightDir);
@@ -155,13 +162,17 @@ void main() {
 		colorOut = vec4(color, 1.0);
 	}
 	else {
-		vec3 sceneDir = normalize(scenePos);
-		vec3 sunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
-		vec2 skySamplePos = projectSphere(sceneDir);
-		vec3 skyColor = texture(colortex10, skySamplePos).rgb;
-		applySunDisk(skyColor, sceneDir, sunDir);
-		albedo.rgb *= horizonFadeFactor(sceneDir);
-		albedo.rgb += skyColor;
-		colorOut= vec4(albedo, 1.0);
+		#ifndef NETHER
+			vec3 sceneDir = normalize(scenePos);
+			vec3 sunDir = mat3(gbufferModelViewInverse) * normalize(sunPosition);
+			vec2 skySamplePos = projectSphere(sceneDir);
+			vec3 skyColor = texture(colortex10, skySamplePos).rgb;
+			applySunDisk(skyColor, sceneDir, sunDir);
+			albedo.rgb *= horizonFadeFactor(sceneDir);
+			albedo.rgb += skyColor;
+			colorOut = vec4(albedo, 1.0);
+		#else
+			colorOut.rgb = 0.1*fogColor;
+		#endif
 	}
 }

@@ -1,7 +1,5 @@
 uniform mat4 gbufferModelView;
 uniform mat4 gbufferModelViewInverse;
-uniform mat4 shadowModelView;
-uniform mat4 shadowProjection;
 uniform vec3 cameraPosition;
 uniform float frameTimeCounter;
 uniform float rainStrength;
@@ -10,13 +8,11 @@ uniform float viewHeight;
 uniform int renderStage;
 uniform int frameCounter;
 
-#define shadowGbuffer
 
 #include "/lib/defines.glsl"
 #include "/lib/voxel.glsl"
 #include "/lib/weather.glsl"
 #include "/lib/spaceConvert.glsl"
-#include "/lib/shadows.glsl"
 
 in vec4 at_tangent;
 in vec3 at_midBlock;
@@ -32,8 +28,17 @@ flat out vec4 tangent;
 flat out vec4 textureBounds;
 flat out uint mcEntity;
 
-#ifdef Shadow_PerVertexDistortion
-	out vec3 shadowPos;
+
+#ifndef NETHER
+	uniform mat4 shadowModelView;
+	uniform mat4 shadowProjection;
+
+	#define shadowGbuffer
+	#include "/lib/shadows.glsl"
+
+	#ifdef Shadow_PerVertexDistortion
+		out vec3 shadowPos;
+	#endif
 #endif
 
 layout (r8ui) uniform uimage3D voxelImage;
@@ -62,10 +67,12 @@ void main() {
 		gl_Position = ftransform();
 	#endif
 
+	#ifndef NETHER
 	#ifdef Shadow_PerVertexDistortion
 		shadowPos = (shadowProjection * (shadowModelView * vec4(scenePos, 1.0))).xyz;
 		shadowPos.z = length(shadowPos.xy) / length(vec2(1.0));
 		shadowPos.xy = distort(shadowPos).xy * 0.5 + 0.5;
+	#endif
 	#endif
 
 	#ifdef TAA

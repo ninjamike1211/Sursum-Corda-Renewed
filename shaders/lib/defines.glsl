@@ -162,5 +162,9 @@ const bool shadowtexNearest = false;
 #endif
 #ifdef DirectionalLightmap
 #endif
+#ifdef VolumetricFog
+#endif
+#ifdef Water_VolumetricFog
+#endif
 
 #endif
