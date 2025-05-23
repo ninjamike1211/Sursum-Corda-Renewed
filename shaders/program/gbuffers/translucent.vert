@@ -59,8 +59,9 @@ void main() {
 
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	// lmcoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-	// lmcoord = ((gl_TextureMatrix[1] * gl_MultiTexCoord1).xy - 1.0/32.0) * 16.0/15.0;
-	lmcoord = (gl_MultiTexCoord1.xy - 8) / 240.0;
+	lmcoord = ((gl_TextureMatrix[1] * gl_MultiTexCoord1).xy - 1.0/32.0) * 16.0/15.0;
+	// lmcoord = (gl_MultiTexCoord1.xy - 8) / 240.0;
+	// lmcoord = gl_MultiTexCoord1.xy / 240.0;
 	glcolor  = gl_Color;
 
 	#ifndef NETHER

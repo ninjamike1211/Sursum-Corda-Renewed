@@ -172,7 +172,7 @@ void main() {
 			albedo.rgb += skyColor;
 			colorOut = vec4(albedo, 1.0);
 		#else
-			colorOut.rgb = 0.1*fogColor;
+			colorOut.rgb = 0.05*fogColor;
 		#endif
 	}
 }

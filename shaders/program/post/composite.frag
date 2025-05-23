@@ -61,10 +61,15 @@ uniform mat4 gbufferProjectionInverse;
 	}
 #else
 	void applyFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos) {
-		float fogFactor = exp(-0.005*length(endPos - startPos));
-		sceneColor = mix(0.1*fogColor, sceneColor, fogFactor);
+		float fogFactor = exp(-0.01*length(endPos - startPos));
+		sceneColor = mix(0.05*fogColor, sceneColor, fogFactor);
 	}
 #endif
+
+void applyLavaFog(inout vec3 sceneColor, vec3 startPos, vec3 endPos) {
+	float fogFactor = exp(-0.05*length(endPos - startPos));
+	sceneColor = mix(vec3(2.0, 0.4, 0.05), sceneColor, fogFactor);
+}
 
 #ifndef NETHER
 	void volumetricClouds(inout vec3 sceneColor, vec3 scenePos) {
@@ -227,6 +232,10 @@ void main() {
 
 
 			// volumetricWaterFog(transparentColor.rgb, vec3(0.0), viewPosWater, skyLight.skyDirect, skyLight.skyAmbient, shadowtex1);
+		}
+		else if(isEyeInWater == 2) {
+			applyLavaFog(colorOut, vec3(0.0), viewPosSolid);
+			applyLavaFog(transparentColor.rgb, vec3(0.0), viewPosWater);
 		}
 	// #endif
 
